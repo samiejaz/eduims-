@@ -7,6 +7,9 @@ import CustomerBranchEntry from "../components/CustomerEntryModal/CustomerBranch
 import { AppConfigurationContext } from "../context/AppConfigurationContext";
 import { FormProvider, useForm } from "react-hook-form";
 import CustomerAccountEntry from "../components/CustomerEntryModal/CustomerAccountsEntry";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const customerEntryDefaultValues = {
   CustomerName: "",
@@ -66,7 +69,10 @@ const customerAccountsData = [
 ];
 
 const useCustomerEntryHook = () => {
+  console.log("Hook Re-rendered!!");
+
   const [visible, setVisible] = useState(false);
+  const [CustomerID, setCustomerID] = useState(0);
   const [dialogIndex, setDialogIndex] = useState(0);
   const { pageTitles } = useContext(AppConfigurationContext);
 
@@ -76,17 +82,60 @@ const useCustomerEntryHook = () => {
   });
   const customerBranchFrom = useForm(customerBranchDefaultValues);
 
+  let customerMutaion = useMutation({
+    mutationFn: async (formData) => {
+      let DataToSend = { ...formData };
+
+      const { data } = await axios.post(
+        "http://localhost:3000/customerEntry",
+        DataToSend
+      );
+
+      if (data.success === true) {
+        toast.success("Customer Created", {
+          position: "top-right",
+        });
+        setCustomerID(data.CustomerID);
+
+        if (dialogIndex < dialogs.length - 1) {
+          console.log(dialogIndex);
+          setDialogIndex(dialogIndex + 1);
+        }
+      } else {
+        toast.error(data.message);
+      }
+    },
+  });
+  let accountsMutation = useMutation({
+    mutationFn: async (formData) => {
+      let DataToSend = { ...formData, CustomerID };
+
+      const { data } = await axios.post(
+        "http://localhost:3000/customerAccounts",
+        DataToSend
+      );
+
+      if (data.success === true) {
+        toast.success("Accounts Created", {
+          position: "top-right",
+        });
+
+        if (dialogIndex < dialogs.length - 1) {
+          console.log(dialogIndex);
+          setDialogIndex(dialogIndex + 1);
+        }
+      } else {
+        toast.error(data.message);
+      }
+    },
+  });
+
   function customerHandleSubmit(data) {
-    if (dialogIndex < dialogs.length - 1) {
-      setDialogIndex(dialogIndex + 1);
-    }
+    customerMutaion.mutate(data);
   }
 
   function customerAccountsSubmit(data) {
-    console.log(data);
-    if (dialogIndex < dialogs.length - 1) {
-      setDialogIndex(dialogIndex + 1);
-    }
+    accountsMutation.mutate(data);
   }
 
   function customerBranchSubmit(data) {
@@ -97,6 +146,7 @@ const useCustomerEntryHook = () => {
 
   function handleCancelClick() {
     setDialogIndex(0);
+    setCustomerID(0);
     customerEntryFrom.reset(customerEntryDefaultValues);
     customerBranchFrom.reset(customerBranchDefaultValues);
     customerAccountsForm.reset(customerAccountsForm);
@@ -121,6 +171,7 @@ const useCustomerEntryHook = () => {
             <CustomerAccountEntry
               pageTitles={pageTitles}
               customerAccountsData={null}
+              CustomerID={CustomerID}
             />
           </FormProvider>
         </>
@@ -134,6 +185,7 @@ const useCustomerEntryHook = () => {
             <CustomerBranchEntry
               pageTitles={pageTitles}
               customerBranchData={null}
+              CustomerID={CustomerID}
             />
           </FormProvider>
         </>
@@ -185,10 +237,6 @@ const useCustomerEntryHook = () => {
             customerAccountsForm.handleSubmit(customerAccountsSubmit)();
           } else if (dialogIndex === 2) {
             customerBranchFrom.handleSubmit(customerBranchSubmit)();
-          }
-
-          if (dialogIndex < dialogs.length - 1) {
-            setDialogIndex(dialogIndex + 1);
           }
         }}
         className="p-button-p text-center"

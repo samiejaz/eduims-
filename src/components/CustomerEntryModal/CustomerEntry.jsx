@@ -1,14 +1,15 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
 import { Form, Row, Col } from "react-bootstrap";
 
 function CustomerEntry(props) {
+  console.log("Customer Re-renderd");
+
   const { customersEntryData } = props;
 
   const {
     register,
-    handleSubmit,
     setValue,
     formState: { errors },
   } = useFormContext();
