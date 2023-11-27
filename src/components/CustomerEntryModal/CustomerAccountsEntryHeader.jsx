@@ -1,7 +1,10 @@
 import { useForm } from "react-hook-form";
-import { Row, Col, Button, Form } from "react-bootstrap";
+import { Row, Col, Form } from "react-bootstrap";
+import { Button } from "primereact/button";
 
 export function CustomerAccountDataTableHeader(props) {
+  console.log("Accounts Header Re-rendered");
+
   const { append, pageTitles } = props;
 
   const { register, handleSubmit, reset } = useForm();
@@ -28,7 +31,11 @@ export function CustomerAccountDataTableHeader(props) {
                   // disabled: !isEnable,
                 })}
               />
-              <Button variant="success" type="submit">
+              <Button
+                severity="success"
+                className="px-4 py-2 rounded-1 "
+                type="submit"
+              >
                 Add
               </Button>
             </div>

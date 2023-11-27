@@ -230,6 +230,7 @@ function GenOldCustomerEntryForm() {
     GenCustomerDataContext
   );
   const { setKey } = useContext(ActiveKeyContext);
+  const { setVisible, render } = useCustomerEntryHook();
 
   useEffect(() => {
     async function fetchOldCustomer() {
@@ -391,6 +392,11 @@ function GenOldCustomerEntryForm() {
         </>
       ) : (
         <>
+          <button className="btn btn-primary " onClick={() => setVisible(true)}>
+            {" "}
+            Add
+          </button>
+          {render}
           <h4 className="p-3 mb-4 bg-light text-dark text-center  ">
             New Customer Entry
           </h4>

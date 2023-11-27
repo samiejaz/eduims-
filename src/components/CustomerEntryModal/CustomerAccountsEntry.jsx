@@ -1,11 +1,13 @@
-import React, { useEffect } from "react";
-import { useFieldArray, useForm, useFormContext } from "react-hook-form";
+import { useEffect } from "react";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
-import { Form, Row, Col, ButtonGroup, Button, Table } from "react-bootstrap";
+import { Row, ButtonGroup, Table } from "react-bootstrap";
+import { Button } from "primereact/button";
+import { InputText } from "primereact/inputtext";
 import { CustomerAccountDataTableHeader } from "./CustomerAccountsEntryHeader";
 
 function CustomerAccountEntry(props) {
-  const { pageTitles, customerAccountsData } = props;
+  const { pageTitles, customerAccountsData, CustomerID } = props;
 
   const {
     register,
@@ -15,14 +17,14 @@ function CustomerAccountEntry(props) {
     formState: { errors },
   } = useFormContext();
 
+  useEffect(() => {
+    console.log(CustomerID);
+  }, [CustomerID]);
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: "accountsDetail",
   });
-
-  function onSubmit(data) {
-    console.log(data);
-  }
 
   useEffect(() => {
     if (customerAccountsData) {
@@ -41,10 +43,7 @@ function CustomerAccountEntry(props) {
           append={append}
         />
       </div>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        onKeyDown={preventFormByEnterKeySubmission}
-      >
+      <form onKeyDown={preventFormByEnterKeySubmission}>
         <Row className="mt-2">
           <Table bordered hover size="sm" responsive>
             <thead className="rounded-2">
@@ -52,13 +51,13 @@ function CustomerAccountEntry(props) {
                 {/* <th className="p-2 bg-info text-white">No</th> */}
                 <th
                   className="p-2 text-white rounded-2 "
-                  style={{ background: "#6366f1" }}
+                  style={{ background: "#0ea5e9" }}
                 >
                   Account Title
                 </th>
                 <th
                   className="p-2 text-white rounded-2"
-                  style={{ width: "80px", background: "#6366f1" }}
+                  style={{ width: "80px", background: "#0ea5e9" }}
                 >
                   Actions
                 </th>
@@ -68,12 +67,9 @@ function CustomerAccountEntry(props) {
               {fields.map((item, index) => {
                 return (
                   <tr key={item.id}>
-                    {/* <td className="text-center" style={{ width: "60px" }}>
-                      <p className="text-center">{index + 1}</p>
-                    </td> */}
                     <td>
-                      <Form.Control
-                        type="text"
+                      <InputText
+                        // type="text"
                         required
                         className="form-control"
                         {...register(`accountsDetail.${index}.AccountTitle`)}
@@ -81,12 +77,20 @@ function CustomerAccountEntry(props) {
                     </td>
                     <td>
                       <ButtonGroup>
-                        <Button variant="success" onClick={() => append(index)}>
-                          +
-                        </Button>
-                        <Button variant="danger" onClick={() => remove(index)}>
-                          -
-                        </Button>
+                        <Button
+                          icon="pi pi-plus"
+                          className="rounded-2 py-2"
+                          severity="success"
+                          aria-label="Cancel"
+                          onClick={() => append(index)}
+                        />
+                        <Button
+                          icon="pi pi-times"
+                          className="rounded-2 py-2"
+                          severity="danger"
+                          aria-label="Cancel"
+                          onClick={() => remove(index)}
+                        />
                       </ButtonGroup>
                     </td>
                   </tr>

@@ -1,30 +1,39 @@
-import React, { useEffect } from "react";
-import { Controller, useForm, useFormContext } from "react-hook-form";
+import { useEffect, useState } from "react";
+import {
+  Controller,
+  useFieldArray,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
 import { Form, Row, Col } from "react-bootstrap";
-import { fetchAllOldCustomersForSelect } from "../../api/SelectData";
 import { useQuery } from "@tanstack/react-query";
 import Select from "react-select";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 function CustomerBranchEntry(props) {
-  const { pageTitles, customerBranchData } = props;
+  console.log("Branch Re-rendered");
+  const { pageTitles, customerBranchData, CustomerID } = props;
 
-  const {
-    register,
-    control,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useFormContext();
+  const { register, control, handleSubmit, setValue, watch } = useFormContext();
 
   function onSubmit(data) {
     console.log(data);
   }
 
-  const { data } = useQuery({
-    queryKey: ["oldcustomers"],
-    queryFn: () => fetchAllOldCustomersForSelect(),
+  const { data: CustomerAccounts } = useQuery({
+    queryKey: ["customerAccounts", CustomerID],
+    queryFn: async () => {
+      let { data } = await axios.get(
+        "http://localhost:3000/getAccounts?CustomerID=" + CustomerID
+      );
+      if (data.success === true) {
+        toast.success("Accounts Populated!");
+        return data.data;
+      }
+    },
+    enabled: CustomerID !== 0,
     initialData: [],
   });
 
@@ -48,7 +57,10 @@ function CustomerBranchEntry(props) {
     }
   }, [customerBranchData]);
 
-  let isEnable = true;
+  const { fields } = useFieldArray({
+    control,
+    name: "branchesDetail",
+  });
 
   return (
     <>
@@ -73,38 +85,44 @@ function CustomerBranchEntry(props) {
             />
           </Form.Group>
           <Form.Group as={Col} controlId="Customers">
-            <Form.Label>{pageTitles?.branch || "Accounts"}</Form.Label>
+            <Form.Label>{pageTitles?.branch || "CustomerAccounts"}</Form.Label>
             <span className="text-danger fw-bold ">*</span>
             <Controller
               control={control}
-              name="Customers"
+              name="CustomerAccounts"
               render={({ field: { onChange, value } }) => (
                 <Select
                   required
-                  isDisabled={watch("CreateNewAccount")}
-                  options={data}
-                  getOptionValue={(option) => option.CustomerID}
-                  getOptionLabel={(option) => option.CustomerName}
+                  // isDisabled={watch("CreateNewAccount")}
+                  options={CustomerAccounts}
+                  getOptionValue={(option) => option.AccountID}
+                  getOptionLabel={(option) => option.AccountTitle}
                   value={value}
                   onChange={(selectedOption) => onChange(selectedOption)}
                   placeholder="Select a customer"
                   noOptionsMessage={() => "No customers found!"}
                   isClearable
+                  isMulti
                 />
               )}
             />
           </Form.Group>
           <Form.Group as={Col} controlId="CreateNewAccount">
             <Form.Label></Form.Label>
-            <div className="form-control" style={{ marginTop: "5px" }}>
-              <Form.Check
-                aria-label="CreateNewAccount"
-                label="Create New Account"
-                {...register("CreateNewAccount", {
-                  // disabled: !isEnable,
-                })}
-              />
-            </div>
+            {/* <div className="form-control" style={{ marginTop: "5px" }}>
+          </div> */}
+            <Controller
+              control={control}
+              name="CreateNewAccount"
+              render={({ field: { onChange, value } }) => (
+                <Form.Check
+                  aria-label="CreateNewAccount"
+                  label="Create New Account"
+                  value={value}
+                  onChange={(v) => onChange(v)}
+                />
+              )}
+            />
           </Form.Group>
         </Row>
 

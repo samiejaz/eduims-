@@ -8,6 +8,7 @@ import ReactDatePicker from "react-datepicker";
 import { AppConfigurationContext } from "../../context/AppConfigurationContext";
 import { DevTool } from "@hookform/devtools";
 import useCustomerEntryHook from "../../hooks/useCustomerEntryHook";
+import { CustomerEntryForm } from "../../components/CustomerEntryFormComponent";
 
 let renderCount = 0;
 function CustomerInvoice() {
@@ -40,7 +41,6 @@ function CustomerInvoiceSearch() {}
 function CustomerInvoiceForm({ pageTitles }) {
   renderCount++;
   const [customerBranchesData, setCustomerBranchesData] = useState([]);
-  const { render, setVisible } = useCustomerEntryHook();
 
   const sessionSelectData = [
     {
@@ -102,9 +102,7 @@ function CustomerInvoiceForm({ pageTitles }) {
         Customer Invoice ({renderCount})
       </h4>
 
-      <button onClick={() => setVisible(true)} className="btn btn-primary ">
-        Add Customer
-      </button>
+      <CustomerEntryForm />
 
       <FormProvider {...method}>
         <form onSubmit={method.handleSubmit(onSubmit)} id="parenForm">
@@ -240,8 +238,6 @@ function CustomerInvoiceForm({ pageTitles }) {
         </Row>
       </FormProvider>
       <DevTool control={method.control} />
-
-      {render}
     </>
   );
 }
