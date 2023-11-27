@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Controller,
   useFieldArray,
@@ -15,6 +15,21 @@ import { toast } from "react-toastify";
 function CustomerBranchEntry(props) {
   console.log("Branch Re-rendered");
   const { pageTitles, customerBranchData, CustomerID } = props;
+  // let CustomerID;
+  // let pageTitles;
+  // let customerBranchData;
+
+  React.useEffect(() => {
+    console.log("anObject changed");
+  }, [pageTitles]);
+
+  React.useEffect(() => {
+    console.log("aFn changed");
+  }, [customerBranchData]);
+
+  React.useEffect(() => {
+    console.log("aValue changed");
+  }, [CustomerID]);
 
   const { register, control, handleSubmit, setValue, watch } = useFormContext();
 
@@ -62,6 +77,11 @@ function CustomerBranchEntry(props) {
     name: "branchesDetail",
   });
 
+  let checkBox = useWatch({
+    control,
+    name: "CreateNewAccount",
+  });
+
   return (
     <>
       <form
@@ -94,6 +114,7 @@ function CustomerBranchEntry(props) {
                 <Select
                   required
                   // isDisabled={watch("CreateNewAccount")}
+                  isDisabled={!checkBox}
                   options={CustomerAccounts}
                   getOptionValue={(option) => option.AccountID}
                   getOptionLabel={(option) => option.AccountTitle}
@@ -206,4 +227,4 @@ function CustomerBranchEntry(props) {
   );
 }
 
-export default CustomerBranchEntry;
+export default React.memo(CustomerBranchEntry);

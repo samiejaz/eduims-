@@ -68,7 +68,10 @@ const customerAccountsData = [
   },
 ];
 
+let renderCount = 0;
+
 const useCustomerEntryHook = () => {
+  renderCount++;
   console.log("Hook Re-rendered!!");
 
   const [visible, setVisible] = useState(false);
@@ -154,7 +157,7 @@ const useCustomerEntryHook = () => {
 
   const dialogs = [
     {
-      header: "Customer Entry",
+      header: `Customer Entry (${renderCount})`,
       content: (
         <>
           <FormProvider {...customerEntryFrom}>
@@ -164,7 +167,7 @@ const useCustomerEntryHook = () => {
       ),
     },
     {
-      header: "Customer Accounts",
+      header: `Customer Accounts (${renderCount})`,
       content: (
         <>
           <FormProvider {...customerAccountsForm}>
@@ -178,14 +181,14 @@ const useCustomerEntryHook = () => {
       ),
     },
     {
-      header: "Customer Branches",
+      header: `Customer Branches (${renderCount})`,
       content: (
         <>
           <FormProvider {...customerBranchFrom}>
             <CustomerBranchEntry
-              pageTitles={pageTitles}
-              customerBranchData={null}
-              CustomerID={CustomerID}
+            // pageTitles={pageTitles}
+            // customerBranchData={null}
+            // CustomerID={CustomerID}
             />
           </FormProvider>
         </>
