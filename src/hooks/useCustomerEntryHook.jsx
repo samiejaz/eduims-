@@ -10,6 +10,7 @@ import CustomerAccountEntry from "../components/CustomerEntryModal/CustomerAccou
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { AuthContext } from "../context/AuthContext";
 
 const customerEntryDefaultValues = {
   CustomerName: "",
@@ -68,65 +69,53 @@ const customerAccountsData = [
   },
 ];
 
+const apiUrl = import.meta.env.VITE_APP_API_URL;
+
 const useCustomerEntryHook = () => {
-  console.log("Hook Re-rendered!!");
+  const { user } = useContext(AuthContext);
 
   const [visible, setVisible] = useState(false);
   const [CustomerID, setCustomerID] = useState(0);
   const [dialogIndex, setDialogIndex] = useState(0);
-  const { pageTitles } = useContext(AppConfigurationContext);
 
   const customerEntryFrom = useForm(customerEntryDefaultValues);
   const customerAccountsForm = useForm({
     defaultValues: customerAccountDefaultValues,
   });
   const customerBranchFrom = useForm(customerBranchDefaultValues);
-
   let customerMutaion = useMutation({
     mutationFn: async (formData) => {
-      let DataToSend = { ...formData };
+      let DataToSend = {
+        CustomerID: 0,
+        ContactPerson1Email: formData?.ContactPerson1Email,
+        ContactPerson1Name: formData?.ContactPerson1Name,
+        ContactPerson1No: formData?.ContactPerson1No,
+        CustomerBusinessAddress: formData?.CustomerBusinessAddress,
+        CustomerBusinessName: formData.CustomerBusinessName,
+        CustomerName: formData.CustomerName,
+        Description: formData?.Description,
+        InActive: formData?.InActive === false ? 0 : 1,
+        EntryUserID: user.userID,
+      };
 
       const { data } = await axios.post(
-        "http://localhost:3000/customerEntry",
+        apiUrl + "/EduIMS/NewCustomerInsert",
         DataToSend
       );
 
       if (data.success === true) {
-        toast.success("Customer Created", {
-          position: "top-right",
-        });
         setCustomerID(data.CustomerID);
-
-        if (dialogIndex < dialogs.length - 1) {
-          console.log(dialogIndex);
-          setDialogIndex(dialogIndex + 1);
-        }
+        toast.success("Customer saved successfully!");
+        setDialogIndex(dialogIndex + 1);
       } else {
-        toast.error(data.message);
+        toast.error(data.message, {
+          autoClose: 1500,
+        });
       }
     },
-  });
-  let accountsMutation = useMutation({
-    mutationFn: async (formData) => {
-      let DataToSend = { ...formData, CustomerID };
-
-      const { data } = await axios.post(
-        "http://localhost:3000/customerAccounts",
-        DataToSend
-      );
-
-      if (data.success === true) {
-        toast.success("Accounts Created", {
-          position: "top-right",
-        });
-
-        if (dialogIndex < dialogs.length - 1) {
-          console.log(dialogIndex);
-          setDialogIndex(dialogIndex + 1);
-        }
-      } else {
-        toast.error(data.message);
-      }
+    onError: (error) => {
+      console.log(error);
+      toast.error("Error while saving data!");
     },
   });
 
@@ -158,7 +147,7 @@ const useCustomerEntryHook = () => {
       content: (
         <>
           <FormProvider {...customerEntryFrom}>
-            <CustomerEntry customersEntryData={null} />
+            <CustomerEntry />
           </FormProvider>
         </>
       ),
@@ -168,11 +157,7 @@ const useCustomerEntryHook = () => {
       content: (
         <>
           <FormProvider {...customerAccountsForm}>
-            <CustomerAccountEntry
-              pageTitles={pageTitles}
-              customerAccountsData={null}
-              CustomerID={CustomerID}
-            />
+            <CustomerAccountEntry CustomerID={CustomerID} />
           </FormProvider>
         </>
       ),
@@ -182,11 +167,7 @@ const useCustomerEntryHook = () => {
       content: (
         <>
           <FormProvider {...customerBranchFrom}>
-            <CustomerBranchEntry
-              pageTitles={pageTitles}
-              customerBranchData={null}
-              CustomerID={CustomerID}
-            />
+            <CustomerBranchEntry />
           </FormProvider>
         </>
       ),
@@ -217,7 +198,7 @@ const useCustomerEntryHook = () => {
       />
       <Button
         label="Next"
-        icon="pi pi-arrow-left"
+        icon="pi pi-arrow-right"
         onClick={() => {
           if (dialogIndex < dialogs.length - 1) {
             setDialogIndex(dialogIndex + 1);
@@ -228,7 +209,6 @@ const useCustomerEntryHook = () => {
       />
       <Button
         label={"Save"}
-        icon="pi pi-arrow-right"
         type="submit"
         onClick={() => {
           if (dialogIndex === 0) {

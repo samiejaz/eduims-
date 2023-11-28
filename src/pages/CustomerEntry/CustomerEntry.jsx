@@ -277,6 +277,8 @@ function GenOldCustomerEntryForm() {
         EntryDate: "",
       };
 
+      console.log(DataToSend);
+
       if (CustomerData?.data[0]?.CustomerID !== 0) {
         DataToSend.CustomerID = CustomerData?.data[0]?.CustomerID;
       } else {
