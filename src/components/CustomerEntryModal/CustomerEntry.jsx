@@ -4,8 +4,6 @@ import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
 import { Form, Row, Col } from "react-bootstrap";
 
 function CustomerEntry(props) {
-  console.log("Customer Re-renderd");
-
   const { customersEntryData } = props;
 
   const {
