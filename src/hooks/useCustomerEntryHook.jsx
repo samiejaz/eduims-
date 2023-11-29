@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { ButtonGroup } from "react-bootstrap";
@@ -6,11 +6,11 @@ import CustomerEntry from "../components/CustomerEntryModal/CustomerEntry";
 import CustomerBranchEntry from "../components/CustomerEntryModal/CustomerBranchEntry";
 
 import { FormProvider, useForm } from "react-hook-form";
-import CustomerAccountEntry from "../components/CustomerEntryModal/CustomerAccountsEntry";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AuthContext } from "../context/AuthContext";
+import { AppConfigurationContext } from "../context/AppConfigurationContext";
 
 const customerEntryDefaultValues = {
   CustomerName: "",
@@ -39,10 +39,10 @@ const customerAccountDefaultValues = {
 };
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
-
 const useCustomerEntryHook = () => {
   const queryClient = useQueryClient();
   const { user } = useContext(AuthContext);
+  const { pageTitles } = useContext(AppConfigurationContext);
   const [visible, setVisible] = useState(false);
   const [CustomerID, setCustomerID] = useState(0);
   const [dialogIndex, setDialogIndex] = useState(0);
@@ -81,15 +81,13 @@ const useCustomerEntryHook = () => {
           toast.success("Customer saved successfully!");
         }
         setDialogIndex(dialogIndex + 1);
-        // queryClient.invalidateQueries({ queryKey: ["Customers"] });
       } else {
         toast.error(data.message, {
           autoClose: 1500,
         });
       }
     },
-    onError: (error) => {
-      console.log(error);
+    onError: () => {
       toast.error("Error while saving data!");
     },
   });
@@ -119,7 +117,7 @@ const useCustomerEntryHook = () => {
       ),
     },
     {
-      header: "Customer Branches",
+      header: `Customer ${pageTitles?.branch || "Branche"}s`,
       content: (
         <>
           <FormProvider {...customerBranchFrom}>
@@ -128,16 +126,6 @@ const useCustomerEntryHook = () => {
         </>
       ),
     },
-    // {
-    //   header: "Customer Accounts",
-    //   content: (
-    //     <>
-    //       <FormProvider {...customerAccountsForm}>
-    //         <CustomerAccountEntry CustomerID={CustomerID} />
-    //       </FormProvider>
-    //     </>
-    //   ),
-    // },
   ];
 
   const footerContent = (
@@ -152,7 +140,7 @@ const useCustomerEntryHook = () => {
         className="p-button-text text-center"
       />
       <Button
-        label="Previous"
+        label={dialogs[dialogIndex - 1]?.header}
         icon="pi pi-arrow-left"
         onClick={() => {
           if (dialogIndex > 0) {
@@ -165,7 +153,7 @@ const useCustomerEntryHook = () => {
       {dialogIndex === 0 ? (
         <>
           <Button
-            label={"Next"}
+            label={dialogs[dialogIndex + 1]?.header}
             type={"button"}
             icon="pi pi-arrow-right"
             onClick={() => {

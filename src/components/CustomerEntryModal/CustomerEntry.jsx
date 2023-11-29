@@ -4,6 +4,7 @@ import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
 import { Form, Row, Col } from "react-bootstrap";
 import { fetchNewCustomerById } from "../../api/NewCustomerData";
 import { AuthContext } from "../../context/AuthContext";
+import { toast } from "react-toastify";
 
 function CustomerEntry(props) {
   const { CustomerID } = props;
@@ -26,12 +27,10 @@ function CustomerEntry(props) {
           });
         }
         setCustomerData(data);
-      } else {
       }
     }
     if (CustomerID !== 0) {
       fetchOldCustomer();
-    } else {
     }
   }, [CustomerID]);
 

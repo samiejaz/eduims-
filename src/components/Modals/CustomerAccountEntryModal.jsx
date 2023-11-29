@@ -32,7 +32,7 @@ export function CustomerAccountEntryModal() {
   return (
     <>
       <Button
-        tooltip="Add new account"
+        tooltip="Add new ledger"
         icon="pi pi-plus"
         severity="success"
         size="small"
