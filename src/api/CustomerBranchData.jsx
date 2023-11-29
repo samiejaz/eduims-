@@ -17,15 +17,10 @@ export async function fetchAllCustomerBranches(LoginUserID) {
 
 // URL: /EduIMS/GetCustomerBranchWhere?CustomerBranchID=??&LoginUserID=??
 export async function fetchCustomerBranchById(CustomerBranchID, LoginUserID) {
-  try {
-    const { data } = await axios.post(
-      `${apiUrl}/${CONTROLLER}/${WHEREMETHOD}?CustomerBranchID=${CustomerBranchID}&LoginUserID=${LoginUserID}`
-    );
-    console.log(data);
-    return data;
-  } catch (error) {
-    console.log(error);
-  }
+  const { data } = await axios.post(
+    `${apiUrl}/${CONTROLLER}/${WHEREMETHOD}?CustomerBranchID=${CustomerBranchID}&LoginUserID=${LoginUserID}`
+  );
+  return data.data ?? [];
 }
 // URL: /EduIMS/CustomerBranchDelete?CustomerBranchID=??&LoginUserID=??
 export async function deleteCustomerBranchByID(serviceInfo) {

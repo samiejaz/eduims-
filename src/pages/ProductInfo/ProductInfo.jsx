@@ -388,8 +388,6 @@ function GenProductInfoEntry({ pageTitles }) {
     console.log(e);
   }
 
-  console.log(pageTitles);
-
   return (
     <>
       {isLoading ? (

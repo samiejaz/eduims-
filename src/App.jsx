@@ -18,6 +18,7 @@ import CompanyInfo from "./pages/CompanyInfo/CompanyInfo";
 import CustomerInvoice from "./pages/CustomerInvoice/CustomerInvoice";
 import InvoiceDefaultDescriptions from "./pages/InvoiceDefaultDescriptions/InvoiceDefaultDescriptions";
 import Dashboard from "./pages/Dashboard/Dashboard";
+import GenNewCustomerView from "./pages/CustomerEntry/CustomerEntryView";
 
 const App = () => {
   return (
@@ -37,6 +38,10 @@ const App = () => {
           <Route
             path="/customers/customerEntry"
             element={<GenCustomerEntry />}
+          />
+          <Route
+            path="/customers/customerEntry/:CustomerID"
+            element={<GenNewCustomerView />}
           />
           <Route path="/users/usersentry" element={<GenUsers />} />
           <Route path="/customers/businessUnits" element={<BusinessUnits />} />
