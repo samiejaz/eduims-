@@ -39,7 +39,7 @@ function UserImage() {
   return (
     <>
       <img
-        alt="EDU IMS Logo"
+        alt="User Profile"
         src={User}
         width="40"
         height="40"

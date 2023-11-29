@@ -1,21 +1,15 @@
-import { Spinner, Button } from "react-bootstrap";
-import React, { useState } from "react";
-
+import { Spinner } from "react-bootstrap";
+import { useState } from "react";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-
 import ActionButtons from "../../components/ActionButtons";
-
 import { ActiveKeyContext } from "../../context/ActiveKeyContext";
-
 import useDeleteModal from "../../hooks/useDeleteModalHook";
 import useEditModal from "../../hooks/useEditModalHook";
-
 import { FilterMatchMode } from "primereact/api";
-
 import {
   GenCustomerDataContext,
   GenCustomerDataProivder,
@@ -24,15 +18,7 @@ import {
   deleteNewCustomerByID,
   fetchAllNewCustomers,
 } from "../../api/NewCustomerData";
-import useCustomerEntryHook from "../../hooks/useCustomerEntryHook";
-import { Button as PrimeButton } from "primereact/button";
-import CustomerEntry from "../../components/CustomerEntryModal/CustomerEntry";
-import CustomerBranchEntry from "../../components/CustomerEntryModal/CustomerBranchEntry";
-import CustomerAccountEntry from "../../components/CustomerEntryModal/CustomerAccountsEntry";
-import { FormProvider, useForm } from "react-hook-form";
 import { CustomerEntryForm } from "../../components/CustomerEntryFormComponent";
-
-const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 function GenCustomerEntry() {
   document.title = "Customers";
@@ -83,8 +69,6 @@ function GenOldCustomerEntrySearch() {
     handleClose: handleDeleteClose,
     setIdToDelete,
   } = useDeleteModal(handleDelete);
-
-  const { render: CustomerForm, setVisible } = useCustomerEntryHook();
 
   // Contexts
   const { setIsEnable, setCustomerID } = useContext(GenCustomerDataContext);
@@ -234,16 +218,16 @@ function GenOldCustomerEntrySearch() {
   );
 }
 
-const defaultValues = {
-  CustomerName: "",
-  CustomerBusinessName: "",
-  CustomerBusinessAddress: "",
-  ContactPerson1Name: "",
-  ContactPerson1Email: "",
-  ContactPerson1No: "",
-  Description: "",
-  InActive: false,
-};
+// const defaultValues = {
+//   CustomerName: "",
+//   CustomerBusinessName: "",
+//   CustomerBusinessAddress: "",
+//   ContactPerson1Name: "",
+//   ContactPerson1Email: "",
+//   ContactPerson1No: "",
+//   Description: "",
+//   InActive: false,
+// };
 
 // function GenOldCustomerEntryForm() {
 //   const queryClient = useQueryClient();

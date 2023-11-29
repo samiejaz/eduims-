@@ -1,18 +1,13 @@
-import { createContext, useEffect, useState, useContext } from "react";
-import { useFieldArray, useFormContext, FormProvider } from "react-hook-form";
+import { createContext, useState, useContext } from "react";
 import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
-import { Form, Row, Table, Col } from "react-bootstrap";
+import { Form, Row, Col } from "react-bootstrap";
 import { Button } from "primereact/button";
-import { InputText } from "primereact/inputtext";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AuthContext } from "../../context/AuthContext";
 import { toast } from "react-toastify";
 import axios from "axios";
-import {
-  fetchAllCustomerAccounts,
-  fetchCustomerAccountByID,
-} from "./CustomerEntryAPI";
+import { fetchCustomerAccountByID } from "./CustomerEntryAPI";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { FilterMatchMode } from "primereact/api";
@@ -38,7 +33,6 @@ function CustomerAccountEntry(props) {
     <>
       <AccountEntryProvider>
         <CustomerAccountDataTableHeader CustomerID={CustomerID} />
-        {/* <CustomerAccountDataTableDetail /> */}
         <CustomerAccountDetailTable CustomerID={CustomerID} />
       </AccountEntryProvider>
     </>
@@ -76,7 +70,7 @@ function CustomerAccountDataTableHeader(props) {
       if (data.success === true) {
         setCreatedAccountID(data?.AccountID);
         reset();
-        toast.success("Account saved successfully!");
+        toast.success("Ledger saved successfully!");
         queryClient.invalidateQueries(["customerAccounts"]);
       } else {
         toast.error(data.message, {
@@ -84,7 +78,7 @@ function CustomerAccountDataTableHeader(props) {
         });
       }
     },
-    onError: (error) => {
+    onError: () => {
       toast.error("Error while saving data!");
     },
   });
@@ -105,9 +99,7 @@ function CustomerAccountDataTableHeader(props) {
       >
         <Row>
           <Form.Group as={Col} controlId="AccountTitle">
-            <Form.Label>
-              Customer {pageTitles?.branch || "Account"} Title
-            </Form.Label>
+            <Form.Label>Customer Ledger Title</Form.Label>
             <div className="d-flex">
               <Form.Control
                 type="text"
@@ -142,11 +134,7 @@ function CustomerAccountDetailTable(props) {
   const { user } = useContext(AuthContext);
   const { register, setValue, handleSubmit } = useForm();
 
-  const {
-    data: CustomerAccounts,
-    isLoading,
-    isFetching,
-  } = useQuery({
+  const { data: CustomerAccounts } = useQuery({
     queryKey: ["customerAccounts", CustomerID],
     queryFn: () => fetchCustomerAccountByID(CustomerID, user.userID),
     enabled: CustomerID !== 0,
@@ -167,7 +155,7 @@ function CustomerAccountDetailTable(props) {
       );
 
       if (data.success === true) {
-        toast.success("Account updated successfully!");
+        toast.success("Ledger updated successfully!");
         queryClient.invalidateQueries(["customerAccounts"]);
       } else {
         toast.error(data.message, {
@@ -175,7 +163,7 @@ function CustomerAccountDetailTable(props) {
         });
       }
     },
-    onError: (error) => {
+    onError: () => {
       toast.error("Error while saving data!");
     },
   });
@@ -192,7 +180,7 @@ function CustomerAccountDetailTable(props) {
         value={CustomerAccounts?.data || []}
         dataKey="AccountID"
         removableSort
-        emptyMessage="No customer accounts found!"
+        emptyMessage="No customer ledgers found!"
         filters={filters}
         filterDisplay="row"
         resizableColumns
@@ -202,12 +190,6 @@ function CustomerAccountDetailTable(props) {
       >
         <Column
           body={(rowData) => (
-            // ActionButtons(
-            //   rowData.BankAccountID,
-            //   handleDeleteShow,
-            //   handleEditShow,
-            //   handleView
-            // )
             <Button
               icon="pi pi-pencil"
               severity="success"
@@ -215,7 +197,6 @@ function CustomerAccountDetailTable(props) {
               className="rounded"
               style={{
                 padding: "0.3rem 1.25rem",
-
                 fontSize: ".8em",
               }}
               onClick={() => {
@@ -239,18 +220,15 @@ function CustomerAccountDetailTable(props) {
           filter
           filterPlaceholder="Search by Customer Account"
           sortable
-          header="Account Title"
+          header="Ledger Title"
           style={{ minWidth: "20rem" }}
         ></Column>
       </DataTable>
 
-      <form
-        onKeyDown={preventFormByEnterKeySubmission}
-        // onSubmit={handleSubmit(onSubmit)}
-      >
+      <form onKeyDown={preventFormByEnterKeySubmission}>
         <div className="card flex justify-content-center">
           <Dialog
-            header={"Edit Account Name"}
+            header={"Edit Ledger Name"}
             visible={visible}
             onHide={() => setVisible(false)}
             style={{ width: "40vw" }}
@@ -276,7 +254,7 @@ function CustomerAccountDetailTable(props) {
             />
             <Row>
               <Form.Group as={Col} controlId="AccountTitle">
-                <Form.Label>Customer Account Title</Form.Label>
+                <Form.Label>Customer Ledger Title</Form.Label>
                 <Form.Control
                   type="text"
                   placeholder=""

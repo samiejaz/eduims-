@@ -12,7 +12,7 @@ import ProductInfo from "./pages/ProductInfo/ProductInfo";
 import ServiceInfo from "./pages/ServiceInfo/ServiceInfo";
 import CustomerBranch from "./pages/CustomerBranch/CustomerBranch";
 import { ToastContainer } from "react-toastify";
-import GenCustomerEntry from "./pages/CustomerEntry/CustomerEntry";
+import GenCustomerEntry from "./pages/CustomerEntry/GenCustomerEntry";
 import SignUp from "./pages/MDBLOGIN4";
 import CompanyInfo from "./pages/CompanyInfo/CompanyInfo";
 import CustomerInvoice from "./pages/CustomerInvoice/CustomerInvoice";

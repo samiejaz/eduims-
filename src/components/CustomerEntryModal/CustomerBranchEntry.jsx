@@ -1,32 +1,21 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import {
-  Controller,
-  FormProvider,
-  useFieldArray,
-  useForm,
-  useFormContext,
-  useWatch,
-} from "react-hook-form";
+import { createContext, useContext, useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
-import { Form, Row, Col, ButtonGroup, Table } from "react-bootstrap";
+import { Form, Row, Col, ButtonGroup } from "react-bootstrap";
 import { Button } from "primereact/button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Select from "react-select";
 import axios from "axios";
 import { toast } from "react-toastify";
-import {
-  fetchAllCustomerAccounts,
-  fetchCustomerBranchesByCustomerID,
-} from "./CustomerEntryAPI";
+import { fetchCustomerBranchesByCustomerID } from "./CustomerEntryAPI";
 import { fetchAllCustomerAccountsForSelect } from "../../api/SelectData";
 import { AuthContext } from "../../context/AuthContext";
-import { fetchAllCustomerBranches } from "../../api/CustomerBranchData";
 import { FilterMatchMode } from "primereact/api";
 import { DataTable } from "primereact/datatable";
-import Column from "antd/es/table/Column";
+import { Column } from "primereact/column";
 import { Dialog } from "primereact/dialog";
-import CustomerAccountEntry from "./CustomerAccountsEntry";
 import { CustomerAccountEntryModal } from "../Modals/CustomerAccountEntryModal";
+import { AppConfigurationContext } from "../../context/AppConfigurationContext";
 
 const BranchEntryContext = createContext();
 
@@ -49,7 +38,6 @@ function CustomerBranchEntry(props) {
     <>
       <BranchEntryProiver>
         <CustomerBranchEntryHeader CustomerID={CustomerID} />
-        {/* <CustomerBranchDetailTable /> */}
         <CustomerBranchesDataTable CustomerID={CustomerID} />
       </BranchEntryProiver>
     </>
@@ -62,7 +50,7 @@ function CustomerBranchEntryHeader(props) {
   const { CustomerID } = props;
   const queryClient = useQueryClient();
   const { user } = useContext(AuthContext);
-  let pageTitles = {};
+  const { pageTitles } = useContext(AppConfigurationContext);
   const { register, control, handleSubmit, watch, reset, setValue } = useForm({
     defaultValues: {
       CustomerBranchTitle: "",
@@ -125,7 +113,7 @@ function CustomerBranchEntryHeader(props) {
 
       if (data.success === true) {
         reset();
-        toast.success("Branch saved successfully!");
+        toast.success(`${pageTitles?.branch || "Branch"} saved successfully!`);
         queryClient.invalidateQueries(["customerBranchesDetail"]);
       } else {
         toast.error(data.message, {
@@ -133,7 +121,7 @@ function CustomerBranchEntryHeader(props) {
         });
       }
     },
-    onError: (error) => {
+    onError: () => {
       toast.error("Error while saving data!");
     },
   });
@@ -163,9 +151,7 @@ function CustomerBranchEntryHeader(props) {
               placeholder=""
               required
               className="form-control"
-              {...register("CustomerBranchTitle", {
-                // disabled: !isEnable,
-              })}
+              {...register("CustomerBranchTitle")}
             />
           </Form.Group>
           <Form.Group as={Col} controlId="CustomerAccounts">
@@ -200,7 +186,7 @@ function CustomerBranchEntryHeader(props) {
                 render={({ field: { onChange, value } }) => (
                   <Form.Check
                     aria-label="CreateNewAccount"
-                    label="Create New Account"
+                    label="Create New Ledger"
                     value={value}
                     onChange={(v) => {
                       onChange(v);
@@ -221,9 +207,7 @@ function CustomerBranchEntryHeader(props) {
             <Form.Control
               type="text"
               placeholder=""
-              {...register("BranchAddress", {
-                // disabled: !isEnable,
-              })}
+              {...register("BranchAddress")}
             />
           </Form.Group>
         </Row>
@@ -234,9 +218,7 @@ function CustomerBranchEntryHeader(props) {
             <Form.Control
               type="text"
               placeholder=""
-              {...register("ContactPersonName", {
-                // disabled: !isEnable,
-              })}
+              {...register("ContactPersonName")}
             />
           </Form.Group>
 
@@ -245,9 +227,7 @@ function CustomerBranchEntryHeader(props) {
             <Form.Control
               type="text"
               placeholder=""
-              {...register("ContactPersonNo", {
-                // disabled: !isEnable,
-              })}
+              {...register("ContactPersonNo")}
             />
           </Form.Group>
 
@@ -256,9 +236,7 @@ function CustomerBranchEntryHeader(props) {
             <Form.Control
               type="email"
               placeholder=""
-              {...register("ContactPersonEmail", {
-                // disabled: !isEnable,
-              })}
+              {...register("ContactPersonEmail")}
             />
           </Form.Group>
         </Row>
@@ -270,9 +248,7 @@ function CustomerBranchEntryHeader(props) {
               type="text"
               placeholder=""
               name="email"
-              {...register("Description", {
-                // disabled: !isEnable,
-              })}
+              {...register("Description")}
             />
           </Form.Group>
         </Row>
@@ -284,9 +260,7 @@ function CustomerBranchEntryHeader(props) {
                 aria-label="InActive"
                 id="InActive"
                 name="InActive"
-                {...register("InActive", {
-                  // disabled: !isEnable,
-                })}
+                {...register("InActive")}
               />
               <Form.Label>InActive</Form.Label>
             </div>
@@ -301,7 +275,6 @@ function CustomerBranchEntryHeader(props) {
               severity="success"
               style={{
                 padding: "0.3rem 1.25rem",
-
                 fontSize: ".8em",
               }}
             />
@@ -386,7 +359,9 @@ function CustomerBranchesDataTable(props) {
       );
 
       if (data.success === true) {
-        toast.success("Branch updated! successfully!");
+        toast.success(
+          `${pageTitles?.branhc || "Branch"} updated! successfully!`
+        );
         queryClient.invalidateQueries(["customerBranchesDetail"]);
       } else {
         toast.error(data.message, {
@@ -394,7 +369,7 @@ function CustomerBranchesDataTable(props) {
         });
       }
     },
-    onError: (error) => {
+    onError: () => {
       toast.error("Error while saving data!");
     },
   });
@@ -433,22 +408,7 @@ function CustomerBranchesDataTable(props) {
     if (CustomerBranchID !== 0) {
       fetchCustomerBranch();
     }
-
-    // return () => {
-    //   setCustomerBranchData(null);
-    // };
   }, [CustomerBranchID]);
-
-  // function populateBranchDialog() {
-  //   setValue("CustomerBranchID", CustomerBranchData?.CustomerBranchID);
-  //   setValue("CustomerBranchTitle", CustomerBranchData?.CustomerBranchTitle);
-  //   setValue("BranchAddress", CustomerBranchData?.BranchAddress);
-  //   setValue("ContactPersonName", CustomerBranchData?.ContactPersonName);
-  //   setValue("ContactPersonNo", CustomerBranchData?.ContactPersonNo);
-  //   setValue("ContactPersonEmail", CustomerBranchData?.ContactPersonEmail);
-  //   setValue("Description", CustomerBranchData?.Description);
-  //   setValue("InActive", CustomerBranchData?.InActive);
-  // }
 
   useEffect(() => {
     if (CustomerBranchID !== 0 && CustomerBranchData?.BracnhInfo) {
@@ -480,10 +440,6 @@ function CustomerBranchesDataTable(props) {
       setValue("InActive", CustomerBranchData?.BracnhInfo[0].InActive);
       setValue("CustomerAccounts", CustomerBranchData?.Accounts);
     }
-
-    // return () => {
-    //   setCustomerBranchID(0);
-    // };
   }, [CustomerBranchID, CustomerBranchData]);
 
   return (
@@ -497,7 +453,9 @@ function CustomerBranchesDataTable(props) {
         rows={10}
         rowsPerPageOptions={[5, 10, 25, 50]}
         removableSort
-        emptyMessage="No customer branches found!"
+        emptyMessage={`No customer ${
+          pageTitles?.branch?.toLowerCase() || "branche"
+        }s`}
         filters={filters}
         filterDisplay="row"
         resizableColumns
@@ -507,12 +465,6 @@ function CustomerBranchesDataTable(props) {
       >
         <Column
           body={(rowData) => (
-            // ActionButtons(
-            //   rowData.BankAccountID,
-            //   handleDeleteShow,
-            //   handleEditShow,
-            //   handleView
-            // )
             <>
               <ButtonGroup className="gap-1">
                 <Button
@@ -528,8 +480,6 @@ function CustomerBranchesDataTable(props) {
                     setVisible(true);
                     setCustomerBranchID(rowData?.CustomerBranchID);
                     setIsEnable(false);
-                    // setValue("AccountTitle", rowData?.AccountTitle);
-                    // setValue("AccountID", rowData?.AccountID);
                   }}
                 />
                 <Button
@@ -539,15 +489,12 @@ function CustomerBranchesDataTable(props) {
                   className="rounded"
                   style={{
                     padding: "0.3rem .7rem",
-
                     fontSize: ".8em",
                   }}
                   onClick={() => {
                     setVisible(true);
                     setCustomerBranchID(rowData?.CustomerBranchID);
                     setIsEnable(true);
-                    // setValue("AccountTitle", rowData?.AccountTitle);
-                    // setValue("AccountID", rowData?.AccountID);
                   }}
                 />
               </ButtonGroup>
@@ -565,20 +512,19 @@ function CustomerBranchesDataTable(props) {
         <Column
           field="CustomerBranchTitle"
           filter
-          filterPlaceholder="Search by customer branch"
+          filterPlaceholder={`Search by customer ${
+            pageTitles?.branch || "branch"
+          }`}
           sortable
-          header="Customer Branch Title"
+          header={`Customer ${pageTitles?.branch || "Branch"} Title`}
           style={{ minWidth: "20rem" }}
         ></Column>
       </DataTable>
 
-      <form
-        onKeyDown={preventFormByEnterKeySubmission}
-        // onSubmit={handleSubmit(onSubmit)}
-      >
+      <form onKeyDown={preventFormByEnterKeySubmission}>
         <div className="card flex justify-content-center">
           <Dialog
-            header={"Edit Branch"}
+            header={`Edit ${pageTitles?.branch || "Branch"}`}
             visible={visible}
             onHide={() => setVisible(false)}
             style={{ width: "70vw", height: "65vh" }}
@@ -641,10 +587,9 @@ function CustomerBranchesDataTable(props) {
                 </Form.Group>
                 <Form.Group as={Col} controlId="Customers">
                   <Form.Label>
-                    {pageTitles?.branch || "CustomerAccounts"}
+                    Customer Ledgers
                     <CustomerAccountEntryModal CustomerID={0} />
                   </Form.Label>
-
                   <span className="text-danger fw-bold ">*</span>
                   <Controller
                     control={control}
@@ -657,8 +602,8 @@ function CustomerBranchesDataTable(props) {
                         getOptionLabel={(option) => option.AccountTitle}
                         value={value}
                         onChange={(selectedOption) => onChange(selectedOption)}
-                        placeholder="Select an account"
-                        noOptionsMessage={() => "No accounts found!"}
+                        placeholder="Select a ledger"
+                        noOptionsMessage={() => "No ledgers found!"}
                         isClearable
                         isMulti
                       />
@@ -674,7 +619,7 @@ function CustomerBranchesDataTable(props) {
                       render={({ field: { onChange, value } }) => (
                         <Form.Check
                           aria-label="CreateNewAccount"
-                          label="Create New Account"
+                          label="Create New Ledger"
                           value={value}
                           onChange={(v) => {
                             onChange(v);
