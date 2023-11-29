@@ -1,4 +1,5 @@
 import { Form, Row, Col, Button } from "react-bootstrap";
+import { Button as PrimeButton } from "primereact/button";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import TabHeader from "../../components/TabHeader";
 import ReactSelect from "react-select";
@@ -102,7 +103,7 @@ function CustomerInvoiceForm({ pageTitles }) {
         Customer Invoice ({renderCount})
       </h4>
 
-      <CustomerEntryForm />
+      {/* <CustomerEntryForm /> */}
 
       <FormProvider {...method}>
         <form onSubmit={method.handleSubmit(onSubmit)} id="parenForm">
@@ -169,7 +170,10 @@ function CustomerInvoiceForm({ pageTitles }) {
             </Form.Group>
 
             <Form.Group as={Col} controlId="Customer">
-              <Form.Label>Customer Name</Form.Label>
+              <Form.Label>
+                Customer Name
+                <CustomerEntryForm IconButton={true} />
+              </Form.Label>
               <Controller
                 control={method.control}
                 name="Customer"

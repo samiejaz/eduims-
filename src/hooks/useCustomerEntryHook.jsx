@@ -4,10 +4,10 @@ import { Dialog } from "primereact/dialog";
 import { ButtonGroup } from "react-bootstrap";
 import CustomerEntry from "../components/CustomerEntryModal/CustomerEntry";
 import CustomerBranchEntry from "../components/CustomerEntryModal/CustomerBranchEntry";
-import { AppConfigurationContext } from "../context/AppConfigurationContext";
+
 import { FormProvider, useForm } from "react-hook-form";
 import CustomerAccountEntry from "../components/CustomerEntryModal/CustomerAccountsEntry";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AuthContext } from "../context/AuthContext";
@@ -38,42 +38,11 @@ const customerAccountDefaultValues = {
   accountsDetail: [],
 };
 
-const customersEntryData = {
-  // CustomerName: "Muhammad Ahsan",
-  // CustomerBusinessName: "Ahsan Medicine",
-  // CustomerBusinessAddress: "Gulgasht",
-  // ContactPerson1Name: "Muhammad hsan",
-  // ContactPerson1Email: "ahsan@gmail.com",
-  // ContactPerson1No: "0315-6332346",
-  // Description: "description about ahsan medicine!",
-  // InActive: false,
-};
-
-const customerBranchData = {
-  // CustomerBranchTitle: "Ahsan Medicine (Gulgasht)",
-  // Customers: {
-  //   CustomerID: 1,
-  //   CustomerName: "Muhammad Ahsan",
-  // },
-  // BranchAddress: "Gulgashst",
-  // BranchCode: "CODE_7",
-  // ContactPersonName: "Muhammad Ahsan",
-  // ContactPersonNo: "0324-23242223",
-  // ContactPersonEmail: "ahsan@gmail.com",
-  // Description: "description about customer branch",
-  // InActive: false,
-};
-const customerAccountsData = [
-  {
-    AccountTitle: "Ahsan Medicine Account",
-  },
-];
-
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 const useCustomerEntryHook = () => {
+  const queryClient = useQueryClient();
   const { user } = useContext(AuthContext);
-
   const [visible, setVisible] = useState(false);
   const [CustomerID, setCustomerID] = useState(0);
   const [dialogIndex, setDialogIndex] = useState(0);
@@ -82,11 +51,12 @@ const useCustomerEntryHook = () => {
   const customerAccountsForm = useForm({
     defaultValues: customerAccountDefaultValues,
   });
+
   const customerBranchFrom = useForm(customerBranchDefaultValues);
   let customerMutaion = useMutation({
     mutationFn: async (formData) => {
       let DataToSend = {
-        CustomerID: 0,
+        CustomerID: CustomerID ?? 0,
         ContactPerson1Email: formData?.ContactPerson1Email,
         ContactPerson1Name: formData?.ContactPerson1Name,
         ContactPerson1No: formData?.ContactPerson1No,
@@ -105,8 +75,13 @@ const useCustomerEntryHook = () => {
 
       if (data.success === true) {
         setCustomerID(data.CustomerID);
-        toast.success("Customer saved successfully!");
+        if (CustomerID) {
+          toast.success("Customer updated successfully!");
+        } else {
+          toast.success("Customer saved successfully!");
+        }
         setDialogIndex(dialogIndex + 1);
+        // queryClient.invalidateQueries({ queryKey: ["Customers"] });
       } else {
         toast.error(data.message, {
           autoClose: 1500,
@@ -123,17 +98,8 @@ const useCustomerEntryHook = () => {
     customerMutaion.mutate(data);
   }
 
-  function customerAccountsSubmit(data) {
-    accountsMutation.mutate(data);
-  }
-
-  function customerBranchSubmit(data) {
-    if (dialogIndex === dialogs.length - 1) {
-      setDialogIndex(dialogIndex + 1);
-    }
-  }
-
   function handleCancelClick() {
+    queryClient.invalidateQueries({ queryKey: ["Customers"] });
     setDialogIndex(0);
     setCustomerID(0);
     customerEntryFrom.reset(customerEntryDefaultValues);
@@ -153,25 +119,25 @@ const useCustomerEntryHook = () => {
       ),
     },
     {
-      header: "Customer Accounts",
-      content: (
-        <>
-          <FormProvider {...customerAccountsForm}>
-            <CustomerAccountEntry CustomerID={CustomerID} />
-          </FormProvider>
-        </>
-      ),
-    },
-    {
       header: "Customer Branches",
       content: (
         <>
           <FormProvider {...customerBranchFrom}>
-            <CustomerBranchEntry />
+            <CustomerBranchEntry CustomerID={CustomerID} />
           </FormProvider>
         </>
       ),
     },
+    // {
+    //   header: "Customer Accounts",
+    //   content: (
+    //     <>
+    //       <FormProvider {...customerAccountsForm}>
+    //         <CustomerAccountEntry CustomerID={CustomerID} />
+    //       </FormProvider>
+    //     </>
+    //   ),
+    // },
   ];
 
   const footerContent = (
@@ -196,50 +162,68 @@ const useCustomerEntryHook = () => {
         disabled={dialogIndex === 0}
         className="p-button-p text-center"
       />
-      <Button
-        label="Next"
-        icon="pi pi-arrow-right"
-        onClick={() => {
-          if (dialogIndex < dialogs.length - 1) {
-            setDialogIndex(dialogIndex + 1);
-          }
-        }}
-        disabled={dialogIndex === dialogs.length - 1}
-        className="p-button-p text-center"
-      />
-      <Button
-        label={"Save"}
-        type="submit"
-        onClick={() => {
-          if (dialogIndex === 0) {
-            customerEntryFrom.handleSubmit(customerHandleSubmit)();
-          } else if (dialogIndex === 1) {
-            customerAccountsForm.handleSubmit(customerAccountsSubmit)();
-          } else if (dialogIndex === 2) {
-            customerBranchFrom.handleSubmit(customerBranchSubmit)();
-          }
-        }}
-        className="p-button-p text-center"
-      />
+      {dialogIndex === 0 ? (
+        <>
+          <Button
+            label={"Next"}
+            type={"button"}
+            icon="pi pi-arrow-right"
+            onClick={() => {
+              if (dialogIndex === 0) {
+                customerEntryFrom.handleSubmit(customerHandleSubmit)();
+              }
+            }}
+            className="p-button-p text-center"
+            disabled={dialogIndex === dialogs.length - 1}
+          />
+        </>
+      ) : (
+        <>
+          <Button
+            label={"Next"}
+            type={"button"}
+            icon="pi pi-arrow-right"
+            onClick={() => {
+              if (dialogIndex < dialogs.length - 1) {
+                setDialogIndex(dialogIndex + 1);
+              }
+            }}
+            className="p-button-p text-center"
+            disabled={dialogIndex === dialogs.length - 1}
+          />
+        </>
+      )}
     </ButtonGroup>
   );
+
+  function dialogHeight() {
+    switch (dialogIndex) {
+      case 0:
+        return "70vh";
+      case 1:
+        return "80vh";
+      default:
+        return "90vh";
+    }
+  }
 
   return {
     setVisible,
     render: (
       <>
-        <div className="card flex justify-content-center">
-          <Dialog
-            header={dialogs[dialogIndex].header}
-            visible={visible}
-            maximizable
-            style={{ width: "80vw", height: "70vh" }}
-            onHide={() => setVisible(false)}
-            footer={footerContent}
-          >
-            {dialogs[dialogIndex].content}
-          </Dialog>
-        </div>
+        <Dialog
+          header={dialogs[dialogIndex].header}
+          visible={visible}
+          maximizable
+          style={{ width: "80vw", height: dialogHeight() }}
+          onHide={() => {
+            setVisible(false);
+            queryClient.invalidateQueries({ queryKey: ["Customers"] });
+          }}
+          footer={footerContent}
+        >
+          {dialogs[dialogIndex].content}
+        </Dialog>
       </>
     ),
   };

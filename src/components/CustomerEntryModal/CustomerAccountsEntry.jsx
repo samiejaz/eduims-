@@ -16,6 +16,7 @@ import {
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { FilterMatchMode } from "primereact/api";
+import { Dialog } from "primereact/dialog";
 
 let pageTitles = {};
 const apiUrl = import.meta.env.VITE_APP_API_URL;
@@ -50,7 +51,6 @@ function CustomerAccountDataTableHeader(props) {
   const queryClient = useQueryClient();
 
   const { CustomerID } = props;
-  console.log(CustomerID);
   const { user } = useContext(AuthContext);
   const { setCreatedAccountID } = useContext(AccountEntryContext);
 
@@ -77,7 +77,6 @@ function CustomerAccountDataTableHeader(props) {
         setCreatedAccountID(data?.AccountID);
         reset();
         toast.success("Account saved successfully!");
-        console.log(data);
         queryClient.invalidateQueries(["customerAccounts"]);
       } else {
         toast.error(data.message, {
@@ -86,7 +85,6 @@ function CustomerAccountDataTableHeader(props) {
       }
     },
     onError: (error) => {
-      console.log(error);
       toast.error("Error while saving data!");
     },
   });
@@ -108,7 +106,7 @@ function CustomerAccountDataTableHeader(props) {
         <Row>
           <Form.Group as={Col} controlId="AccountTitle">
             <Form.Label>
-              Customer {pageTitles?.branch || "Branch"} Title
+              Customer {pageTitles?.branch || "Account"} Title
             </Form.Label>
             <div className="d-flex">
               <Form.Control
@@ -119,7 +117,7 @@ function CustomerAccountDataTableHeader(props) {
                 {...register("AccountTitle")}
               />
               <Button
-                severity="success"
+                severity="info"
                 className="px-4 py-2 rounded-1 "
                 type="submit"
               >
@@ -135,13 +133,14 @@ function CustomerAccountDataTableHeader(props) {
 
 function CustomerAccountDetailTable(props) {
   const queryClient = useQueryClient();
-
+  const [visible, setVisible] = useState(false);
   const { CustomerID } = props;
   const [filters, setFilters] = useState({
     AccountTitle: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
   const { user } = useContext(AuthContext);
+  const { register, setValue, handleSubmit } = useForm();
 
   const {
     data: CustomerAccounts,
@@ -154,6 +153,37 @@ function CustomerAccountDetailTable(props) {
     initialData: [],
   });
 
+  const customerAccountEntryMutation = useMutation({
+    mutationFn: async (formData) => {
+      let DataToSend = {
+        AccountID: formData?.AccountID,
+        AccountTitle: formData?.AccountTitle,
+        CustomerID: CustomerID,
+        EntryUserID: user.userID,
+      };
+      const { data } = await axios.post(
+        apiUrl + "/EduIMS/CustomerAccountsInsertUpdate",
+        DataToSend
+      );
+
+      if (data.success === true) {
+        toast.success("Account updated successfully!");
+        queryClient.invalidateQueries(["customerAccounts"]);
+      } else {
+        toast.error(data.message, {
+          autoClose: 1500,
+        });
+      }
+    },
+    onError: (error) => {
+      toast.error("Error while saving data!");
+    },
+  });
+
+  function onSubmit(data) {
+    customerAccountEntryMutation.mutate(data);
+  }
+
   return (
     <>
       <DataTable
@@ -161,9 +191,6 @@ function CustomerAccountDetailTable(props) {
         showGridlines
         value={CustomerAccounts?.data || []}
         dataKey="AccountID"
-        paginator
-        rows={10}
-        rowsPerPageOptions={[5, 10, 25, 50]}
         removableSort
         emptyMessage="No customer accounts found!"
         filters={filters}
@@ -171,20 +198,41 @@ function CustomerAccountDetailTable(props) {
         resizableColumns
         size="small"
         selectionMode="single"
-        tableStyle={{ minWidth: "50rem" }}
+        tableStyle={{ minWidth: "50rem", height: "" }}
       >
         <Column
-          // body={(rowData) =>
-          //   ActionButtons(
-          //     rowData.BankAccountID,
-          //     handleDeleteShow,
-          //     handleEditShow,
-          //     handleView
-          //   )
-          // }
+          body={(rowData) => (
+            // ActionButtons(
+            //   rowData.BankAccountID,
+            //   handleDeleteShow,
+            //   handleEditShow,
+            //   handleView
+            // )
+            <Button
+              icon="pi pi-pencil"
+              severity="success"
+              size="small"
+              className="rounded"
+              style={{
+                padding: "0.3rem 1.25rem",
+
+                fontSize: ".8em",
+              }}
+              onClick={() => {
+                setVisible(true);
+                setValue("AccountTitle", rowData?.AccountTitle);
+                setValue("AccountID", rowData?.AccountID);
+              }}
+            />
+          )}
           header="Actions"
           resizeable={false}
-          style={{ minWidth: "7rem", maxWidth: "7rem", width: "7rem" }}
+          style={{
+            minWidth: "7rem",
+            maxWidth: "7rem",
+            width: "7rem",
+            textAlign: "center",
+          }}
         ></Column>
         <Column
           field="AccountTitle"
@@ -195,111 +243,157 @@ function CustomerAccountDetailTable(props) {
           style={{ minWidth: "20rem" }}
         ></Column>
       </DataTable>
-    </>
-  );
-}
 
-function CustomerAccountDataTableDetail() {
-  const { createdAccountID, setCreatedAccountID } =
-    useContext(AccountEntryContext);
-  console.log(createdAccountID);
-
-  const { user } = useContext(AuthContext);
-
-  const methods = useForm();
-  const { fields, append, remove } = useFieldArray({
-    name: "branchDetail",
-  });
-
-  useEffect(() => {
-    async function fetchCustomerAccount() {
-      if (
-        createdAccountID !== undefined &&
-        createdAccountID !== null &&
-        createdAccountID !== 0
-      ) {
-        const data = await fetchCustomerAccountByID(
-          createdAccountID,
-          user.userID
-        );
-
-        console.log(data);
-      } else {
-        setBankAccount(null);
-        setIsEnable(true);
-        reset(defaultValues);
-        setTimeout(() => {
-          resetSelectValues();
-        }, 200);
-      }
-    }
-    if (createdAccountID !== 0) {
-      fetchCustomerAccount();
-    }
-    return () => {
-      setCreatedAccountID(0);
-    };
-  }, [createdAccountID]);
-
-  return (
-    <>
-      <FormProvider {...methods}>
-        <form>
-          <Table className="mt-2">
-            <thead>
-              <tr>
-                <th>No.</th>
-                <th>Branch Title</th>
-                <th>Customer Accounts</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {fields.map((field, index) => {
-                return (
-                  <tr key={field.id}>
-                    <CustomerAccountDataTableDetailRow
-                      field={field}
-                      remove={remove}
-                      index={index}
-                    />
-                  </tr>
-                );
+      <form
+        onKeyDown={preventFormByEnterKeySubmission}
+        // onSubmit={handleSubmit(onSubmit)}
+      >
+        <div className="card flex justify-content-center">
+          <Dialog
+            header={"Edit Account Name"}
+            visible={visible}
+            onHide={() => setVisible(false)}
+            style={{ width: "40vw" }}
+            footer={
+              <Button
+                label="Update"
+                severity="success"
+                className="rounded"
+                type="submit"
+                onClick={() => {
+                  handleSubmit(onSubmit)();
+                }}
+              />
+            }
+          >
+            <input
+              type="text"
+              {...register("AccountID", {
+                valueAsNumber: true,
               })}
-            </tbody>
-          </Table>
-        </form>
-      </FormProvider>
+              className="visually-hidden "
+              style={{ display: "none" }}
+            />
+            <Row>
+              <Form.Group as={Col} controlId="AccountTitle">
+                <Form.Label>Customer Account Title</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder=""
+                  required
+                  className="form-control"
+                  {...register("AccountTitle")}
+                />
+              </Form.Group>
+            </Row>
+          </Dialog>
+        </div>
+      </form>
     </>
   );
 }
 
-function CustomerAccountDataTableDetailRow() {
-  const { register } = useFormContext();
-  const { remove, index } = props;
-  return (
-    <>
-      <td>
-        <InputText
-          // type="text"
-          required
-          className="form-control"
-          {...register(`accountsDetail.${index}.AccountTitle`)}
-        />
-      </td>
-      <td>
-        <Button
-          label="Previous"
-          icon="pi pi-arrow-left"
-          className="p-button-p text-center"
-        />
-        <Button
-          label="Next"
-          icon="pi pi-arrow-left"
-          onClick={() => remove(index)}
-          className="p-button-p text-center"
-        />
-      </td>
-    </>
-  );
-}
+// function CustomerAccountDataTableDetail() {
+//   const { createdAccountID, setCreatedAccountID } =
+//     useContext(AccountEntryContext);
+//   console.log(createdAccountID);
+
+//   const { user } = useContext(AuthContext);
+
+//   const methods = useForm();
+//   const { fields, append, remove } = useFieldArray({
+//     name: "branchDetail",
+//   });
+
+//   useEffect(() => {
+//     async function fetchCustomerAccount() {
+//       if (
+//         createdAccountID !== undefined &&
+//         createdAccountID !== null &&
+//         createdAccountID !== 0
+//       ) {
+//         const data = await fetchCustomerAccountByID(
+//           createdAccountID,
+//           user.userID
+//         );
+
+//         console.log(data);
+//       } else {
+//         setBankAccount(null);
+//         setIsEnable(true);
+//         reset(defaultValues);
+//         setTimeout(() => {
+//           resetSelectValues();
+//         }, 200);
+//       }
+//     }
+//     if (createdAccountID !== 0) {
+//       fetchCustomerAccount();
+//     }
+//     return () => {
+//       setCreatedAccountID(0);
+//     };
+//   }, [createdAccountID]);
+
+//   return (
+//     <>
+//       <FormProvider {...methods}>
+//         <form>
+//           <Table className="mt-2">
+//             <thead>
+//               <tr>
+//                 <th>No.</th>
+//                 <th>Branch Title</th>
+//                 <th>Customer Accounts</th>
+//                 <th>Actions</th>
+//               </tr>
+//             </thead>
+//             <tbody>
+//               {fields.map((field, index) => {
+//                 return (
+//                   <tr key={field.id}>
+//                     <CustomerAccountDataTableDetailRow
+//                       field={field}
+//                       remove={remove}
+//                       index={index}
+//                     />
+//                   </tr>
+//                 );
+//               })}
+//             </tbody>
+//           </Table>
+//         </form>
+//       </FormProvider>
+//     </>
+//   );
+// }
+
+// function CustomerAccountDataTableDetailRow() {
+//   const { register } = useFormContext();
+//   const { remove, index } = props;
+//   return (
+//     <>
+//       <td>
+//         <InputText
+//           // type="text"
+//           required
+//           className="form-control"
+//           {...register(`accountsDetail.${index}.AccountTitle`)}
+//         />
+//       </td>
+//       <td>
+//         <Button
+//           label="Previous"
+//           icon="pi pi-arrow-left"
+//           className="p-button-p text-center"
+//         />
+//         <Button
+//           label="Next"
+//           icon="pi pi-arrow-left"
+//           onClick={() => remove(index)}
+//           className="p-button-p text-center"
+//         />
+//       </td>
+//     </>
+//   );
+// }

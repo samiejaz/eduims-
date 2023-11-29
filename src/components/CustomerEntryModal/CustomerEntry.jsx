@@ -1,10 +1,14 @@
-import { useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
 import { Form, Row, Col } from "react-bootstrap";
+import { fetchNewCustomerById } from "../../api/NewCustomerData";
+import { AuthContext } from "../../context/AuthContext";
 
 function CustomerEntry(props) {
-  const { customersEntryData } = props;
+  const { CustomerID } = props;
+  const { user } = useContext(AuthContext);
+  const [CustomerData, setCustomerData] = useState();
 
   const {
     register,
@@ -13,23 +17,45 @@ function CustomerEntry(props) {
   } = useFormContext();
 
   useEffect(() => {
-    if (customersEntryData) {
-      setValue("CustomerName", customersEntryData?.CustomerName);
+    async function fetchOldCustomer() {
+      if (CustomerID !== undefined && CustomerID !== 0 && CustomerID !== null) {
+        const data = await fetchNewCustomerById(CustomerID, user.userID);
+        if (!data) {
+          toast.error("Network Error Occured!", {
+            position: "bottom-left",
+          });
+        }
+        setCustomerData(data);
+      } else {
+      }
+    }
+    if (CustomerID !== 0) {
+      fetchOldCustomer();
+    } else {
+    }
+  }, [CustomerID]);
+
+  useEffect(() => {
+    if (CustomerID !== 0 && CustomerData?.data) {
+      setValue("CustomerName", CustomerData?.data[0]?.CustomerName);
       setValue(
         "CustomerBusinessName",
-        customersEntryData?.CustomerBusinessName
+        CustomerData?.data[0]?.CustomerBusinessName
       );
       setValue(
         "CustomerBusinessAddress",
-        customersEntryData?.CustomerBusinessAddress
+        CustomerData?.data[0]?.CustomerBusinessAddress
       );
-      setValue("ContactPerson1Name", customersEntryData?.ContactPerson1Name);
-      setValue("ContactPerson1No", customersEntryData?.ContactPerson1No);
-      setValue("ContactPerson1Email", customersEntryData?.ContactPerson1Email);
-      setValue("Description", customersEntryData?.Description);
-      setValue("InActive", customersEntryData?.InActive);
+      setValue("ContactPerson1Name", CustomerData?.data[0]?.ContactPerson1Name);
+      setValue("ContactPerson1No", CustomerData?.data[0]?.ContactPerson1No);
+      setValue(
+        "ContactPerson1Email",
+        CustomerData?.data[0]?.ContactPerson1Email
+      );
+      setValue("Description", CustomerData?.data[0]?.Description);
+      setValue("InActive", CustomerData?.data[0]?.InActive);
     }
-  }, [customersEntryData]);
+  }, [CustomerID, CustomerData]);
 
   return (
     <>
@@ -41,9 +67,11 @@ function CustomerEntry(props) {
             <Form.Control
               type="text"
               required
-              placeholder=""
+              aria-invalid={errors?.CustomerName ? true : false}
               className="form-control"
-              {...register("CustomerName", {})}
+              {...register("CustomerName", {
+                required: "Please enter customer name!",
+              })}
             />
             <p className="text-danger">{errors?.CustomerName?.message}</p>
           </Form.Group>
@@ -53,8 +81,10 @@ function CustomerEntry(props) {
             <Form.Control
               type="text"
               required
-              placeholder=""
-              {...register("CustomerBusinessName", {})}
+              aria-invalid={errors?.CustomerBusinessName ? "true" : "false"}
+              {...register("CustomerBusinessName", {
+                required: "Please enter customer business name!",
+              })}
             />
             <p className="text-danger">
               {errors?.CustomerBusinessName?.message}

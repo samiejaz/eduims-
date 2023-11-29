@@ -17,10 +17,23 @@ export async function fetchAllCustomerAccounts(LoginUserID) {
 
 // URL: /EduIMS/GetCustomerAccountWhere?AccountID=??&LoginUserID=??
 export async function fetchCustomerAccountByID(CustomerID, LoginUserID) {
-  console.log("Fetching", CustomerID);
   try {
     const { data } = await axios.post(
       `${apiUrl}/${CONTROLLER}/${WHEREMETHOD}?CustomerID=${CustomerID}&LoginUserID=${LoginUserID}`
+    );
+    return data;
+  } catch (error) {
+    toast.error(error.message);
+  }
+}
+// URL: EduIMS/GetCustomerBranchWhere?CustomerID=??&LoginUserID=??
+export async function fetchCustomerBranchesByCustomerID(
+  CustomerID,
+  LoginUserID
+) {
+  try {
+    const { data } = await axios.post(
+      `${apiUrl}/${CONTROLLER}/GetCustomerBranchWhere?CustomerID=${CustomerID}&LoginUserID=${LoginUserID}`
     );
     return data;
   } catch (error) {

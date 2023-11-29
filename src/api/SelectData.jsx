@@ -21,6 +21,13 @@ export async function fetchAllOldCustomersForSelect() {
   const { data } = await axios.post(apiUrl + "/Select/SelectCustomers");
   return data.data;
 }
+export async function fetchAllCustomerAccountsForSelect(CustomerID) {
+  const { data } = await axios.post(
+    apiUrl + "/Select/GetCustomerAccounts?CustomerID=" + CustomerID
+  );
+  return data.data;
+}
+
 export async function fetchAllActivationCustomersForSelect(CustomerID) {
   let whereClause;
   if (CustomerID === undefined) {
