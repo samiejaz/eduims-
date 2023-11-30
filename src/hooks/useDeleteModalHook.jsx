@@ -1,5 +1,7 @@
+import { Button } from "primereact/button";
+import { Dialog } from "primereact/dialog";
 import { useState } from "react";
-import { Modal, Button } from "react-bootstrap";
+import { ButtonGroup } from "react-bootstrap";
 
 const useDeleteModal = (handleDelete) => {
   const [show, setShowModal] = useState(false);
@@ -19,22 +21,36 @@ const useDeleteModal = (handleDelete) => {
     handleClose,
     setIdToDelete,
     render: (
-      <Modal show={show} onHide={handleClose} animation={true}>
-        <Modal.Header closeButton>
-          <Modal.Title>Delete</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>Are you sure you want to delete the record?</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            No
-          </Button>
-          <Button variant="danger" onClick={() => handleDelete(idToDelete)}>
-            Yes
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <Dialog
+        visible={show}
+        onHide={handleClose}
+        header="Confirm Delete"
+        style={{ width: "30vw", height: "28vh" }}
+        footer={
+          <>
+            <ButtonGroup className="gap-2">
+              <Button
+                className="rounded"
+                onClick={handleClose}
+                type="button"
+                severity="secondary"
+              >
+                No
+              </Button>
+              <Button
+                className="rounded"
+                severity="danger"
+                type="button"
+                onClick={() => handleDelete(idToDelete)}
+              >
+                Yes
+              </Button>
+            </ButtonGroup>
+          </>
+        }
+      >
+        Are you sure you want to delete?
+      </Dialog>
     ),
   };
 };

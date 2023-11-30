@@ -117,7 +117,7 @@ const useCustomerEntryHook = () => {
       ),
     },
     {
-      header: `Customer ${pageTitles?.branch || "Branche"}s`,
+      header: `${pageTitles?.branch || "Customer Branch"} Entry`,
       content: (
         <>
           <FormProvider {...customerBranchFrom}>
@@ -166,20 +166,7 @@ const useCustomerEntryHook = () => {
           />
         </>
       ) : (
-        <>
-          <Button
-            label={"Next"}
-            type={"button"}
-            icon="pi pi-arrow-right"
-            onClick={() => {
-              if (dialogIndex < dialogs.length - 1) {
-                setDialogIndex(dialogIndex + 1);
-              }
-            }}
-            className="p-button-p text-center"
-            disabled={dialogIndex === dialogs.length - 1}
-          />
-        </>
+        <></>
       )}
     </ButtonGroup>
   );

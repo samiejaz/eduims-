@@ -82,12 +82,12 @@ function CustomerInvoiceForm({ pageTitles }) {
   const customerBranchSelectData = [
     {
       CustomerBranchID: 1,
-      CustomerBranchTitle: `Customer ${pageTitles?.branch || "Branch"} 1`,
+      CustomerBranchTitle: `${pageTitles?.branch || "Customer Branch"} 1`,
       CustomerID: 1,
     },
     {
       CustomerBranchID: 2,
-      CustomerBranchTitle: `Customer ${pageTitles?.branch || "Branch"} 2`,
+      CustomerBranchTitle: `${pageTitles?.branch || "Customer Branch"} 2`,
       CustomerID: 2,
     },
   ];

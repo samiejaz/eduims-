@@ -117,7 +117,7 @@ function Sidebar({ logoImage, userImage }) {
 
                 <LinkContainer to={"/customers/customerBranch"}>
                   <NavDropdown.Item className="scale-up-center">
-                    Customer {pageTitles.branch || "Branch"}
+                    {pageTitles?.branch || "Customer Branch"}
                   </NavDropdown.Item>
                 </LinkContainer>
 
@@ -190,6 +190,11 @@ function Sidebar({ logoImage, userImage }) {
                 title="General"
                 className="scale-up-center"
               >
+                <LinkContainer to={"/general/appConfiguration"}>
+                  <NavDropdown.Item className="scale-up-center">
+                    App Configuration
+                  </NavDropdown.Item>
+                </LinkContainer>
                 <LinkContainer to={"/general/companyInfo"}>
                   <NavDropdown.Item className="scale-up-center">
                     Company Info

@@ -19,6 +19,8 @@ import {
   fetchAllNewCustomers,
 } from "../../api/NewCustomerData";
 import { CustomerEntryForm } from "../../components/CustomerEntryFormComponent";
+import { useNavigate } from "react-router";
+import { Button as PrimeButton } from "primereact/button";
 
 function GenCustomerEntry() {
   document.title = "Customers";
@@ -43,6 +45,7 @@ function GenCustomerEntry() {
 }
 function GenOldCustomerEntrySearch() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   // Hooks
   const { user } = useContext(AuthContext);
   const { setKey } = useContext(ActiveKeyContext);
@@ -94,9 +97,10 @@ function GenOldCustomerEntrySearch() {
   });
 
   function handleEdit(CustomerID) {
-    setCustomerID(CustomerID);
-    setIsEnable(true);
-    setKey("entry");
+    // setCustomerID(CustomerID);
+    navigate("/customers/customerEntry/" + CustomerID + "?viewMode=edit");
+    // setIsEnable(true);
+    // setKey("entry");
     handleEditClose();
     setIdToEdit(0);
   }
@@ -107,9 +111,7 @@ function GenOldCustomerEntrySearch() {
     setCustomerID(0);
   }
   function handleView(CustomerID) {
-    setKey("entry");
-    setCustomerID(CustomerID);
-    setIsEnable(false);
+    navigate("/customers/customerEntry/" + CustomerID + "?viewMode=view");
   }
 
   return (
@@ -133,23 +135,7 @@ function GenOldCustomerEntrySearch() {
             <h2 className="text-center my-auto">Customer Entry</h2>
 
             <div className="text-end my-auto">
-              <CustomerEntryForm
-                IconButton={true}
-                // Button={
-                //   <PrimeButton
-                //     // onClick={() => setVisible(true)}
-                //     severity="info"
-                //     icon="pi pi-plus"
-                //     label="Add New"
-                //     className="rounded-5"
-                //     style={{
-                //       padding: "0.3rem 1.25rem",
-                //       marginLeft: "25px",
-                //       fontSize: ".8em",
-                //     }}
-                //   />
-                // }
-              />
+              <CustomerEntryForm IconButton={false} />
             </div>
           </div>
           <DataTable
@@ -174,7 +160,8 @@ function GenOldCustomerEntrySearch() {
                   rowData.CustomerID,
                   handleDeleteShow,
                   handleEditShow,
-                  handleView
+                  handleView,
+                  true
                 )
               }
               header="Actions"

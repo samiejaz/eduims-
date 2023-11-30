@@ -28,12 +28,20 @@ const AccountEntryProvider = ({ children }) => {
 };
 
 function CustomerAccountEntry(props) {
-  const { CustomerID } = props;
+  const { CustomerID, isEnable = true } = props;
   return (
     <>
       <AccountEntryProvider>
-        <CustomerAccountDataTableHeader CustomerID={CustomerID} />
-        <CustomerAccountDetailTable CustomerID={CustomerID} />
+        <CustomerAccountDataTableHeader
+          CustomerID={CustomerID}
+          isEnable={isEnable}
+        />
+        <div className="mt-3">
+          <CustomerAccountDetailTable
+            CustomerID={CustomerID}
+            isEnable={isEnable}
+          />
+        </div>
       </AccountEntryProvider>
     </>
   );
@@ -44,7 +52,7 @@ export default CustomerAccountEntry;
 function CustomerAccountDataTableHeader(props) {
   const queryClient = useQueryClient();
 
-  const { CustomerID } = props;
+  const { CustomerID, isEnable } = props;
   const { user } = useContext(AuthContext);
   const { setCreatedAccountID } = useContext(AccountEntryContext);
 
@@ -66,12 +74,10 @@ function CustomerAccountDataTableHeader(props) {
         apiUrl + "/EduIMS/CustomerAccountsInsertUpdate",
         DataToSend
       );
-
       if (data.success === true) {
-        setCreatedAccountID(data?.AccountID);
         reset();
         toast.success("Ledger saved successfully!");
-        queryClient.invalidateQueries(["customerAccounts"]);
+        queryClient.invalidateQueries({ queryKey: ["customerAccountsDetail"] });
       } else {
         toast.error(data.message, {
           autoClose: 1500,
@@ -94,24 +100,29 @@ function CustomerAccountDataTableHeader(props) {
   return (
     <>
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        // onSubmit={handleSubmit(onSubmit)}
         onKeyDown={preventFormByEnterKeySubmission}
       >
         <Row>
           <Form.Group as={Col} controlId="AccountTitle">
             <Form.Label>Customer Ledger Title</Form.Label>
-            <div className="d-flex">
+            <div className="d-flex gap-2">
               <Form.Control
                 type="text"
                 placeholder=""
                 required
+                disabled={!isEnable}
                 className="form-control"
                 {...register("AccountTitle")}
               />
               <Button
                 severity="info"
                 className="px-4 py-2 rounded-1 "
-                type="submit"
+                onClick={() => {
+                  handleSubmit(onSubmit)();
+                }}
+                type="button"
+                disabled={!isEnable}
               >
                 Add
               </Button>
@@ -126,7 +137,7 @@ function CustomerAccountDataTableHeader(props) {
 function CustomerAccountDetailTable(props) {
   const queryClient = useQueryClient();
   const [visible, setVisible] = useState(false);
-  const { CustomerID } = props;
+  const { CustomerID, isEnable } = props;
   const [filters, setFilters] = useState({
     AccountTitle: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
@@ -135,7 +146,7 @@ function CustomerAccountDetailTable(props) {
   const { register, setValue, handleSubmit } = useForm();
 
   const { data: CustomerAccounts } = useQuery({
-    queryKey: ["customerAccounts", CustomerID],
+    queryKey: ["customerAccountsDetail", CustomerID],
     queryFn: () => fetchCustomerAccountByID(CustomerID, user.userID),
     enabled: CustomerID !== 0,
     initialData: [],
@@ -156,7 +167,8 @@ function CustomerAccountDetailTable(props) {
 
       if (data.success === true) {
         toast.success("Ledger updated successfully!");
-        queryClient.invalidateQueries(["customerAccounts"]);
+        queryClient.invalidateQueries({ queryKey: ["customerAccountsDetail"] });
+        setVisible(false);
       } else {
         toast.error(data.message, {
           autoClose: 1500,
@@ -199,6 +211,8 @@ function CustomerAccountDetailTable(props) {
                 padding: "0.3rem 1.25rem",
                 fontSize: ".8em",
               }}
+              disabled={!isEnable}
+              type="button"
               onClick={() => {
                 setVisible(true);
                 setValue("AccountTitle", rowData?.AccountTitle);
@@ -218,7 +232,7 @@ function CustomerAccountDetailTable(props) {
         <Column
           field="AccountTitle"
           filter
-          filterPlaceholder="Search by Customer Account"
+          filterPlaceholder="Search by Customer Ledger"
           sortable
           header="Ledger Title"
           style={{ minWidth: "20rem" }}
@@ -230,7 +244,9 @@ function CustomerAccountDetailTable(props) {
           <Dialog
             header={"Edit Ledger Name"}
             visible={visible}
-            onHide={() => setVisible(false)}
+            onHide={() => {
+              setVisible(false);
+            }}
             style={{ width: "40vw" }}
             footer={
               <Button

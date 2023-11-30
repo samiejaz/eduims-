@@ -1,24 +1,27 @@
 import { Route, Routes } from "react-router-dom";
 import ProtectedRoutes from "./components/ProtectedRoutes";
 import Login from "./pages/Login";
-import BusinessUnits from "./pages/BusinessUnits/BusinessUnits";
-import GenSessionInfo from "./pages/SessionInfo/GenSessionInfo";
-import BankAccountOpening from "./pages/BankAccountOpening/BankAccountOpening";
-import GenUsers from "./pages/GenUsers/GenUsers";
-import GenOldCustomerEntry from "./pages/GenOldCustomers/GenOldCustomerEntry";
-import GenProductCategory from "./pages/ProductCategory/ProductCategory";
-import GenServiceCategory from "./pages/ServiceCategory/GenServiceCategory";
-import ProductInfo from "./pages/ProductInfo/ProductInfo";
-import ServiceInfo from "./pages/ServiceInfo/ServiceInfo";
-import CustomerBranch from "./pages/CustomerBranch/CustomerBranch";
 import { ToastContainer } from "react-toastify";
-import GenCustomerEntry from "./pages/CustomerEntry/GenCustomerEntry";
 import SignUp from "./pages/MDBLOGIN4";
-import CompanyInfo from "./pages/CompanyInfo/CompanyInfo";
-import CustomerInvoice from "./pages/CustomerInvoice/CustomerInvoice";
-import InvoiceDefaultDescriptions from "./pages/InvoiceDefaultDescriptions/InvoiceDefaultDescriptions";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import GenNewCustomerView from "./pages/CustomerEntry/CustomerEntryView";
+import {
+  AppConfiguration,
+  BankAccountOpening,
+  BusinessUnits,
+  SessionInfo,
+  GenUsers,
+  GenOldCustomers,
+  ProductCategory,
+  ProductInfo,
+  ServiceCategory,
+  ServiceInfo,
+  CustomerBranch,
+  CustomerInvoice,
+  InvoiceDefaultDescriptions,
+  CompanyInfo,
+  GenCustomerEntry,
+} from "./pages";
 
 const App = () => {
   return (
@@ -27,13 +30,9 @@ const App = () => {
         <Route path="auth" element={<SignUp />} />
         <Route path="/" element={<ProtectedRoutes />}>
           <Route index element={<Dashboard />} />
-          {/* <Route
-            path="/customers/customerEntry"
-            element={<Customerinfopage />}
-          /> */}
           <Route
             path="/customers/oldCustomerEntry"
-            element={<GenOldCustomerEntry />}
+            element={<GenOldCustomers />}
           />
           <Route
             path="/customers/customerEntry"
@@ -45,7 +44,7 @@ const App = () => {
           />
           <Route path="/users/usersentry" element={<GenUsers />} />
           <Route path="/customers/businessUnits" element={<BusinessUnits />} />
-          <Route path="/customers/sessionInfo" element={<GenSessionInfo />} />
+          <Route path="/customers/sessionInfo" element={<SessionInfo />} />
           <Route
             path="/customers/customerBranch"
             element={<CustomerBranch />}
@@ -60,7 +59,7 @@ const App = () => {
           />
           <Route
             path="/general/productCategories"
-            element={<GenProductCategory />}
+            element={<ProductCategory />}
           />
           <Route
             path="/general/invoiceDescriptions"
@@ -69,10 +68,14 @@ const App = () => {
           <Route path="/general/productInfo" element={<ProductInfo />} />
           <Route
             path="/general/serviceCategories"
-            element={<GenServiceCategory />}
+            element={<ServiceCategory />}
           />
           <Route path="/general/servicesInfo" element={<ServiceInfo />} />
           <Route path="/general/companyInfo" element={<CompanyInfo />} />
+          <Route
+            path="/general/appConfiguration"
+            element={<AppConfiguration />}
+          />
 
           {/* <Route path="/users/departmententry" element={<Department />} /> */}
           {/* <Route path="/customers/segmentsEntry" element={<Segments />} />

@@ -2,10 +2,13 @@ import { Dialog } from "primereact/dialog";
 import { useState } from "react";
 import CustomerAccountEntry from "../CustomerEntryModal/CustomerAccountsEntry";
 import { Button } from "primereact/button";
+import { useQueryClient } from "@tanstack/react-query";
+import { FormProvider, useForm } from "react-hook-form";
 
-export function useCustomerAccountEntryModal() {
+export function useCustomerAccountEntryModal(CustomerID) {
+  const queryClient = useQueryClient();
   const [visible, setVisible] = useState(false);
-
+  // const customerAccountsForm = useForm();
   return {
     setVisible,
     render: (
@@ -17,17 +20,20 @@ export function useCustomerAccountEntryModal() {
           style={{ width: "70vw", height: "60vh" }}
           onHide={() => {
             setVisible(false);
+            queryClient.invalidateQueries({ queryKey: ["customerAccounts"] });
           }}
         >
-          <CustomerAccountEntry CustomerID={0} />
+          {/* <FormProvider {...customerAccountsForm}> */}
+          <CustomerAccountEntry CustomerID={CustomerID} />
+          {/* </FormProvider> */}
         </Dialog>
       </>
     ),
   };
 }
 
-export function CustomerAccountEntryModal() {
-  const { setVisible, render } = useCustomerAccountEntryModal();
+export function CustomerAccountEntryModal({ CustomerID }) {
+  const { setVisible, render } = useCustomerAccountEntryModal(CustomerID);
 
   return (
     <>
@@ -43,6 +49,7 @@ export function CustomerAccountEntryModal() {
           fontSize: "small",
           width: "30px",
           marginLeft: "10px",
+          marginBottom: "10px",
         }}
       />
       <div>{render}</div>
