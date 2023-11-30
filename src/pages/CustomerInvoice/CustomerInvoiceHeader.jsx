@@ -141,14 +141,14 @@ function CustomerInvoiceHeader({
             <span className="text-danger">{errors?.BusinessUnit?.message}</span>
           </Form.Group>
           <Form.Group as={Col} controlId="CustomerBranch">
-            <Form.Label>Customer {pageTitles?.branch || "Branch"}</Form.Label>
+            <Form.Label>{pageTitles?.branch || "Customer Branch"}</Form.Label>
             <span className="text-danger fw-bold ">*</span>
             <Controller
               control={control}
               name="CustomerBranch"
               rules={{
-                required: `Please select a customer ${
-                  pageTitles?.branch?.toLowerCase() || "branch"
+                required: `Please select a ${
+                  pageTitles?.branch?.toLowerCase() || "customer branch"
                 }`,
               }}
               render={({ field: { onChange, value, ref } }) => (
@@ -162,11 +162,13 @@ function CustomerInvoiceHeader({
                     onChange(selectedOption);
                     setFocus("ProductInfo");
                   }}
-                  placeholder={`Select a customer ${
-                    pageTitles?.branch.toLowerCase() || "branch"
-                  }`}
+                  placeholder={`Select a ${
+                    pageTitles?.branch.toLowerCase() || "customer branche"
+                  }s`}
                   noOptionsMessage={() =>
-                    `No ${pageTitles?.branch?.toLowerCase() || "branch"} found!`
+                    `No ${
+                      pageTitles?.branch?.toLowerCase() || "customer branche"
+                    }s found!`
                   }
                   isClearable
                 />

@@ -36,7 +36,7 @@ const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 function CustomerBranch() {
   const { pageTitles } = useContext(AppConfigurationContext);
-  document.title = `Customer ${pageTitles?.branch || "Branch"}`;
+  document.title = `${pageTitles?.branch || "Customer Branch"}`;
   return (
     <CustomerBranchDataProivder>
       <TabHeader
@@ -143,7 +143,7 @@ function CustomerBranchSearch({ pageTitles }) {
             rowsPerPageOptions={[5, 10, 25, 50]}
             removableSort
             emptyMessage={`No customer ${
-              pageTitles?.branch?.toLowerCase() || "branch"
+              pageTitles?.branch?.toLowerCase() || "customer branch"
             } found!`}
             filters={filters}
             filterDisplay="row"
@@ -168,7 +168,9 @@ function CustomerBranchSearch({ pageTitles }) {
             <Column
               field="CustomerBranchTitle"
               filter
-              filterPlaceholder={`Search by ${pageTitles?.branch || "Branch"}`}
+              filterPlaceholder={`Search by ${
+                pageTitles?.branch || "Customer Branch"
+              }`}
               sortable
               header={`Customer ${pageTitles?.branch || "Product"}`}
               style={{ minWidth: "20rem" }}
@@ -312,13 +314,13 @@ function CustomerBranchEntry({ pageTitles }) {
         if (CustomerBranch?.data[0]?.CustomerBranchID !== undefined) {
           toast.success(
             `Customer ${
-              pageTitles?.branch || "Branch"
+              pageTitles?.branch || "Customer Branch"
             } Info updated successfully!`
           );
         } else {
           toast.success(
             `Customer ${
-              pageTitles?.branch || "Branch"
+              pageTitles?.branch || "Customer Branch"
             } Info saved successfully!`
           );
         }
@@ -426,7 +428,7 @@ function CustomerBranchEntry({ pageTitles }) {
       ) : (
         <>
           <h4 className="p-3 mb-4 bg-light text-dark text-center  ">
-            Customer {pageTitles?.branch || "Branch"} Entry
+            {pageTitles?.branch || "Customer Branch"} Entry
           </h4>
 
           <form
@@ -436,7 +438,7 @@ function CustomerBranchEntry({ pageTitles }) {
             <Row className="p-3" style={{ marginTop: "-25px" }}>
               <Form.Group as={Col} controlId="CustomerBranchTitle">
                 <Form.Label>
-                  Customer {pageTitles?.branch || "Branch"} Title
+                  {pageTitles?.branch || "Customer Branch"} Title
                 </Form.Label>
                 <span className="text-danger fw-bold ">*</span>
                 <Form.Control
@@ -476,7 +478,7 @@ function CustomerBranchEntry({ pageTitles }) {
             <Row className="p-3" style={{ marginTop: "-25px" }}>
               <Form.Group controlId="BranchAddress">
                 <Form.Label>
-                  Customer {pageTitles?.branch || "Branch"} Address
+                  {pageTitles?.branch || "Customer Branch"} Address
                 </Form.Label>
                 <Form.Control
                   type="text"

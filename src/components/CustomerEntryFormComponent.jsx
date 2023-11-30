@@ -14,6 +14,7 @@ export function CustomerEntryForm({ IconButton = false }) {
             severity="success"
             size="small"
             className="rounded-2"
+            type="button"
             onClick={() => setVisible(true)}
             style={{
               padding: "1px 0px",
@@ -25,9 +26,19 @@ export function CustomerEntryForm({ IconButton = false }) {
         </>
       ) : (
         <>
-          <button onClick={() => setVisible(true)} className="btn btn-primary ">
-            Add Customer
-          </button>
+          <PrimeButton
+            onClick={() => setVisible(true)}
+            severity="info"
+            icon="pi pi-plus"
+            label="Add New"
+            className="rounded-5"
+            type="button"
+            style={{
+              padding: "0.3rem 1.25rem",
+              marginLeft: "25px",
+              fontSize: ".8em",
+            }}
+          />
         </>
       )}
       {render}

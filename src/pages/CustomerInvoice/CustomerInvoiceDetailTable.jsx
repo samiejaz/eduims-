@@ -175,7 +175,7 @@ function CustomerInvoiceDetailTable({ customerBranchSelectData, pageTitles }) {
                 <th className="p-2 bg-info text-white">Product Type</th>
                 <th className="p-2 bg-info text-white">Business Unit</th>
                 <th className="p-2 bg-info text-white">
-                  Customer {pageTitles?.branch || "Branch"}
+                  {pageTitles?.branch || "Customer Branch"}
                 </th>
                 <th className="p-2 bg-info text-white">
                   {pageTitles?.product || "Product"}

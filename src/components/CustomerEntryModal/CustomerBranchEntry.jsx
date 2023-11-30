@@ -16,6 +16,8 @@ import { Column } from "primereact/column";
 import { Dialog } from "primereact/dialog";
 import { CustomerAccountEntryModal } from "../Modals/CustomerAccountEntryModal";
 import { AppConfigurationContext } from "../../context/AppConfigurationContext";
+import { deleteCustomerBranchByID } from "../../api/CustomerBranchData";
+import useDeleteModal from "../../hooks/useDeleteModalHook";
 
 const BranchEntryContext = createContext();
 
@@ -33,12 +35,21 @@ const BranchEntryProiver = ({ children }) => {
 };
 
 function CustomerBranchEntry(props) {
-  const { CustomerID } = props;
+  const { CustomerID, isEnable = true } = props;
+  const { pageTitles } = useContext(AppConfigurationContext);
   return (
     <>
       <BranchEntryProiver>
-        <CustomerBranchEntryHeader CustomerID={CustomerID} />
-        <CustomerBranchesDataTable CustomerID={CustomerID} />
+        <CustomerBranchEntryHeader
+          CustomerID={CustomerID}
+          pageTitles={pageTitles}
+          isEnable={isEnable}
+        />
+        <CustomerBranchesDataTable
+          CustomerID={CustomerID}
+          pageTitles={pageTitles}
+          isEnable={isEnable}
+        />
       </BranchEntryProiver>
     </>
   );
@@ -47,11 +58,18 @@ function CustomerBranchEntry(props) {
 export default CustomerBranchEntry;
 
 function CustomerBranchEntryHeader(props) {
-  const { CustomerID } = props;
+  const { CustomerID, pageTitles, isEnable } = props;
   const queryClient = useQueryClient();
   const { user } = useContext(AuthContext);
-  const { pageTitles } = useContext(AppConfigurationContext);
-  const { register, control, handleSubmit, watch, reset, setValue } = useForm({
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm({
     defaultValues: {
       CustomerBranchTitle: "",
       BranchAddress: "",
@@ -113,8 +131,10 @@ function CustomerBranchEntryHeader(props) {
 
       if (data.success === true) {
         reset();
-        toast.success(`${pageTitles?.branch || "Branch"} saved successfully!`);
-        queryClient.invalidateQueries(["customerBranchesDetail"]);
+        toast.success(
+          `${pageTitles?.branch || "Customer Branch"} saved successfully!`
+        );
+        queryClient.invalidateQueries({ queryKey: ["customerBranchesDetail"] });
       } else {
         toast.error(data.message, {
           autoClose: 1500,
@@ -143,34 +163,42 @@ function CustomerBranchEntryHeader(props) {
         <Row>
           <Form.Group as={Col} controlId="CustomerBranchTitle">
             <Form.Label>
-              Customer {pageTitles?.branch || "Branch"} Title
+              {pageTitles?.branch || "Customer Branch"} Title
             </Form.Label>
             <span className="text-danger fw-bold ">*</span>
             <Form.Control
+              disabled={!isEnable}
               type="text"
               placeholder=""
               required
               className="form-control"
-              {...register("CustomerBranchTitle")}
+              {...register("CustomerBranchTitle", {
+                required: `${
+                  pageTitles?.branch || "Customer Branch"
+                } Title is required!`,
+              })}
             />
+            <p className="text-danger">
+              {errors?.CustomerBusinessName?.message}
+            </p>
           </Form.Group>
           <Form.Group as={Col} controlId="CustomerAccounts">
-            <Form.Label>{pageTitles?.branch || "CustomerAccounts"}</Form.Label>
+            <Form.Label>Customer Ledgers</Form.Label>
             <span className="text-danger fw-bold ">*</span>
-            <CustomerAccountEntryModal CustomerID={0} />
+            <CustomerAccountEntryModal CustomerID={CustomerID} />
             <Controller
               control={control}
               name="CustomerAccounts"
               render={({ field: { onChange, value } }) => (
                 <Select
-                  isDisabled={watch("CreateNewAccount")}
+                  isDisabled={watch("CreateNewAccount") || !isEnable}
                   options={CustomerAccounts}
                   getOptionValue={(option) => option.AccountID}
                   getOptionLabel={(option) => option.AccountTitle}
                   value={value}
                   onChange={(selectedOption) => onChange(selectedOption)}
-                  placeholder="Select an account"
-                  noOptionsMessage={() => "No accounts found!"}
+                  placeholder="Select a ledger"
+                  noOptionsMessage={() => "No ledgers found!"}
                   isClearable
                   isMulti
                 />
@@ -185,6 +213,7 @@ function CustomerBranchEntryHeader(props) {
                 name="CreateNewAccount"
                 render={({ field: { onChange, value } }) => (
                   <Form.Check
+                    disabled={!isEnable}
                     aria-label="CreateNewAccount"
                     label="Create New Ledger"
                     value={value}
@@ -202,9 +231,10 @@ function CustomerBranchEntryHeader(props) {
         <Row>
           <Form.Group controlId="BranchAddress">
             <Form.Label>
-              Customer {pageTitles?.branch || "Branch"} Address
+              {pageTitles?.branch || "Customer Branch"} Address
             </Form.Label>
             <Form.Control
+              disabled={!isEnable}
               type="text"
               placeholder=""
               {...register("BranchAddress")}
@@ -216,6 +246,7 @@ function CustomerBranchEntryHeader(props) {
           <Form.Group as={Col} controlId="ContactPersonName">
             <Form.Label>Contact Person Name</Form.Label>
             <Form.Control
+              disabled={!isEnable}
               type="text"
               placeholder=""
               {...register("ContactPersonName")}
@@ -225,6 +256,7 @@ function CustomerBranchEntryHeader(props) {
           <Form.Group as={Col} controlId="ContactPersonNo">
             <Form.Label>Contact Person No</Form.Label>
             <Form.Control
+              disabled={!isEnable}
               type="text"
               placeholder=""
               {...register("ContactPersonNo")}
@@ -234,6 +266,7 @@ function CustomerBranchEntryHeader(props) {
           <Form.Group as={Col} controlId="ContactPersonEmail">
             <Form.Label>Contact Person Email</Form.Label>
             <Form.Control
+              disabled={!isEnable}
               type="email"
               placeholder=""
               {...register("ContactPersonEmail")}
@@ -245,6 +278,7 @@ function CustomerBranchEntryHeader(props) {
           <Form.Group as={Col} controlId="Description">
             <Form.Label>Descripiton</Form.Label>
             <Form.Control
+              disabled={!isEnable}
               type="text"
               placeholder=""
               name="email"
@@ -257,6 +291,7 @@ function CustomerBranchEntryHeader(props) {
           <Form.Group as={Col} controlId="InActiveG" className="mt-2">
             <div className="d-flex gap-2">
               <Form.Check
+                disabled={!isEnable}
                 aria-label="InActive"
                 id="InActive"
                 name="InActive"
@@ -270,15 +305,21 @@ function CustomerBranchEntryHeader(props) {
         <Row className="mt-2 mb-2">
           <ButtonGroup className="gap-2">
             <Button
+              disabled={!isEnable}
               label="Add"
               className="rounded text-center"
               severity="success"
+              type="button"
               style={{
                 padding: "0.3rem 1.25rem",
                 fontSize: ".8em",
               }}
+              onClick={() => {
+                handleSubmit(onSubmit)();
+              }}
             />
             <Button
+              disabled={!isEnable}
               label="Clear"
               className="rounded text-center"
               severity="danger"
@@ -299,7 +340,7 @@ function CustomerBranchEntryHeader(props) {
 
 function CustomerBranchesDataTable(props) {
   const queryClient = useQueryClient();
-  let pageTitles = {};
+  const { pageTitles, isEnable: isGloballyEnable } = props;
   const [visible, setVisible] = useState(false);
   const { CustomerID } = props;
   const [filters, setFilters] = useState({
@@ -360,9 +401,10 @@ function CustomerBranchesDataTable(props) {
 
       if (data.success === true) {
         toast.success(
-          `${pageTitles?.branhc || "Branch"} updated! successfully!`
+          `${pageTitles?.branch || "Customer Branch"} updated! successfully!`
         );
-        queryClient.invalidateQueries(["customerBranchesDetail"]);
+        queryClient.invalidateQueries({ queryKey: ["customerBranchesDetail"] });
+        setVisible(false);
       } else {
         toast.error(data.message, {
           autoClose: 1500,
@@ -383,6 +425,22 @@ function CustomerBranchesDataTable(props) {
     queryFn: () => fetchAllCustomerAccountsForSelect(CustomerID),
     enabled: CustomerID !== 0,
     initialData: [],
+  });
+
+  const {
+    render: DeleteModal,
+    handleShow: handleDeleteShow,
+    handleClose: handleDeleteClose,
+    setIdToDelete,
+  } = useDeleteModal(handleDelete);
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteCustomerBranchByID,
+    onSuccess: (response) => {
+      if (response === true) {
+        queryClient.invalidateQueries({ queryKey: ["customerBranchesDetail"] });
+      }
+    },
   });
 
   useEffect(() => {
@@ -442,6 +500,15 @@ function CustomerBranchesDataTable(props) {
     }
   }, [CustomerBranchID, CustomerBranchData]);
 
+  function handleDelete(BranchID) {
+    deleteMutation.mutate({
+      CustomerBranchID: BranchID,
+      LoginUserID: user.userID,
+    });
+    handleDeleteClose();
+    setIdToDelete(0);
+  }
+
   return (
     <>
       <DataTable
@@ -453,9 +520,9 @@ function CustomerBranchesDataTable(props) {
         rows={10}
         rowsPerPageOptions={[5, 10, 25, 50]}
         removableSort
-        emptyMessage={`No customer ${
-          pageTitles?.branch?.toLowerCase() || "branche"
-        }s`}
+        emptyMessage={`No ${
+          pageTitles?.branch?.toLowerCase() || "customer branch"
+        }`}
         filters={filters}
         filterDisplay="row"
         resizableColumns
@@ -475,6 +542,7 @@ function CustomerBranchesDataTable(props) {
                   style={{
                     padding: "0.3rem .7rem",
                     fontSize: ".8em",
+                    width: "30px",
                   }}
                   onClick={() => {
                     setVisible(true);
@@ -483,6 +551,7 @@ function CustomerBranchesDataTable(props) {
                   }}
                 />
                 <Button
+                  disabled={!isGloballyEnable}
                   icon="pi pi-pencil"
                   severity="success"
                   size="small"
@@ -490,11 +559,29 @@ function CustomerBranchesDataTable(props) {
                   style={{
                     padding: "0.3rem .7rem",
                     fontSize: ".8em",
+                    width: "30px",
                   }}
                   onClick={() => {
                     setVisible(true);
                     setCustomerBranchID(rowData?.CustomerBranchID);
                     setIsEnable(true);
+                  }}
+                />
+                <Button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  size="small"
+                  className="rounded"
+                  style={{
+                    padding: "0.3rem .7rem",
+                    fontSize: ".8em",
+                    width: "30px",
+                  }}
+                  onClick={() => {
+                    handleDeleteShow(rowData?.CustomerBranchID);
+                    // setVisible(true);
+                    // setCustomerBranchID(rowData?.CustomerBranchID);
+                    // setIsEnable(true);
                   }}
                 />
               </ButtonGroup>
@@ -503,20 +590,20 @@ function CustomerBranchesDataTable(props) {
           header="Actions"
           resizeable={false}
           style={{
-            minWidth: "7rem",
-            maxWidth: "7rem",
-            width: "7rem",
+            minWidth: "8rem",
+            maxWidth: "8rem",
+            width: "8rem",
             textAlign: "center",
           }}
         ></Column>
         <Column
           field="CustomerBranchTitle"
           filter
-          filterPlaceholder={`Search by customer ${
-            pageTitles?.branch || "branch"
+          filterPlaceholder={`Search by ${
+            pageTitles?.branch || "customer branch"
           }`}
           sortable
-          header={`Customer ${pageTitles?.branch || "Branch"} Title`}
+          header={`${pageTitles?.branch || "Customer Branch"} Title`}
           style={{ minWidth: "20rem" }}
         ></Column>
       </DataTable>
@@ -524,7 +611,7 @@ function CustomerBranchesDataTable(props) {
       <form onKeyDown={preventFormByEnterKeySubmission}>
         <div className="card flex justify-content-center">
           <Dialog
-            header={`Edit ${pageTitles?.branch || "Branch"}`}
+            header={`Edit ${pageTitles?.branch || "Customer Branch"}`}
             visible={visible}
             onHide={() => setVisible(false)}
             style={{ width: "70vw", height: "65vh" }}
@@ -573,7 +660,7 @@ function CustomerBranchesDataTable(props) {
               <Row>
                 <Form.Group as={Col} controlId="CustomerBranchTitle">
                   <Form.Label>
-                    Customer {pageTitles?.branch || "Branch"} Title
+                    {pageTitles?.branch || "Customer Branch"} Title
                   </Form.Label>
                   <span className="text-danger fw-bold ">*</span>
                   <Form.Control
@@ -586,11 +673,9 @@ function CustomerBranchesDataTable(props) {
                   />
                 </Form.Group>
                 <Form.Group as={Col} controlId="Customers">
-                  <Form.Label>
-                    Customer Ledgers
-                    <CustomerAccountEntryModal CustomerID={0} />
-                  </Form.Label>
+                  <Form.Label>Customer Ledgers</Form.Label>
                   <span className="text-danger fw-bold ">*</span>
+                  <CustomerAccountEntryModal CustomerID={CustomerID} />
                   <Controller
                     control={control}
                     name="CustomerAccounts"
@@ -636,7 +721,7 @@ function CustomerBranchesDataTable(props) {
               <Row>
                 <Form.Group controlId="BranchAddress">
                   <Form.Label>
-                    Customer {pageTitles?.branch || "Branch"} Address
+                    {pageTitles?.branch || "Customer Branch"} Address
                   </Form.Label>
                   <Form.Control
                     type="text"
@@ -710,6 +795,7 @@ function CustomerBranchesDataTable(props) {
           </Dialog>
         </div>
       </form>
+      {DeleteModal}
     </>
   );
 }

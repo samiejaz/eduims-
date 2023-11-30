@@ -7,7 +7,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { toast } from "react-toastify";
 
 function CustomerEntry(props) {
-  const { CustomerID } = props;
+  const { CustomerID, isEnable = true } = props;
   const { user } = useContext(AuthContext);
   const [CustomerData, setCustomerData] = useState();
 
@@ -71,6 +71,7 @@ function CustomerEntry(props) {
               {...register("CustomerName", {
                 required: "Please enter customer name!",
               })}
+              disabled={!isEnable}
             />
             <p className="text-danger">{errors?.CustomerName?.message}</p>
           </Form.Group>
@@ -84,6 +85,7 @@ function CustomerEntry(props) {
               {...register("CustomerBusinessName", {
                 required: "Please enter customer business name!",
               })}
+              disabled={!isEnable}
             />
             <p className="text-danger">
               {errors?.CustomerBusinessName?.message}
@@ -100,6 +102,7 @@ function CustomerEntry(props) {
               {...register("CustomerBusinessAddress", {
                 // disabled: !isEnable,
               })}
+              disabled={!isEnable}
             />
           </Form.Group>
         </Row>
@@ -113,6 +116,7 @@ function CustomerEntry(props) {
               {...register("ContactPerson1Name", {
                 // disabled: !isEnable,
               })}
+              disabled={!isEnable}
             />
           </Form.Group>
 
@@ -124,6 +128,7 @@ function CustomerEntry(props) {
               {...register("ContactPerson1No", {
                 // disabled: !isEnable,
               })}
+              disabled={!isEnable}
             />
           </Form.Group>
 
@@ -135,6 +140,7 @@ function CustomerEntry(props) {
               {...register("ContactPerson1Email", {
                 // disabled: !isEnable,
               })}
+              disabled={!isEnable}
             />
           </Form.Group>
         </Row>
@@ -149,6 +155,7 @@ function CustomerEntry(props) {
               {...register("Description", {
                 // disabled: !isEnable,
               })}
+              disabled={!isEnable}
             />
           </Form.Group>
         </Row>
@@ -160,6 +167,7 @@ function CustomerEntry(props) {
               {...register("InActive", {
                 // disabled: !isEnable,
               })}
+              disabled={!isEnable}
             />
           </Form.Group>
         </Row>

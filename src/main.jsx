@@ -24,13 +24,13 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvier>
-          <AppConfigurationProivder>
-            <ActiveKeyProivder>
+          <ActiveKeyProivder>
+            <AppConfigurationProivder>
               <DataProivder>
                 <App />
               </DataProivder>
-            </ActiveKeyProivder>
-          </AppConfigurationProivder>
+            </AppConfigurationProivder>
+          </ActiveKeyProivder>
         </AuthProvier>
       </BrowserRouter>
       <ReactQueryDevtools initialIsOpen={false} />
