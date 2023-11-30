@@ -1,31 +1,40 @@
-import { FormProvider, useForm } from "react-hook-form";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import CustomerEntry from "../../components/CustomerEntryModal/CustomerEntry";
 import CustomerAccountEntry from "../../components/CustomerEntryModal/CustomerAccountsEntry";
 import CustomerBranchEntry from "../../components/CustomerEntryModal/CustomerBranchEntry";
 import { TabView, TabPanel } from "primereact/tabview";
-import { ButtonGroup } from "react-bootstrap";
+import { ButtonGroup, Form, Col, Row } from "react-bootstrap";
 import { Button } from "primereact/button";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { toast } from "react-toastify";
 import { BreadCrumb } from "primereact/breadcrumb";
+import Select from "react-select";
+import { fetchAllOldCustomersForSelect } from "../../api/SelectData";
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 const items = [{ label: "Customer Detail" }];
 export default function GenNewCustomerView() {
+  const [CustomerID, setCustomerID] = useState(0);
+  const [isGloballyEnable, setIsGloballyEnable] = useState();
   const params = useParams();
   const location = useLocation();
   const { search } = location;
   const url = new URLSearchParams(search);
-  let isEnable = url.get("viewMode") === "edit" ? true : false;
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
+  const { control } = useForm();
   const customerEntryForm = useForm();
   const customerBranchFrom = useForm();
-  const customerAccountsForm = useForm();
+
+  useEffect(() => {
+    setCustomerID(params?.CustomerID);
+    setIsGloballyEnable(url.get("viewMode") === "edit" ? true : false);
+  }, []);
+
   const home = {
     label: "Customers",
     command: () => navigate("/customers/customerEntry"),
@@ -72,28 +81,77 @@ export default function GenNewCustomerView() {
     customerMutation.mutate(data);
   }
 
+  const { data } = useQuery({
+    queryKey: ["oldcustomers"],
+    queryFn: () => fetchAllOldCustomersForSelect(),
+    initialData: [],
+  });
+
   return (
     <>
       <div className="bg__image mt-5">
         <div className=" px-md-5 bg__image">
           <div className=" px-md-4">
-            <div>
-              <BreadCrumb
-                model={items}
-                home={home}
-                style={{ border: "none" }}
-              />
+            <div className="d-flex justify-content-between ">
+              <div>
+                <BreadCrumb
+                  model={items}
+                  home={home}
+                  style={{ border: "none" }}
+                />
+              </div>
+              {isGloballyEnable === false && (
+                <>
+                  <div>
+                    <Button
+                      style={{ marginRight: "40px" }}
+                      onClick={() => setIsGloballyEnable(true)}
+                      severity="warning"
+                      label="Edit"
+                      icon="pi pi-pencil"
+                      className="rounded"
+                    ></Button>
+                  </div>
+                </>
+              )}
             </div>
             <div className="d-flex text-dark p-3 mb-4 ">
-              <h2 className="text-center my-auto">Customer Detail</h2>
+              <Row className="w-100">
+                <Form.Group as={Col}>
+                  <h2 className="text-start my-auto">Customer Detail</h2>
+                </Form.Group>
+                <Form.Group as={Col} controlId="Customers">
+                  <Controller
+                    control={control}
+                    name="Customers"
+                    render={({ field: { onChange, value } }) => (
+                      <Select
+                        options={data}
+                        getOptionValue={(option) => option.CustomerID}
+                        getOptionLabel={(option) => option.CustomerName}
+                        value={value}
+                        onChange={(selectedOption) => {
+                          onChange(selectedOption);
+                          setCustomerID(
+                            selectedOption?.CustomerID ?? params?.CustomerID
+                          );
+                        }}
+                        placeholder="Select a customer"
+                        noOptionsMessage={() => "No customers found!"}
+                        isClearable
+                      />
+                    )}
+                  />
+                </Form.Group>
+              </Row>
             </div>
             <div className="card">
               <TabView>
                 <TabPanel header="Customer">
                   <FormProvider {...customerEntryForm}>
                     <CustomerEntry
-                      CustomerID={params.CustomerID}
-                      isEnable={isEnable}
+                      CustomerID={CustomerID}
+                      isEnable={isGloballyEnable}
                     />
                     <ButtonGroup className="mt-3 w-100">
                       <Button
@@ -104,7 +162,7 @@ export default function GenNewCustomerView() {
                         onClick={() => {
                           customerEntryForm.handleSubmit(onSubmit)();
                         }}
-                        disabled={!isEnable}
+                        disabled={!isGloballyEnable}
                       ></Button>
                     </ButtonGroup>
                   </FormProvider>
@@ -112,15 +170,15 @@ export default function GenNewCustomerView() {
                 <TabPanel header="Customer Branches">
                   <FormProvider {...customerBranchFrom}>
                     <CustomerBranchEntry
-                      CustomerID={params.CustomerID}
-                      isEnable={isEnable}
+                      CustomerID={CustomerID}
+                      isEnable={isGloballyEnable}
                     />
                   </FormProvider>
                 </TabPanel>
                 <TabPanel header="Customer Ledgers ">
                   <CustomerAccountEntry
-                    CustomerID={params.CustomerID}
-                    isEnable={isEnable}
+                    CustomerID={CustomerID}
+                    isEnable={isGloballyEnable}
                   />
                 </TabPanel>
               </TabView>

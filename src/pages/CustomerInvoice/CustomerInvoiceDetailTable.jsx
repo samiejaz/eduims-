@@ -1,13 +1,21 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { Row, Col, Form, ButtonGroup, Button, Table } from "react-bootstrap";
-import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
 import ReactSelect from "react-select";
-import CustomerInvoiceHeader from "./CustomerInvoiceHeader";
-import ReactDatePicker from "react-datepicker";
 
 let renderCount = 0;
-function CustomerInvoiceDetailTable({ customerBranchSelectData, pageTitles }) {
+function CustomerInvoiceDetailTable(props) {
   renderCount++;
+  const {
+    customerBranchSelectData,
+    pageTitles,
+    fields,
+    append,
+    remove,
+    businessSelectData,
+    productsInfoSelectData,
+    servicesInfoSelectData,
+  } = props;
 
   const {
     register,
@@ -18,10 +26,6 @@ function CustomerInvoiceDetailTable({ customerBranchSelectData, pageTitles }) {
     watch,
     formState: { errors },
   } = useFormContext();
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "detail",
-  });
 
   const prevCustomerBranchSelectData = useRef([{}]);
 
@@ -35,63 +39,6 @@ function CustomerInvoiceDetailTable({ customerBranchSelectData, pageTitles }) {
       prevCustomerBranchSelectData.current = customerBranchSelectData;
     }
   }, [customerBranchSelectData]);
-
-  const businessSelectData = [
-    {
-      BusinessUnitID: 1,
-      BusinessUnitName: "Business Unit 1",
-    },
-    {
-      BusinessUnitID: 2,
-      BusinessUnitName: "Business Unit 2",
-    },
-  ];
-
-  const productsInfoSelectData = [
-    {
-      ProductInfoID: 1,
-      ProductInfoTitle: `${pageTitles?.product || "Product"} 1`,
-      BusinessUnitID: 1,
-    },
-    {
-      ProductInfoID: 2,
-      ProductInfoTitle: `${pageTitles?.product || "Product"} 2`,
-      BusinessUnitID: 2,
-    },
-    {
-      ProductInfoID: 3,
-      ProductInfoTitle: `${pageTitles?.product || "Product"} 3`,
-      BusinessUnitID: 1,
-    },
-    {
-      ProductInfoID: 4,
-      ProductInfoTitle: `${pageTitles?.product || "Product"} 4`,
-      BusinessUnitID: 2,
-    },
-  ];
-
-  const servicesInfoSelectData = [
-    {
-      ServiceInfoID: 1,
-      ServiceInfoTitle: `Service 1`,
-      BusinessUnitID: 1,
-    },
-    {
-      ServiceInfoID: 2,
-      ServiceInfoTitle: `Service 2`,
-      BusinessUnitID: 2,
-    },
-    {
-      ServiceInfoID: 3,
-      ServiceInfoTitle: `Service 3`,
-      BusinessUnitID: 1,
-    },
-    {
-      ServiceInfoID: 4,
-      ServiceInfoTitle: `Service 4`,
-      BusinessUnitID: 2,
-    },
-  ];
 
   useEffect(() => {
     handleNetAmountTotal();
@@ -138,27 +85,6 @@ function CustomerInvoiceDetailTable({ customerBranchSelectData, pageTitles }) {
   return (
     <>
       <div className="py-3 mb-4">
-        <div
-          style={{
-            padding: "1rem",
-            borderRadius: "6px",
-          }}
-          className="bg-light shadow-sm"
-        >
-          <h5 className="p-3 mb-4 bg-light text-dark text-center  ">
-            Detail Entry
-          </h5>
-          <CustomerInvoiceHeader
-            businessSelectData={businessSelectData}
-            productsInfoSelectData={productsInfoSelectData}
-            servicesInfoSelectData={servicesInfoSelectData}
-            customerBranchSelectData={customerBranchSelectData}
-            append={append}
-            handleNetAmountTotal={handleNetAmountTotal}
-            fields={fields}
-            pageTitles={pageTitles}
-          />
-        </div>
         <form>
           <hr />
 
@@ -172,15 +98,30 @@ function CustomerInvoiceDetailTable({ customerBranchSelectData, pageTitles }) {
             <thead className="">
               <tr className="text-center bg-info-subtle ">
                 <th className="p-2 bg-info text-white">Sr No.</th>
-                <th className="p-2 bg-info text-white">Product Type</th>
-                <th className="p-2 bg-info text-white">Business Unit</th>
-                <th className="p-2 bg-info text-white">
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "400px" }}
+                >
+                  Business Unit
+                </th>
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "400px" }}
+                >
                   {pageTitles?.branch || "Customer Branch"}
                 </th>
-                <th className="p-2 bg-info text-white">
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "400px" }}
+                >
                   {pageTitles?.product || "Product"}
                 </th>
-                <th className="p-2 bg-info text-white">Service</th>
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "400px" }}
+                >
+                  Service
+                </th>
                 <th className="p-2 bg-info text-white">Qty</th>
                 <th className="p-2 bg-info text-white">Rate</th>
                 <th className="p-2 bg-info text-white">CGS</th>
@@ -204,23 +145,7 @@ function CustomerInvoiceDetailTable({ customerBranchSelectData, pageTitles }) {
                         value={index + 1}
                       />
                     </td>
-                    <td style={{ width: "250px" }}>
-                      <Controller
-                        control={control}
-                        name={`detail.${index}.InvoiceType`}
-                        render={({ field: { onChange, value } }) => (
-                          <ReactSelect
-                            required
-                            options={typesOptions}
-                            value={value}
-                            onChange={(selectedOption) =>
-                              onChange(selectedOption)
-                            }
-                            noOptionsMessage={() => "No types found!"}
-                          />
-                        )}
-                      />
-                    </td>
+
                     <td style={{ width: "250px" }}>
                       <Controller
                         control={control}
@@ -238,7 +163,8 @@ function CustomerInvoiceDetailTable({ customerBranchSelectData, pageTitles }) {
                               setFocus(`detail.${index}.CustomerBranch`);
                             }}
                             noOptionsMessage={() => "No business unit found!"}
-                            isClearable
+                            openMenuOnFocus
+                            components={{ DropdownIndicator: () => null }}
                           />
                         )}
                       />
@@ -261,7 +187,8 @@ function CustomerInvoiceDetailTable({ customerBranchSelectData, pageTitles }) {
                               setFocus(`detail.${index}.Product`);
                             }}
                             noOptionsMessage={() => "No branch found!"}
-                            isClearable
+                            openMenuOnFocus
+                            components={{ DropdownIndicator: () => null }}
                           />
                         )}
                       />
@@ -274,7 +201,7 @@ function CustomerInvoiceDetailTable({ customerBranchSelectData, pageTitles }) {
                         render={({ field: { onChange, value, ref } }) => (
                           <ReactSelect
                             options={filteredProductsBasedOnRow(
-                              watch(`detail.${index}.BusinessUnit`)
+                              getValues([`detail.${index}.BusinessUnit`])
                             )}
                             getOptionValue={(option) => option.ProductInfoID}
                             getOptionLabel={(option) => option.ProductInfoTitle}
@@ -285,8 +212,9 @@ function CustomerInvoiceDetailTable({ customerBranchSelectData, pageTitles }) {
                               setFocus(`detail.${index}.Rate`);
                             }}
                             noOptionsMessage={() => "No products found!"}
-                            isClearable
                             required
+                            openMenuOnFocus
+                            components={{ DropdownIndicator: () => null }}
                           />
                         )}
                       />
@@ -307,14 +235,9 @@ function CustomerInvoiceDetailTable({ customerBranchSelectData, pageTitles }) {
                               setFocus(`detail.${index}.ProductInfo`);
                             }}
                             noOptionsMessage={() => "No services found!"}
-                            isClearable
-                            isDisabled={
-                              watch(`detail.${index}.InvoiceType`)?.value ===
-                              "Product"
-                                ? true
-                                : false
-                            }
                             required
+                            openMenuOnFocus
+                            components={{ DropdownIndicator: () => null }}
                           />
                         )}
                       />
@@ -438,7 +361,7 @@ function CustomerInvoiceDetailTable({ customerBranchSelectData, pageTitles }) {
                     <td style={{ width: "250px" }}>
                       <Form.Control
                         type="text"
-                        {...register(`detail.${index}.Description`)}
+                        {...register(`detail.${index}.DetailDescription`)}
                       />
                     </td>
                     <td>
@@ -501,26 +424,6 @@ function CustomerInvoiceDetailTable({ customerBranchSelectData, pageTitles }) {
             <Form.Group as={Col} controlId="Total_Amount">
               <Form.Label>Total Amount</Form.Label>
               <Form.Control disabled {...register("Total_Amount")} />
-            </Form.Group>
-          </Row>
-          <Row className="p-3" style={{ marginTop: "-25px" }}>
-            <Form.Group as={Col} controlId="">
-              <Form.Label>Invoice Date</Form.Label>
-              <div>
-                <Controller
-                  control={control}
-                  name="DueDate"
-                  render={({ field }) => (
-                    <ReactDatePicker
-                      placeholderText="Select due date"
-                      onChange={(date) => field.onChange(date)}
-                      selected={field.value || new Date()}
-                      dateFormat={"dd-MMM-yyyy"}
-                      className="binput"
-                    />
-                  )}
-                />
-              </div>
             </Form.Group>
           </Row>
         </form>

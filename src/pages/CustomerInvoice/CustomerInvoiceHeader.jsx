@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Row, Col, Form, ButtonGroup, Button } from "react-bootstrap";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useFormContext, useWatch } from "react-hook-form";
 import ReactSelect from "react-select";
 import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
 
@@ -19,15 +19,17 @@ const defaultValues = {
   Description: "",
 };
 
-function CustomerInvoiceHeader({
-  businessSelectData,
-  customerBranchSelectData,
-  productsInfoSelectData,
-  servicesInfoSelectData,
-  append,
-  fields,
-  pageTitles,
-}) {
+function CustomerInvoiceHeader(props) {
+  const {
+    businessSelectData,
+    customerBranchSelectData,
+    productsInfoSelectData,
+    servicesInfoSelectData,
+    append,
+    pageTitles,
+    InvoiceType,
+  } = props;
+
   const {
     control,
     handleSubmit,
@@ -36,48 +38,15 @@ function CustomerInvoiceHeader({
     getValues,
     setValue,
     setFocus,
-    watch,
     formState: { errors, isDirty },
-  } = useForm({ defaultValues });
+  } = useForm();
 
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const InvoiceType = watch("InvoiceType");
 
   function onSubmit(data) {
-    console.log(data);
     append(data);
-
-    // {
-    //   InvoiceType: {
-    //     value: data.InvoiceType.value,
-    //     label: data.InvoiceType.label,
-    //   },
-    //   BusinessUnit: {
-    //     BusinessUnitID: data.BusinessUnit.BusinessUnitID,
-    //     BusinessUnitName: data.BusinessUnit.BusinessUnitName,
-    //   },
-    //   Product: {
-    //     ProductInfoID: data.ProductInfo.ProductInfoID,
-    //     ProductInfoTitle: data.ProductInfo.ProductInfoTitle,
-    //   },
-    //   CustomerBranch: {
-    //     CustomerBranchID: data.CustomerBranch.CustomerBranchID,
-    //     CustomerBranchTitle: data.CustomerBranch.CustomerBranchTitle,
-    //   },
-    //   Rate: data.Rate,
-    //   CGS: data.CGS,
-    //   Discount: data.Discount,
-    //   Amount: data.Amount,
-    //   Description: data.Description,
-    // }
-
     reset(defaultValues);
   }
-
-  const typesOptions = [
-    { label: pageTitles?.product || "Product", value: "Product" },
-    { label: "Service", value: "Service" },
-  ];
 
   return (
     <>
@@ -86,29 +55,6 @@ function CustomerInvoiceHeader({
         // onKeyDown={preventFormByEnterKeySubmission}
       >
         <Row className="py-3" style={{ marginTop: "-25px" }}>
-          <Form.Group as={Col} controlId="InvoiceType">
-            <Form.Label>Invoice Type</Form.Label>
-            <span className="text-danger fw-bold ">*</span>
-            <Controller
-              control={control}
-              name="InvoiceType"
-              rules={{ required: "Please select a type!" }}
-              render={({ field: { onChange, value } }) => (
-                <ReactSelect
-                  options={typesOptions}
-                  value={value}
-                  onChange={(selectedOption) => {
-                    onChange(selectedOption);
-                    setFocus("BusinessUnit");
-                    setValue("ServiceInfo", []);
-                  }}
-                  placeholder="Select a type"
-                  noOptionsMessage={() => "No types found!"}
-                />
-              )}
-            />
-            <span className="text-danger">{errors?.Type?.message}</span>
-          </Form.Group>
           <Form.Group as={Col} controlId="BusinessUnit">
             <Form.Label>Business Unit</Form.Label>
             <span className="text-danger fw-bold ">*</span>
@@ -345,9 +291,9 @@ function CustomerInvoiceHeader({
           </Form.Group>
         </Row>
         <Row className="py-3" style={{ marginTop: "-25px" }}>
-          <Form.Group as={Col} controlId="Description">
+          <Form.Group as={Col} controlId="DetailDescription">
             <Form.Label>Description</Form.Label>
-            <Form.Control type="textarea" {...register("Description")} />
+            <Form.Control type="textarea" {...register("DetailDescription")} />
           </Form.Group>
           <Form.Group as={Col}>
             <Form.Label>Actions</Form.Label>
