@@ -411,7 +411,6 @@ function CustomerBranchEntry({ pageTitles }) {
   function resetSelectValues() {
     setValue("Customers", []);
   }
-
   return (
     <>
       {isLoading ? (

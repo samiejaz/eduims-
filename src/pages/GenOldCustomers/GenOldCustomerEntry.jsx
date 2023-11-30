@@ -30,6 +30,7 @@ import {
   fetchAllActivationCustomersForSelect,
   fetchAllSoftwareCustomersForSelect,
 } from "../../api/SelectData";
+// import { Select } from "react-select-virtualized";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
@@ -400,7 +401,7 @@ function GenOldCustomerEntryForm() {
                       placeholder="Select a customer"
                       noOptionsMessage={() => "No customer found!"}
                       isClearable
-                      isMulti
+                      // isMulti
                     />
                   )}
                 />
@@ -421,7 +422,7 @@ function GenOldCustomerEntryForm() {
                       placeholder="Select a customer"
                       noOptionsMessage={() => "No customer found!"}
                       isClearable
-                      isMulti
+                      // isMulti
                     />
                   )}
                 />

@@ -5,11 +5,13 @@ import { Form, Row, Col } from "react-bootstrap";
 import { fetchNewCustomerById } from "../../api/NewCustomerData";
 import { AuthContext } from "../../context/AuthContext";
 import { toast } from "react-toastify";
+import { CustomSpinner } from "../CustomSpinner";
 
 function CustomerEntry(props) {
   const { CustomerID, isEnable = true } = props;
   const { user } = useContext(AuthContext);
   const [CustomerData, setCustomerData] = useState();
+  const [isLoading, setIsLoading] = useState(true);
 
   const {
     register,
@@ -21,12 +23,8 @@ function CustomerEntry(props) {
     async function fetchOldCustomer() {
       if (CustomerID !== undefined && CustomerID !== 0 && CustomerID !== null) {
         const data = await fetchNewCustomerById(CustomerID, user.userID);
-        if (!data) {
-          toast.error("Network Error Occured!", {
-            position: "bottom-left",
-          });
-        }
         setCustomerData(data);
+        setIsLoading(false);
       }
     }
     if (CustomerID !== 0) {
@@ -55,6 +53,7 @@ function CustomerEntry(props) {
       setValue("InActive", CustomerData?.data[0]?.InActive);
     }
   }, [CustomerID, CustomerData]);
+  console.log(isLoading);
 
   return (
     <>
