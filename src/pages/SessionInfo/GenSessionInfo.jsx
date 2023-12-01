@@ -232,6 +232,8 @@ function GenSessionInfoEntry() {
         EntryUserID: user.userID,
       };
 
+      console.log(dataToSend);
+
       if (Session?.data[0]?.SessionID !== undefined) {
         dataToSend.SessionID = Session?.data[0]?.SessionID;
       } else {

@@ -3,21 +3,8 @@ import { Row, Col, Form, ButtonGroup, Button } from "react-bootstrap";
 import { Controller, useForm, useFormContext, useWatch } from "react-hook-form";
 import ReactSelect from "react-select";
 import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
-
-const defaultValues = {
-  InvoiceType: [],
-  BusinessUnit: [],
-  CustomerBranch: [],
-  ProductInfo: [],
-  ServiceInfo: [],
-  Qty: 1,
-  Rate: 0,
-  CGS: 0,
-  Discount: 0,
-  Amount: 0,
-  NetAmount: 0,
-  Description: "",
-};
+import { useContext } from "react";
+import { InvoiceDataContext } from "./CustomerInvoiceDataContext";
 
 function CustomerInvoiceHeader(props) {
   const {
@@ -39,13 +26,13 @@ function CustomerInvoiceHeader(props) {
     setValue,
     setFocus,
     formState: { errors, isDirty },
-  } = useForm();
+  } = useFormContext();
 
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const { setBusinessUnitID } = useContext(InvoiceDataContext);
 
   function onSubmit(data) {
     append(data);
-    reset(defaultValues);
+    reset();
   }
 
   return (
@@ -71,11 +58,12 @@ function CustomerInvoiceHeader(props) {
                   ref={ref}
                   onChange={(selectedOption) => {
                     onChange(selectedOption);
-                    const filteredProducts = productsInfoSelectData.filter(
-                      (p) => p.BusinessUnitID === selectedOption.BusinessUnitID
-                    );
+                    // const filteredProducts = productsInfoSelectData.filter(
+                    //   (p) => p.BusinessUnitID === selectedOption.BusinessUnitID
+                    // );
                     setValue("ProductInfo", []);
-                    setFilteredProducts(filteredProducts);
+                    // setFilteredProducts(filteredProducts);
+                    setBusinessUnitID(selectedOption?.BusinessUnitID);
                     setFocus("CustomerBranch");
                   }}
                   noOptionsMessage={() => "No business unit found!"}
@@ -143,7 +131,7 @@ function CustomerInvoiceHeader(props) {
               }}
               render={({ field: { onChange, value, ref } }) => (
                 <ReactSelect
-                  options={filteredProducts}
+                  options={productsInfoSelectData}
                   getOptionValue={(option) => option.ProductInfoID}
                   getOptionLabel={(option) => option.ProductInfoTitle}
                   value={value}
@@ -180,8 +168,8 @@ function CustomerInvoiceHeader(props) {
               render={({ field: { onChange, value, ref } }) => (
                 <ReactSelect
                   options={servicesInfoSelectData}
-                  getOptionValue={(option) => option.ServiceInfoID}
-                  getOptionLabel={(option) => option.ServiceInfoTitle}
+                  getOptionValue={(option) => option.ProductInfoID}
+                  getOptionLabel={(option) => option.ProductInfoTitle}
                   value={value}
                   ref={ref}
                   onChange={(selectedOption) => {

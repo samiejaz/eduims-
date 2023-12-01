@@ -21,15 +21,52 @@ export async function fetchAllOldCustomersForSelect() {
   const { data } = await axios.post(apiUrl + "/Select/SelectCustomers");
   return data.data;
 }
+
 export async function fetchAllCustomerAccountsForSelect(CustomerID) {
+  if (CustomerID === undefined) {
+    CustomerID = 0;
+  }
   const { data } = await axios.post(
     apiUrl + "/Select/GetCustomerAccounts?CustomerID=" + CustomerID
   );
-  return data.data;
+  return data.data || [];
+}
+export async function fetchAllProductsForSelect(BusinessUnitID) {
+  let whereClause = "";
+  if (BusinessUnitID !== undefined) {
+    whereClause = "?BusinessUnitID=" + BusinessUnitID;
+  }
+  const { data } = await axios.post(
+    apiUrl + "/Select/SelectProducts" + whereClause
+  );
+  return data.data || [];
+}
+export async function fetchAllCustomerBranchesData(AccountID) {
+  let whereClause = "";
+  console.log(AccountID);
+  if (AccountID !== undefined) {
+    whereClause = "?AccountID=" + AccountID;
+  }
+  const { data } = await axios.post(
+    apiUrl + "/Select/SelectCustomerBranches" + whereClause
+  );
+  console.log(data);
+  return data.data || [];
+}
+export async function fetchAllServicesForSelect(BusinessUnitID) {
+  let whereClause = "";
+  if (BusinessUnitID !== undefined) {
+    whereClause = "?BusinessUnitID=" + BusinessUnitID;
+  }
+  const { data } = await axios.post(
+    apiUrl + "/Select/SelectServices" + whereClause
+  );
+  return data.data || [];
 }
 
 export async function fetchAllActivationCustomersForSelect(CustomerID) {
   let whereClause;
+
   if (CustomerID === undefined) {
     whereClause = "?CustomerID=" + 0;
   } else {
