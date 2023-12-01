@@ -24,6 +24,7 @@ import {
   fetchAllOldCustomersForSelect,
   fetchAllProductsForSelect,
   fetchAllServicesForSelect,
+  fetchAllSessionsForSelect,
 } from "../../api/SelectData";
 import {
   InvoiceDataContext,
@@ -76,34 +77,25 @@ function CustomerInvoiceForm({ pageTitles }) {
   const [InvoiceType, setInvoiceType] = useState();
   const [CustomerID, setCustomerID] = useState(0);
   const [AccountID, setAccountID] = useState(0);
-
   const { BusinessUnitID } = useContext(InvoiceDataContext);
   const { user } = useContext(AuthContext);
 
-  const sessionSelectData = [
-    {
-      SessionID: 1,
-      SessionTitle: "Session 1",
-    },
-    {
-      SessionID: 2,
-      SessionTitle: "Session 2",
-    },
-  ];
-  const method = useForm({
-    defaultValues: {
-      Session: sessionSelectData[0],
-      InvoiceNo: 1,
-      Customer: [],
-      RefNo: null,
-      Description: "",
-      Total_Rate: 0,
-      Total_CGS: 0,
-      Total_Discount: 0,
-      Total_Amount: 0,
-      detail: [],
-    },
+  // const sessionSelectData = [
+  //   {
+  //     SessionID: 1,
+  //     SessionTitle: "Session 1",
+  //   },
+  //   {
+  //     SessionID: 2,
+  //     SessionTitle: "Session 2",
+  //   },
+  // ];
+  const { data: sessionSelectData } = useQuery({
+    queryKey: ["sessionsData"],
+    queryFn: () => fetchAllSessionsForSelect(),
+    initialData: [],
   });
+
   const invoiceHeaderForm = useForm({
     defaultValues: {
       InvoiceType: [],
@@ -118,6 +110,21 @@ function CustomerInvoiceForm({ pageTitles }) {
       Amount: 0,
       NetAmount: 0,
       DetailDescription: "",
+    },
+  });
+  const method = useForm({
+    defaultValues: {
+      Session: sessionSelectData[0],
+      InvoiceNo: 1,
+      Customer: [],
+      InvoiceType: [],
+      CustomerLedgers: [],
+      Description: "",
+      Total_Rate: 0,
+      Total_CGS: 0,
+      Total_Discount: 0,
+      Total_Amount: 0,
+      detail: [],
     },
   });
   const { append, fields, remove } = useFieldArray({
@@ -168,7 +175,10 @@ function CustomerInvoiceForm({ pageTitles }) {
           BusinessUnitID: item.BusinessUnit.BusinessUnitID,
           CustomerBranch: item.CustomerBranch.CustomerBranchID,
           ProductToInvoiceID: item.ProductInfo.ProductInfoID,
-          ServiceToInvoiceID: item.ServiceInfo.ProductInfoID,
+          ServiceToInvoiceID:
+            item.ServiceInfo.length === 0
+              ? null
+              : item.ServiceInfo.ProductInfoID,
           Quantity: item.Qty,
           Rate: item.Rate,
           CGS: item.CGS,
@@ -238,8 +248,8 @@ function CustomerInvoiceForm({ pageTitles }) {
               name="Session"
               render={({ field: { onChange, value } }) => (
                 <ReactSelect
-                  defaultValue={sessionSelectData[0]}
                   options={sessionSelectData}
+                  required
                   getOptionValue={(option) => option.SessionID}
                   getOptionLabel={(option) => option.SessionTitle}
                   value={value}
@@ -444,6 +454,7 @@ function CustomerInvoiceForm({ pageTitles }) {
             fields={fields}
             append={append}
             remove={remove}
+            InvoiceType={InvoiceType}
           />
         </FormProvider>
       </Row>

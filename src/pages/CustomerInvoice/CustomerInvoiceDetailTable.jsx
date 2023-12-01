@@ -15,6 +15,7 @@ function CustomerInvoiceDetailTable(props) {
     remove,
     businessSelectData,
     servicesInfoSelectData,
+    InvoiceType,
   } = props;
 
   const {
@@ -101,12 +102,42 @@ function CustomerInvoiceDetailTable(props) {
                 >
                   Service
                 </th>
-                <th className="p-2 bg-info text-white">Qty</th>
-                <th className="p-2 bg-info text-white">Rate</th>
-                <th className="p-2 bg-info text-white">CGS</th>
-                <th className="p-2 bg-info text-white">Amount</th>
-                <th className="p-2 bg-info text-white">Discount</th>
-                <th className="p-2 bg-info text-white">Net Amount</th>
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "80px" }}
+                >
+                  Qty
+                </th>
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "80px" }}
+                >
+                  Rate
+                </th>
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "80px" }}
+                >
+                  CGS
+                </th>
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "80px" }}
+                >
+                  Amount
+                </th>
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "80px" }}
+                >
+                  Discount
+                </th>
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "80px" }}
+                >
+                  Net Amount
+                </th>
                 <th className="p-2 bg-info text-white">Description</th>
                 <th
                   className="p-2 bg-info text-white"
@@ -215,6 +246,7 @@ function CustomerInvoiceDetailTable(props) {
                           <ReactSelect
                             options={servicesInfoSelectData}
                             getOptionValue={(option) => option.ProductInfoID}
+                            isDisabled={InvoiceType?.value === "Product"}
                             getOptionLabel={(option) => option.ProductInfoTitle}
                             value={value}
                             ref={ref}
