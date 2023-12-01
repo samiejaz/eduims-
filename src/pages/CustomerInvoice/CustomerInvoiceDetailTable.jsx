@@ -15,6 +15,8 @@ function CustomerInvoiceDetailTable(props) {
     remove,
     businessSelectData,
     servicesInfoSelectData,
+    InvoiceType,
+    isEnable,
   } = props;
 
   const {
@@ -61,6 +63,13 @@ function CustomerInvoiceDetailTable(props) {
     setValue(`detail.${index}.products`, JSON.stringify(data));
   }
 
+  const selectStyles = {
+    menu: (base) => ({
+      ...base,
+      zIndex: 1000, // Set the z-index to a large value
+    }),
+  };
+
   return (
     <>
       <div className="py-3 mb-4">
@@ -101,12 +110,42 @@ function CustomerInvoiceDetailTable(props) {
                 >
                   Service
                 </th>
-                <th className="p-2 bg-info text-white">Qty</th>
-                <th className="p-2 bg-info text-white">Rate</th>
-                <th className="p-2 bg-info text-white">CGS</th>
-                <th className="p-2 bg-info text-white">Amount</th>
-                <th className="p-2 bg-info text-white">Discount</th>
-                <th className="p-2 bg-info text-white">Net Amount</th>
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "80px" }}
+                >
+                  Qty
+                </th>
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "80px" }}
+                >
+                  Rate
+                </th>
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "80px" }}
+                >
+                  CGS
+                </th>
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "80px" }}
+                >
+                  Amount
+                </th>
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "80px" }}
+                >
+                  Discount
+                </th>
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "80px" }}
+                >
+                  Net Amount
+                </th>
                 <th className="p-2 bg-info text-white">Description</th>
                 <th
                   className="p-2 bg-info text-white"
@@ -127,6 +166,7 @@ function CustomerInvoiceDetailTable(props) {
                         {...register(`detail.${index}.RowID`, {
                           valueAsNumber: true,
                         })}
+                        disabled={!isEnable}
                         value={index + 1}
                       />
                     </td>
@@ -151,6 +191,8 @@ function CustomerInvoiceDetailTable(props) {
                             noOptionsMessage={() => "No business unit found!"}
                             openMenuOnFocus
                             components={{ DropdownIndicator: () => null }}
+                            classNames={selectStyles}
+                            isDisabled={!isEnable}
                           />
                         )}
                       />
@@ -175,6 +217,7 @@ function CustomerInvoiceDetailTable(props) {
                             }}
                             noOptionsMessage={() => "No branch found!"}
                             openMenuOnFocus
+                            isDisabled={!isEnable}
                             components={{ DropdownIndicator: () => null }}
                           />
                         )}
@@ -195,6 +238,7 @@ function CustomerInvoiceDetailTable(props) {
                             getOptionLabel={(option) => option.ProductInfoTitle}
                             value={value}
                             ref={ref}
+                            isDisabled={!isEnable}
                             onChange={(selectedOption) => {
                               onChange(selectedOption);
                               setFocus(`detail.${index}.Rate`);
@@ -215,6 +259,9 @@ function CustomerInvoiceDetailTable(props) {
                           <ReactSelect
                             options={servicesInfoSelectData}
                             getOptionValue={(option) => option.ProductInfoID}
+                            isDisabled={
+                              InvoiceType?.value === "Product" || !isEnable
+                            }
                             getOptionLabel={(option) => option.ProductInfoTitle}
                             value={value}
                             ref={ref}
@@ -226,6 +273,7 @@ function CustomerInvoiceDetailTable(props) {
                             required
                             openMenuOnFocus
                             components={{ DropdownIndicator: () => null }}
+                            menuPlacement="top"
                           />
                         )}
                       />
@@ -240,7 +288,7 @@ function CustomerInvoiceDetailTable(props) {
                           min: 1,
                         })}
                         required
-                        defaultValue={0}
+                        disabled={!isEnable}
                         pattern="^[0-9]*$"
                         onInput={(e) => {
                           e.target.value = e.target.value.replace(
@@ -267,7 +315,7 @@ function CustomerInvoiceDetailTable(props) {
                           min: 1,
                         })}
                         required
-                        defaultValue={0}
+                        disabled={!isEnable}
                         pattern="^[0-9]*$"
                         onInput={(e) => {
                           e.target.value = e.target.value.replace(
@@ -292,7 +340,7 @@ function CustomerInvoiceDetailTable(props) {
                         {...register(`detail.${index}.CGS`, {
                           valueAsNumber: true,
                         })}
-                        defaultValue={0}
+                        disabled={!isEnable}
                         pattern="^[0-9]*$"
                         onInput={(e) => {
                           e.target.value = e.target.value.replace(
@@ -318,7 +366,7 @@ function CustomerInvoiceDetailTable(props) {
                         {...register(`detail.${index}.Discount`, {
                           valueAsNumber: true,
                         })}
-                        defaultValue={0}
+                        disabled={!isEnable}
                         pattern="^[0-9]*$"
                         onInput={(e) => {
                           e.target.value = e.target.value.replace(
@@ -349,6 +397,7 @@ function CustomerInvoiceDetailTable(props) {
                     <td style={{ width: "250px" }}>
                       <Form.Control
                         type="text"
+                        disabled={!isEnable}
                         {...register(`detail.${index}.DetailDescription`)}
                       />
                     </td>
@@ -361,6 +410,7 @@ function CustomerInvoiceDetailTable(props) {
                     <td>
                       <ButtonGroup className="d-flex align-items-center justify-content-center my-auto gap-1">
                         <Button
+                          disabled={!isEnable}
                           variant="success"
                           size="sm"
                           onClick={() => {
@@ -385,6 +435,7 @@ function CustomerInvoiceDetailTable(props) {
                           +
                         </Button>
                         <Button
+                          disabled={!isEnable}
                           variant="danger"
                           size="sm"
                           onClick={() => {

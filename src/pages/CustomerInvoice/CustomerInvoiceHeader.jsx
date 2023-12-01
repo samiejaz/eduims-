@@ -58,11 +58,9 @@ function CustomerInvoiceHeader(props) {
                   ref={ref}
                   onChange={(selectedOption) => {
                     onChange(selectedOption);
-                    // const filteredProducts = productsInfoSelectData.filter(
-                    //   (p) => p.BusinessUnitID === selectedOption.BusinessUnitID
-                    // );
+
                     setValue("ProductInfo", []);
-                    // setFilteredProducts(filteredProducts);
+
                     setBusinessUnitID(selectedOption?.BusinessUnitID);
                     setFocus("CustomerBranch");
                   }}
@@ -183,7 +181,7 @@ function CustomerInvoiceHeader(props) {
                 />
               )}
             />
-            <span className="text-danger">{errors?.ProductInfo?.message}</span>
+            <span className="text-danger">{errors?.ServiceInfo?.message}</span>
           </Form.Group>
         </Row>
         <Row className="py-3" style={{ marginTop: "-25px" }}>
@@ -296,7 +294,7 @@ function CustomerInvoiceHeader(props) {
                 className="showbutton bg-danger text-white"
                 style={{ marginLeft: "2px" }}
                 type="button"
-                onClick={() => reset(defaultValues)}
+                onClick={() => reset()}
               >
                 Clear
               </button>

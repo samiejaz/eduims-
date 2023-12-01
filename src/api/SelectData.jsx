@@ -4,7 +4,7 @@ const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 export async function fetchAllBusinessUnitsForSelect() {
   const { data } = await axios.post(apiUrl + "/Select/SelectBusinessUnit");
-  return data.data;
+  return data.data || [];
 }
 
 export async function fetchAllProductCategoriesForSelect() {
@@ -14,12 +14,16 @@ export async function fetchAllProductCategoriesForSelect() {
 
 export async function fetchAllServicesCategoriesForSelect() {
   const { data } = await axios.post(apiUrl + "/Select/SelectServiceCategory");
-  return data.data;
+  return data.data || [];
 }
 
 export async function fetchAllOldCustomersForSelect() {
   const { data } = await axios.post(apiUrl + "/Select/SelectCustomers");
-  return data.data;
+  return data.data || [];
+}
+export async function fetchAllSessionsForSelect() {
+  const { data } = await axios.post(apiUrl + "/Select/SelectSessionInfo");
+  return data.data || [];
 }
 
 export async function fetchAllCustomerAccountsForSelect(CustomerID) {
@@ -43,14 +47,14 @@ export async function fetchAllProductsForSelect(BusinessUnitID) {
 }
 export async function fetchAllCustomerBranchesData(AccountID) {
   let whereClause = "";
-  console.log(AccountID);
+
   if (AccountID !== undefined) {
     whereClause = "?AccountID=" + AccountID;
   }
   const { data } = await axios.post(
     apiUrl + "/Select/SelectCustomerBranches" + whereClause
   );
-  console.log(data);
+
   return data.data || [];
 }
 export async function fetchAllServicesForSelect(BusinessUnitID) {

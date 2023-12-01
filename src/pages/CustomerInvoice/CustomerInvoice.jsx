@@ -1,4 +1,4 @@
-import { Form, Row, Col, Button } from "react-bootstrap";
+import { Form, Row, Col, Button, Spinner } from "react-bootstrap";
 import { Button as PrimeButton } from "primereact/button";
 import {
   Controller,
@@ -9,14 +9,14 @@ import {
 import TabHeader from "../../components/TabHeader";
 import ReactSelect from "react-select";
 import CustomerInvoiceDetailTable from "./CustomerInvoiceDetailTable";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import ReactDatePicker from "react-datepicker";
 import { AppConfigurationContext } from "../../context/AppConfigurationContext";
 import { DevTool } from "@hookform/devtools";
 import useCustomerEntryHook from "../../hooks/useCustomerEntryHook";
 import { CustomerEntryForm } from "../../components/CustomerEntryFormComponent";
 import CustomerInvoiceHeader from "./CustomerInvoiceHeader";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchAllBusinessUnitsForSelect,
   fetchAllCustomerAccountsForSelect,
@@ -24,8 +24,11 @@ import {
   fetchAllOldCustomersForSelect,
   fetchAllProductsForSelect,
   fetchAllServicesForSelect,
+  fetchAllSessionsForSelect,
 } from "../../api/SelectData";
 import {
+  CustomerInvoiceDataContext,
+  CustomerInvoiceDataProivder,
   InvoiceDataContext,
   InvoiceDataProivder,
 } from "./CustomerInvoiceDataContext";
@@ -33,6 +36,18 @@ import { AuthContext } from "../../context/AuthContext";
 import axios from "axios";
 import { fetchAllCustomerBranches } from "../../api/CustomerBranchData";
 import { toast } from "react-toastify";
+import { ActiveKeyContext } from "../../context/ActiveKeyContext";
+import useEditModal from "../../hooks/useEditModalHook";
+import useDeleteModal from "../../hooks/useDeleteModalHook";
+import {
+  fetchAllCustomerInvoices,
+  fetchCustomerInvoiceById,
+} from "../../api/CustomerInvoiceData";
+import { FilterMatchMode } from "primereact/api";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import ActionButtons from "../../components/ActionButtons";
+import { parseISO } from "date-fns";
 
 let renderCount = 0;
 const apiUrl = import.meta.env.VITE_APP_API_URL;
@@ -40,13 +55,14 @@ function CustomerInvoice() {
   const { pageTitles } = useContext(AppConfigurationContext);
   document.title = "Customer Invoice";
   return (
-    //<SessionInfoDataProivder>
-    <TabHeader
-      Search={<CustomerInvoiceSearch />}
-      Entry={<CustomerInvoiceFormMaster pageTitles={pageTitles} />}
-      SearchTitle={"Customer Invoice Search"}
-      EntryTitle={"Add New Customer Invoice"}
-    />
+    <CustomerInvoiceDataProivder>
+      <TabHeader
+        Search={<CustomerInvoiceSearch />}
+        Entry={<CustomerInvoiceFormMaster pageTitles={pageTitles} />}
+        SearchTitle={"Customer Invoice Search"}
+        EntryTitle={"Add New Customer Invoice"}
+      />
+    </CustomerInvoiceDataProivder>
     // </SessionInfoDataProivder>
   );
 }
@@ -61,7 +77,184 @@ function CustomerInvoice() {
 
 */
 
-function CustomerInvoiceSearch() {}
+function CustomerInvoiceSearch() {
+  const queryClient = useQueryClient();
+
+  const { user } = useContext(AuthContext);
+  const { setKey } = useContext(ActiveKeyContext);
+
+  const [filters, setFilters] = useState({
+    InvoiceTitle: {
+      value: null,
+      matchMode: FilterMatchMode.CONTAINS,
+    },
+    InvoiceNo: {
+      value: null,
+      matchMode: FilterMatchMode.CONTAINS,
+    },
+    CustomerName: {
+      value: null,
+      matchMode: FilterMatchMode.CONTAINS,
+    },
+    AccountTitle: {
+      value: null,
+      matchMode: FilterMatchMode.CONTAINS,
+    },
+    TotalNetAmount: {
+      value: null,
+      matchMode: FilterMatchMode.CONTAINS,
+    },
+  });
+
+  const {
+    render: EditModal,
+    handleShow: handleEditShow,
+    handleClose: handleEditClose,
+    setIdToEdit,
+  } = useEditModal(handleEdit);
+
+  const {
+    render: DeleteModal,
+    handleShow: handleDeleteShow,
+    handleClose: handleDeleteClose,
+    setIdToDelete,
+  } = useDeleteModal(handleDelete);
+
+  const { setIsEnable, setCustomerInvoiceID } = useContext(
+    CustomerInvoiceDataContext
+  );
+
+  const {
+    data: CustomerInvoices,
+    isLoading,
+    isFetching,
+  } = useQuery({
+    queryKey: ["customerInvoices"],
+    queryFn: () => fetchAllCustomerInvoices(user.userID),
+    initialData: [],
+  });
+
+  const deleteMutation = useMutation({
+    // mutationFn: deleteInvoiceDeafultDescriptionsByID,
+    // onSuccess: (data) => {
+    //   if (data === true) {
+    //     queryClient.invalidateQueries({
+    //       queryKey: ["invoiceDefaultDescriptions"],
+    //     });
+    //   }
+    // },
+  });
+
+  function handleEdit(CustomerInvoiceID) {
+    setCustomerInvoiceID(CustomerInvoiceID);
+    setIsEnable(true);
+    setKey("entry");
+    handleEditClose();
+    setIdToEdit(0);
+  }
+  function handleDelete(CustomerInvoiceID) {
+    deleteMutation.mutate({
+      CustomerInvoiceID,
+      LoginUserID: user.userID,
+    });
+    handleDeleteClose();
+    setIdToDelete(0);
+    setCustomerInvoiceID(null);
+  }
+  function handleView(CustomerInvoiceID) {
+    setKey("entry");
+    setCustomerInvoiceID(CustomerInvoiceID);
+    setIsEnable(false);
+  }
+
+  return (
+    <>
+      {isFetching || isLoading ? (
+        <>
+          <div className="d-flex align-content-center justify-content-center h-100 w-100 m-auto">
+            <Spinner
+              animation="border"
+              size="lg"
+              role="status"
+              aria-hidden="true"
+            />
+          </div>
+        </>
+      ) : (
+        <>
+          <DataTable
+            showGridlines
+            value={CustomerInvoices}
+            dataKey="CustomerInvoiceID"
+            paginator
+            rows={10}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+            removableSort
+            emptyMessage="No invoices found!"
+            filters={filters}
+            filterDisplay="row"
+            resizableColumns
+            size="small"
+            selectionMode="single"
+            tableStyle={{ minWidth: "50rem" }}
+          >
+            <Column
+              body={(rowData) =>
+                ActionButtons(
+                  rowData.CustomerInvoiceID,
+                  handleDeleteShow,
+                  handleEditShow,
+                  handleView
+                )
+              }
+              header="Actions"
+              resizeable={false}
+              style={{ minWidth: "7rem", maxWidth: "7rem", width: "7rem" }}
+            ></Column>
+            <Column
+              field="InvoiceNo"
+              filter
+              filterPlaceholder="Search by invoice no"
+              sortable
+              header="Invoice No"
+            ></Column>
+            <Column
+              field="InvoiceTitle"
+              filter
+              filterPlaceholder="Search by invoice title"
+              sortable
+              header="Invoice Title"
+            ></Column>
+            <Column
+              field="CustomerName"
+              filter
+              filterPlaceholder="Search by customer name"
+              sortable
+              header="Customer Name"
+            ></Column>
+            <Column
+              field="AccountTitle"
+              filter
+              filterPlaceholder="Search by customer ledger"
+              sortable
+              header="Ledger"
+            ></Column>
+            <Column field="EntryDate" sortable header="Entry Date"></Column>
+            <Column
+              field="TotalNetAmount"
+              filter
+              filterPlaceholder="Search by customer ledger"
+              sortable
+              header="Total Net Amount"
+            ></Column>
+          </DataTable>
+          {EditModal}
+          {DeleteModal}
+        </>
+      )}
+    </>
+  );
+}
 
 function CustomerInvoiceFormMaster({ pageTitles }) {
   return (
@@ -76,34 +269,61 @@ function CustomerInvoiceForm({ pageTitles }) {
   const [InvoiceType, setInvoiceType] = useState();
   const [CustomerID, setCustomerID] = useState(0);
   const [AccountID, setAccountID] = useState(0);
-
+  const [CustomerInvoice, setCustomerInvoice] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const { BusinessUnitID } = useContext(InvoiceDataContext);
   const { user } = useContext(AuthContext);
 
-  const sessionSelectData = [
-    {
-      SessionID: 1,
-      SessionTitle: "Session 1",
-    },
-    {
-      SessionID: 2,
-      SessionTitle: "Session 2",
-    },
-  ];
-  const method = useForm({
-    defaultValues: {
-      Session: sessionSelectData[0],
-      InvoiceNo: 1,
-      Customer: [],
-      RefNo: null,
-      Description: "",
-      Total_Rate: 0,
-      Total_CGS: 0,
-      Total_Discount: 0,
-      Total_Amount: 0,
-      detail: [],
-    },
+  const { isEnable, setIsEnable, setCustomerInvoiceID, CustomerInvoiceID } =
+    useContext(CustomerInvoiceDataContext);
+  useEffect(() => {
+    console.log(CustomerInvoiceID);
+    async function fetchCustomerInvoice() {
+      if (
+        CustomerInvoiceID !== undefined &&
+        CustomerInvoiceID !== null &&
+        CustomerInvoiceID !== 0
+      ) {
+        setIsLoading(true);
+        const data = await fetchCustomerInvoiceById(
+          CustomerInvoiceID,
+          user.userID
+        );
+        if (!data) {
+          setKey("search");
+          toast.error("Network Error Occured!");
+        }
+        setCustomerInvoice(data);
+        setIsLoading(false);
+      } else {
+        setCustomerInvoice(null);
+        setTimeout(() => {
+          reset(defaultValues);
+          setIsEnable(true);
+        }, 200);
+      }
+    }
+    if (CustomerInvoiceID !== 0) {
+      fetchCustomerInvoice();
+    }
+  }, [CustomerInvoiceID]);
+
+  // const sessionSelectData = [
+  //   {
+  //     SessionID: 1,
+  //     SessionTitle: "Session 1",
+  //   },
+  //   {
+  //     SessionID: 2,
+  //     SessionTitle: "Session 2",
+  //   },
+  // ];
+  const { data: sessionSelectData } = useQuery({
+    queryKey: ["sessionsData"],
+    queryFn: () => fetchAllSessionsForSelect(),
+    initialData: [],
   });
+
   const invoiceHeaderForm = useForm({
     defaultValues: {
       InvoiceType: [],
@@ -118,6 +338,22 @@ function CustomerInvoiceForm({ pageTitles }) {
       Amount: 0,
       NetAmount: 0,
       DetailDescription: "",
+    },
+  });
+  const method = useForm({
+    defaultValues: {
+      Session: sessionSelectData[0],
+      InvoiceNo: 1,
+      Customer: [],
+      InvoiceType: [],
+      CustomerLedgers: [],
+      Description: "",
+      Total_Rate: 0,
+      Total_CGS: 0,
+      Total_Discount: 0,
+      Total_Amount: 0,
+      InvoiceTitle: "",
+      detail: [],
     },
   });
   const { append, fields, remove } = useFieldArray({
@@ -168,7 +404,10 @@ function CustomerInvoiceForm({ pageTitles }) {
           BusinessUnitID: item.BusinessUnit.BusinessUnitID,
           CustomerBranch: item.CustomerBranch.CustomerBranchID,
           ProductToInvoiceID: item.ProductInfo.ProductInfoID,
-          ServiceToInvoiceID: item.ServiceInfo.ProductInfoID,
+          ServiceToInvoiceID:
+            item.ServiceInfo.length === 0
+              ? null
+              : item.ServiceInfo.ProductInfoID,
           Quantity: item.Qty,
           Rate: item.Rate,
           CGS: item.CGS,
@@ -221,6 +460,76 @@ function CustomerInvoiceForm({ pageTitles }) {
     { label: "Service", value: "Service" },
   ];
 
+  useEffect(() => {
+    if (CustomerInvoiceID !== 0 && CustomerInvoice?.Master) {
+      // Master Values
+      method.setValue("InvoiceTitle", CustomerInvoice?.Master[0]?.InvoiceTitle);
+      method.setValue("InvoiceNo", CustomerInvoice?.Master[0]?.InvoiceNo);
+      method.setValue("InvoiceType", {
+        label: CustomerInvoice?.Master[0]?.InvoiceType,
+        value: CustomerInvoice?.Master[0]?.InvoiceType,
+      });
+      method.setValue("Customer", {
+        CustomerID: CustomerInvoice?.Master[0]?.CustomerID,
+        CustomerName: CustomerInvoice?.Master[0]?.CustomerName,
+      });
+      method.setValue("Session", {
+        SessionID: CustomerInvoice?.Master[0]?.SessionID,
+        SessionTitle: CustomerInvoice?.Master[0]?.SessionTitle,
+      });
+      method.setValue("CustomerLedgers", {
+        AccountID: CustomerInvoice?.Master[0]?.AccountID,
+        AccountTitle: CustomerInvoice?.Master[0]?.AccountTitle,
+      });
+      method.setValue("Description", CustomerInvoice?.Master[0]?.Description);
+      method.setValue(
+        "InvoiceDate",
+        parseISO(CustomerInvoice?.Master[0]?.InvoiceDate)
+      );
+      method.setValue(
+        "DueDate",
+        parseISO(CustomerInvoice?.Master[0]?.InvoiceDueDate)
+      );
+      method.setValue(
+        "Total_Amount",
+        CustomerInvoice?.Master[0]?.TotalNetAmount
+      );
+      method.setValue("Total_CGS", CustomerInvoice?.Master[0]?.TotalCGS);
+      method.setValue(
+        "Total_Discount",
+        CustomerInvoice?.Master[0]?.TotalDiscount
+      );
+      method.setValue("Total_Rate", CustomerInvoice?.Master[0]?.TotalRate);
+
+      // Detail Values
+      method.setValue(
+        "detail",
+        CustomerInvoice?.Detail.map((invoice) => {
+          return {
+            ProductInfo: {
+              ProductInfoID: invoice.ProductToInvoiceID,
+              ProductInfoTitle: invoice.ProductTitle,
+            },
+            ServiceInfo: {
+              ProductInfoID: invoice.ServiceToInvoiceID,
+              ProductInfoTitle: invoice.ServiceTitle,
+            },
+            CustomerBranch: {
+              CustomerBranchID: invoice.CustomerBranchID,
+              CustomerBranchTitle: invoice.CustomerBranchTitle,
+            },
+            BusinessUnit: {
+              BusinessUnitID: invoice.BusinessUnitID,
+              BusinessUnitName: invoice.BusinessUnitName,
+            },
+            Qty: invoice.Quantity,
+            ...invoice,
+          };
+        })
+      );
+    }
+  }, [CustomerInvoiceID, CustomerInvoice]);
+
   return (
     <>
       <h4 className="p-3 mb-4 bg-light text-dark text-center  shadow-sm rounded-2">
@@ -238,8 +547,9 @@ function CustomerInvoiceForm({ pageTitles }) {
               name="Session"
               render={({ field: { onChange, value } }) => (
                 <ReactSelect
-                  defaultValue={sessionSelectData[0]}
+                  isDisabled={!isEnable}
                   options={sessionSelectData}
+                  required
                   getOptionValue={(option) => option.SessionID}
                   getOptionLabel={(option) => option.SessionTitle}
                   value={value}
@@ -255,7 +565,6 @@ function CustomerInvoiceForm({ pageTitles }) {
             <Form.Label>Invoice No</Form.Label>
             <Form.Control
               type="number"
-              value={1}
               {...method.register("InvoiceNo")}
               disabled
               required
@@ -265,10 +574,12 @@ function CustomerInvoiceForm({ pageTitles }) {
             <Form.Label>Invoice Date</Form.Label>
             <div>
               <Controller
+                disabled={!isEnable}
                 control={method.control}
                 name="InoviceDate"
                 render={({ field }) => (
                   <ReactDatePicker
+                    disabled={!isEnable}
                     placeholderText="Select date"
                     onChange={(date) => field.onChange(date)}
                     selected={field.value || new Date()}
@@ -288,6 +599,7 @@ function CustomerInvoiceForm({ pageTitles }) {
                 name="DueDate"
                 render={({ field }) => (
                   <ReactDatePicker
+                    disabled={!isEnable}
                     placeholderText="Select due date"
                     onChange={(date) => field.onChange(date)}
                     selected={field.value || new Date()}
@@ -305,6 +617,7 @@ function CustomerInvoiceForm({ pageTitles }) {
             <span className="text-danger fw-bold ">*</span>
             <Form.Control
               type="text"
+              disabled={!isEnable}
               {...method.register("InvoiceTitle", {
                 required: "Please enter the title!",
               })}
@@ -319,6 +632,7 @@ function CustomerInvoiceForm({ pageTitles }) {
               rules={{ required: "Please select a type!" }}
               render={({ field: { onChange, value, ref } }) => (
                 <ReactSelect
+                  isDisabled={!isEnable}
                   options={typesOptions}
                   required
                   value={value}
@@ -341,13 +655,18 @@ function CustomerInvoiceForm({ pageTitles }) {
           <Form.Group as={Col} controlId="Customer">
             <Form.Label>
               Customer Name
-              <CustomerEntryForm IconButton={true} />
+              {isEnable && (
+                <>
+                  <CustomerEntryForm IconButton={true} />
+                </>
+              )}
             </Form.Label>
             <Controller
               control={method.control}
               name="Customer"
               render={({ field: { onChange, value, ref } }) => (
                 <ReactSelect
+                  isDisabled={!isEnable}
                   options={customerSelectData}
                   required
                   getOptionValue={(option) => option.CustomerID}
@@ -375,6 +694,7 @@ function CustomerInvoiceForm({ pageTitles }) {
               name="CustomerLedgers"
               render={({ field: { onChange, value, ref } }) => (
                 <ReactSelect
+                  isDisabled={!isEnable}
                   options={CustomerAccounts}
                   required
                   ref={ref}
@@ -402,51 +722,57 @@ function CustomerInvoiceForm({ pageTitles }) {
             <Form.Control
               as={"textarea"}
               rows={2}
+              disabled={!isEnable}
               className="form-control"
               {...method.register("Description")}
             />
           </Form.Group>
         </Row>
       </form>
+      {isEnable && (
+        <div
+          style={{
+            padding: "1rem",
+            borderRadius: "6px",
+          }}
+          className="bg-light shadow-sm"
+        >
+          <h5 className="p-3 mb-4 bg-light text-dark text-center  ">
+            Detail Entry
+          </h5>
+          <FormProvider {...invoiceHeaderForm}>
+            <CustomerInvoiceHeader
+              businessSelectData={businessSelectData}
+              productsInfoSelectData={productsInfoSelectData}
+              servicesInfoSelectData={servicesInfoSelectData}
+              customerBranchSelectData={customerBranchSelectData}
+              append={append}
+              fields={fields}
+              pageTitles={pageTitles}
+              InvoiceType={InvoiceType}
+            />
+          </FormProvider>
+        </div>
+      )}
 
-      <div
-        style={{
-          padding: "1rem",
-          borderRadius: "6px",
-        }}
-        className="bg-light shadow-sm"
-      >
-        <h5 className="p-3 mb-4 bg-light text-dark text-center  ">
-          Detail Entry
-        </h5>
-        <FormProvider {...invoiceHeaderForm}>
-          <CustomerInvoiceHeader
-            businessSelectData={businessSelectData}
-            productsInfoSelectData={productsInfoSelectData}
-            servicesInfoSelectData={servicesInfoSelectData}
-            customerBranchSelectData={customerBranchSelectData}
-            append={append}
-            fields={fields}
-            pageTitles={pageTitles}
-            InvoiceType={InvoiceType}
-          />
-        </FormProvider>
-      </div>
-
-      <Row className="p-3" style={{ marginTop: "-25px" }}>
-        <FormProvider {...method}>
-          <CustomerInvoiceDetailTable
-            businessSelectData={businessSelectData}
-            productsInfoSelectData={productsInfoSelectData}
-            servicesInfoSelectData={servicesInfoSelectData}
-            customerBranchSelectData={customerBranchSelectData}
-            pageTitles={pageTitles}
-            fields={fields}
-            append={append}
-            remove={remove}
-          />
-        </FormProvider>
-      </Row>
+      <>
+        <Row className="p-3" style={{ marginTop: "-25px" }}>
+          <FormProvider {...method}>
+            <CustomerInvoiceDetailTable
+              businessSelectData={businessSelectData}
+              productsInfoSelectData={productsInfoSelectData}
+              servicesInfoSelectData={servicesInfoSelectData}
+              customerBranchSelectData={customerBranchSelectData}
+              pageTitles={pageTitles}
+              fields={fields}
+              append={append}
+              remove={remove}
+              InvoiceType={InvoiceType}
+              isEnable={isEnable}
+            />
+          </FormProvider>
+        </Row>
+      </>
 
       <Row className="p-3" style={{ marginTop: "-25px" }}>
         <div style={{ textAlign: "end" }}>
