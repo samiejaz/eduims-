@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import { Row, Col, Form, ButtonGroup, Button, Table } from "react-bootstrap";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
@@ -14,6 +15,7 @@ function CustomerInvoiceDetailTable(props) {
     append,
     remove,
     businessSelectData,
+    productsInfoSelectData,
     servicesInfoSelectData,
   } = props;
 
@@ -27,9 +29,25 @@ function CustomerInvoiceDetailTable(props) {
     formState: { errors },
   } = useFormContext();
 
+  const prevCustomerBranchSelectData = useRef([{}]);
+
+  useEffect(() => {
+    if (
+      prevCustomerBranchSelectData &&
+      prevCustomerBranchSelectData.current[0].CustomerBranchID !==
+        customerBranchSelectData[0]?.CustomerBranchID
+    ) {
+      remove();
+      prevCustomerBranchSelectData.current = customerBranchSelectData;
+    }
+  }, [customerBranchSelectData]);
+
   useEffect(() => {
     handleNetAmountTotal();
   }, [append, fields]);
+  const [filteredProducts, setFilteredProduct] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState();
+
   function handleNetAmountTotal() {
     let rateSum = 0;
     let cgsSum = 0;
@@ -40,7 +58,7 @@ function CustomerInvoiceDetailTable(props) {
       const rate = parseFloat(getValues(`detail.${index}.Rate`) || 0);
       const cgs = parseFloat(getValues(`detail.${index}.CGS`) || 0);
       const discount = parseFloat(getValues(`detail.${index}.Discount`) || 0);
-      const amount = parseFloat(getValues(`detail.${index}.NetAmount`) || 0);
+      const amount = parseFloat(getValues(`detail.${index}.Amount`) || 0);
 
       rateSum += rate;
       cgsSum += cgs;
@@ -58,15 +76,42 @@ function CustomerInvoiceDetailTable(props) {
     const data = await fetchAllProductsForSelect(
       selectedOption?.BusinessUnitID
     );
-    setValue(`detail.${index}.products`, JSON.stringify(data));
+    console.log(index);
+    // console.log(index);
+    setFilteredProduct([...data]);
+    setValue(`detail.${index}.array`, data);
+    console.log(getValues([`detail.${index}.array`]));
+    console.log(fields);
+    // console.log(filteredProducts);
+
+    // setCurrentIndex(index);
+    // console.log(currentIndex);
+
+    // console.log("Fitlered Products", filteredProducts);
   }
+
+  function filteredProductsAtIndex(index) {
+    let newFilteredProduct;
+
+    if (index === currentIndex) {
+      newFilteredProduct = filteredProducts;
+      // console.log(filteredProducts);
+    }
+    // console.log(newFilteredProduct);
+    return newFilteredProduct;
+  }
+
+  const typesOptions = [
+    { label: pageTitles?.product || "Product", value: "Product" },
+    { label: "Service", value: "Service" },
+  ];
 
   return (
     <>
       <div className="py-3 mb-4">
-        <p>{renderCount}</p>
         <form>
           <hr />
+
           <Table
             bordered
             hover
@@ -108,12 +153,6 @@ function CustomerInvoiceDetailTable(props) {
                 <th className="p-2 bg-info text-white">Discount</th>
                 <th className="p-2 bg-info text-white">Net Amount</th>
                 <th className="p-2 bg-info text-white">Description</th>
-                <th
-                  className="p-2 bg-info text-white"
-                  style={{ display: "none" }}
-                >
-                  Products
-                </th>
                 <th className="p-2 bg-info text-white">Actions</th>
               </tr>
             </thead>
@@ -145,7 +184,7 @@ function CustomerInvoiceDetailTable(props) {
                             onChange={(selectedOption) => {
                               onChange(selectedOption);
                               filteredProductsBasedOnRow(selectedOption, index);
-                              setValue(`detail.${index}.ProductInfo`, []);
+                              setValue(`detail.${index}.Product`, []);
                               setFocus(`detail.${index}.CustomerBranch`);
                             }}
                             noOptionsMessage={() => "No business unit found!"}
@@ -155,6 +194,12 @@ function CustomerInvoiceDetailTable(props) {
                         )}
                       />
                     </td>
+                    {/* <td className="text-center" style={{ width: "60px" }}>
+                      <Form.Control
+                        {...register(`detail.${index}.array`)}
+                        value={index + 1}
+                      />
+                    </td> */}
 
                     <td style={{ width: "250px" }}>
                       <Controller
@@ -171,7 +216,7 @@ function CustomerInvoiceDetailTable(props) {
                             value={value}
                             onChange={(selectedOption) => {
                               onChange(selectedOption);
-                              setFocus(`detail.${index}.ProductInfo`);
+                              setFocus(`detail.${index}.Product`);
                             }}
                             noOptionsMessage={() => "No branch found!"}
                             openMenuOnFocus
@@ -187,10 +232,7 @@ function CustomerInvoiceDetailTable(props) {
                         name={`detail.${index}.ProductInfo`}
                         render={({ field: { onChange, value, ref } }) => (
                           <ReactSelect
-                            options={JSON.parse(
-                              watch(`detail.${index}.products`)?.toString() ||
-                                "[]"
-                            )}
+                            options={filteredProducts}
                             getOptionValue={(option) => option.ProductInfoID}
                             getOptionLabel={(option) => option.ProductInfoTitle}
                             value={value}
@@ -213,14 +255,14 @@ function CustomerInvoiceDetailTable(props) {
                         name={`detail.${index}.ServiceInfo`}
                         render={({ field: { onChange, value, ref } }) => (
                           <ReactSelect
-                            options={servicesInfoSelectData}
+                            options={filteredProducts}
                             getOptionValue={(option) => option.ProductInfoID}
                             getOptionLabel={(option) => option.ProductInfoTitle}
                             value={value}
                             ref={ref}
                             onChange={(selectedOption) => {
                               onChange(selectedOption);
-                              setFocus(`detail.${index}.Qty`);
+                              setFocus(`detail.${index}.ProductInfo`);
                             }}
                             noOptionsMessage={() => "No services found!"}
                             required
@@ -350,12 +392,6 @@ function CustomerInvoiceDetailTable(props) {
                       <Form.Control
                         type="text"
                         {...register(`detail.${index}.DetailDescription`)}
-                      />
-                    </td>
-                    <td style={{ width: "250px", display: "none" }}>
-                      <Form.Control
-                        type="text"
-                        {...register(`detail.${index}.products`)}
                       />
                     </td>
                     <td>

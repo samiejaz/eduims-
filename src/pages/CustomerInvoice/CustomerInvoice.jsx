@@ -16,8 +16,26 @@ import { DevTool } from "@hookform/devtools";
 import useCustomerEntryHook from "../../hooks/useCustomerEntryHook";
 import { CustomerEntryForm } from "../../components/CustomerEntryFormComponent";
 import CustomerInvoiceHeader from "./CustomerInvoiceHeader";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  fetchAllBusinessUnitsForSelect,
+  fetchAllCustomerAccountsForSelect,
+  fetchAllCustomerBranchesData,
+  fetchAllOldCustomersForSelect,
+  fetchAllProductsForSelect,
+  fetchAllServicesForSelect,
+} from "../../api/SelectData";
+import {
+  InvoiceDataContext,
+  InvoiceDataProivder,
+} from "./CustomerInvoiceDataContext";
+import { AuthContext } from "../../context/AuthContext";
+import axios from "axios";
+import { fetchAllCustomerBranches } from "../../api/CustomerBranchData";
+import { toast } from "react-toastify";
 
 let renderCount = 0;
+const apiUrl = import.meta.env.VITE_APP_API_URL;
 function CustomerInvoice() {
   const { pageTitles } = useContext(AppConfigurationContext);
   document.title = "Customer Invoice";
@@ -25,7 +43,7 @@ function CustomerInvoice() {
     //<SessionInfoDataProivder>
     <TabHeader
       Search={<CustomerInvoiceSearch />}
-      Entry={<CustomerInvoiceForm pageTitles={pageTitles} />}
+      Entry={<CustomerInvoiceFormMaster pageTitles={pageTitles} />}
       SearchTitle={"Customer Invoice Search"}
       EntryTitle={"Add New Customer Invoice"}
     />
@@ -45,10 +63,22 @@ function CustomerInvoice() {
 
 function CustomerInvoiceSearch() {}
 
+function CustomerInvoiceFormMaster({ pageTitles }) {
+  return (
+    <InvoiceDataProivder>
+      <CustomerInvoiceForm pageTitles={pageTitles} />
+    </InvoiceDataProivder>
+  );
+}
+
 function CustomerInvoiceForm({ pageTitles }) {
   renderCount++;
-  const [customerBranchesData, setCustomerBranchesData] = useState([]);
   const [InvoiceType, setInvoiceType] = useState();
+  const [CustomerID, setCustomerID] = useState(0);
+  const [AccountID, setAccountID] = useState(0);
+
+  const { BusinessUnitID } = useContext(InvoiceDataContext);
+  const { user } = useContext(AuthContext);
 
   const sessionSelectData = [
     {
@@ -74,99 +104,121 @@ function CustomerInvoiceForm({ pageTitles }) {
       detail: [],
     },
   });
+  const invoiceHeaderForm = useForm({
+    defaultValues: {
+      InvoiceType: [],
+      BusinessUnit: [],
+      CustomerBranch: [],
+      ProductInfo: [],
+      ServiceInfo: [],
+      Qty: 1,
+      Rate: 0,
+      CGS: 0,
+      Discount: 0,
+      Amount: 0,
+      NetAmount: 0,
+      DetailDescription: "",
+    },
+  });
   const { append, fields, remove } = useFieldArray({
     control: method.control,
     name: "detail",
   });
 
-  const customerSelectData = [
-    {
-      CustomerID: 1,
-      CustomerName: "Customer 1",
-    },
-    {
-      CustomerID: 2,
-      CustomerName: "Customer 2",
-    },
-  ];
+  const { data: customerSelectData } = useQuery({
+    queryKey: ["oldcustomers"],
+    queryFn: () => fetchAllOldCustomersForSelect(),
+    initialData: [],
+  });
 
-  const customerBranchSelectData = [
-    {
-      CustomerBranchID: 1,
-      CustomerBranchTitle: `${pageTitles?.branch || "Customer Branch"} 1`,
-      CustomerID: 1,
+  const { data: CustomerAccounts } = useQuery({
+    queryKey: ["customerAccounts", CustomerID],
+    queryFn: () => fetchAllCustomerAccountsForSelect(CustomerID),
+    enabled: CustomerID !== 0,
+    initialData: [],
+  });
+
+  const { data: businessSelectData } = useQuery({
+    queryKey: ["businessUnits"],
+    queryFn: () => fetchAllBusinessUnitsForSelect(),
+    initialData: [],
+  });
+  const { data: productsInfoSelectData } = useQuery({
+    queryKey: ["productsInfo", BusinessUnitID],
+    queryFn: () => fetchAllProductsForSelect(BusinessUnitID),
+    initialData: [],
+  });
+  const { data: servicesInfoSelectData } = useQuery({
+    queryKey: ["servicesInfo"],
+    queryFn: () => fetchAllServicesForSelect(),
+    initialData: [],
+  });
+  const { data: customerBranchSelectData } = useQuery({
+    queryKey: ["customerBranches", AccountID],
+    queryFn: () => fetchAllCustomerBranchesData(AccountID),
+    enabled: AccountID !== 0,
+    initialData: [],
+  });
+
+  const customerInvoiceMutation = useMutation({
+    mutationFn: async (formData) => {
+      let InvoiceDetail = formData?.detail?.map((item) => {
+        return {
+          RowID: item.RowID,
+          BusinessUnitID: item.BusinessUnit.BusinessUnitID,
+          CustomerBranch: item.CustomerBranch.CustomerBranchID,
+          ProductToInvoiceID: item.ProductInfo.ProductInfoID,
+          ServiceToInvoiceID: item.ServiceInfo.ProductInfoID,
+          Quantity: item.Qty,
+          Rate: item.Rate,
+          CGS: item.CGS,
+          Amount: item.Amount,
+          Discount: item.Discount,
+          NetAmount: item.NetAmount,
+          DetailDescription: item.DetailDescription,
+        };
+      });
+
+      let DataToSend = {
+        CustomerInvoiceID: 0,
+        SessionID: formData?.Session?.SessionID,
+        InvoiceNo: formData?.InvoiceNo,
+        InvoiceDate: formData?.InvoiceDate || new Date(),
+        InvoiceDueDate: formData?.DueDate || new Date(),
+        InvoiceType: formData?.InvoiceType?.value,
+        CustomerID: formData?.Customer?.CustomerID,
+        AccountID: formData?.CustomerLedgers?.AccountID,
+        InvoiceTitle: formData?.InvoiceTitle,
+        Description: formData?.Description,
+        EntryUserID: user.userID,
+        TotalRate: formData?.Total_Rate,
+        TotalCGS: formData?.Total_CGS,
+        TotalDiscount: formData?.Total_Discount,
+        TotalNetAmount: formData?.Total_Amount,
+        InvoiceDetail: JSON.stringify(InvoiceDetail),
+      };
+
+      const { data } = await axios.post(
+        apiUrl + `/CustomerInvoice/CustomerInvoiceInsertUpdate`,
+        DataToSend
+      );
+
+      if (data.success === true) {
+        toast.success("Invoice created successfully!");
+        method.reset();
+        invoiceHeaderForm.reset();
+      } else {
+        toast.error(data.message);
+      }
     },
-    {
-      CustomerBranchID: 2,
-      CustomerBranchTitle: `${pageTitles?.branch || "Customer Branch"} 2`,
-      CustomerID: 2,
-    },
-  ];
+  });
 
   function onSubmit(data) {
-    console.log(data);
-    method.reset();
+    customerInvoiceMutation.mutate(data);
   }
   const typesOptions = [
     { label: pageTitles?.product || "Product", value: "Product" },
     { label: "Service", value: "Service" },
-  ];
-
-  const businessSelectData = [
-    {
-      BusinessUnitID: 1,
-      BusinessUnitName: "Business Unit 1",
-    },
-    {
-      BusinessUnitID: 2,
-      BusinessUnitName: "Business Unit 2",
-    },
-  ];
-
-  const productsInfoSelectData = [
-    {
-      ProductInfoID: 1,
-      ProductInfoTitle: `${pageTitles?.product || "Product"} 1`,
-      BusinessUnitID: 1,
-    },
-    {
-      ProductInfoID: 2,
-      ProductInfoTitle: `${pageTitles?.product || "Product"} 2`,
-      BusinessUnitID: 2,
-    },
-    {
-      ProductInfoID: 3,
-      ProductInfoTitle: `${pageTitles?.product || "Product"} 3`,
-      BusinessUnitID: 1,
-    },
-    {
-      ProductInfoID: 4,
-      ProductInfoTitle: `${pageTitles?.product || "Product"} 4`,
-      BusinessUnitID: 2,
-    },
-  ];
-
-  const servicesInfoSelectData = [
-    {
-      ServiceInfoID: 1,
-      ServiceInfoTitle: `Service 1`,
-      BusinessUnitID: 1,
-    },
-    {
-      ServiceInfoID: 2,
-      ServiceInfoTitle: `Service 2`,
-      BusinessUnitID: 2,
-    },
-    {
-      ServiceInfoID: 3,
-      ServiceInfoTitle: `Service 3`,
-      BusinessUnitID: 1,
-    },
-    {
-      ServiceInfoID: 4,
-      ServiceInfoTitle: `Service 4`,
-      BusinessUnitID: 2,
-    },
   ];
 
   return (
@@ -265,16 +317,21 @@ function CustomerInvoiceForm({ pageTitles }) {
               control={method.control}
               name="InvoiceType"
               rules={{ required: "Please select a type!" }}
-              render={({ field: { onChange, value } }) => (
+              render={({ field: { onChange, value, ref } }) => (
                 <ReactSelect
                   options={typesOptions}
+                  required
                   value={value}
+                  ref={ref}
                   onChange={(selectedOption) => {
                     onChange(selectedOption);
                     setInvoiceType(selectedOption);
+                    method.setFocus("Customer");
+                    remove();
                   }}
                   placeholder="Select a type"
                   noOptionsMessage={() => "No types found!"}
+                  openMenuOnFocus
                 />
               )}
             />
@@ -289,22 +346,24 @@ function CustomerInvoiceForm({ pageTitles }) {
             <Controller
               control={method.control}
               name="Customer"
-              render={({ field: { onChange, value } }) => (
+              render={({ field: { onChange, value, ref } }) => (
                 <ReactSelect
                   options={customerSelectData}
+                  required
                   getOptionValue={(option) => option.CustomerID}
                   getOptionLabel={(option) => option.CustomerName}
                   value={value}
+                  ref={ref}
                   onChange={(selectedOption) => {
                     onChange(selectedOption);
-                    let filteredBranches = customerBranchSelectData.filter(
-                      (b) => b.CustomerID === selectedOption?.CustomerID
-                    );
-                    setCustomerBranchesData(filteredBranches);
+                    setCustomerID(selectedOption?.CustomerID);
+                    method.setFocus("CustomerLedgers");
+                    remove();
                   }}
                   placeholder="Select a customer"
                   noOptionsMessage={() => "No customers found!"}
                   isClearable
+                  openMenuOnFocus
                 />
               )}
             />
@@ -314,45 +373,34 @@ function CustomerInvoiceForm({ pageTitles }) {
             <Controller
               control={method.control}
               name="CustomerLedgers"
-              render={({ field: { onChange, value } }) => (
+              render={({ field: { onChange, value, ref } }) => (
                 <ReactSelect
-                  options={customerSelectData}
-                  getOptionValue={(option) => option.CustomerID}
-                  getOptionLabel={(option) => option.CustomerName}
+                  options={CustomerAccounts}
+                  required
+                  ref={ref}
+                  getOptionValue={(option) => option.AccountID}
+                  getOptionLabel={(option) => option.AccountTitle}
                   value={value}
                   onChange={(selectedOption) => {
                     onChange(selectedOption);
-                    let filteredBranches = customerBranchSelectData.filter(
-                      (b) => b.CustomerID === selectedOption?.CustomerID
-                    );
-                    setCustomerBranchesData(filteredBranches);
+                    setAccountID(selectedOption?.AccountID);
+                    method.setFocus("Description");
+                    remove();
                   }}
                   placeholder="Select a customer"
-                  noOptionsMessage={() => "No customers found!"}
+                  noOptionsMessage={() => "No ledgers found!"}
                   isClearable
+                  openMenuOnFocus
                 />
               )}
             />
           </Form.Group>
         </Row>
         <Row className="p-3" style={{ marginTop: "-25px" }}>
-          {/* <Form.Group as={Col} controlId="RefNo">
-              <Form.Label>Ref No</Form.Label>
-              <Form.Control
-                type="text"
-                {...method.register("RefNo")}
-                pattern="^[0-9]*$"
-                onInput={(e) => {
-                  e.target.value = e.target.value.replace(/[^0-9]/g, "");
-                }}
-                required
-              />
-            </Form.Group> */}
           <Form.Group as={Col} controlId="Description">
             <Form.Label>Description</Form.Label>
             <Form.Control
               as={"textarea"}
-              required
               rows={2}
               className="form-control"
               {...method.register("Description")}
@@ -360,6 +408,7 @@ function CustomerInvoiceForm({ pageTitles }) {
           </Form.Group>
         </Row>
       </form>
+
       <div
         style={{
           padding: "1rem",
@@ -370,16 +419,18 @@ function CustomerInvoiceForm({ pageTitles }) {
         <h5 className="p-3 mb-4 bg-light text-dark text-center  ">
           Detail Entry
         </h5>
-        <CustomerInvoiceHeader
-          businessSelectData={businessSelectData}
-          productsInfoSelectData={productsInfoSelectData}
-          servicesInfoSelectData={servicesInfoSelectData}
-          customerBranchSelectData={customerBranchSelectData}
-          append={append}
-          fields={fields}
-          pageTitles={pageTitles}
-          InvoiceType={InvoiceType}
-        />
+        <FormProvider {...invoiceHeaderForm}>
+          <CustomerInvoiceHeader
+            businessSelectData={businessSelectData}
+            productsInfoSelectData={productsInfoSelectData}
+            servicesInfoSelectData={servicesInfoSelectData}
+            customerBranchSelectData={customerBranchSelectData}
+            append={append}
+            fields={fields}
+            pageTitles={pageTitles}
+            InvoiceType={InvoiceType}
+          />
+        </FormProvider>
       </div>
 
       <Row className="p-3" style={{ marginTop: "-25px" }}>
