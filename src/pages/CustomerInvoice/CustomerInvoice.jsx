@@ -274,6 +274,7 @@ function CustomerInvoiceForm({ pageTitles }) {
   const [AccountID, setAccountID] = useState(0);
   const [CustomerInvoice, setCustomerInvoice] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [printLoading, setPrintLoading] = useState(false);
   const { BusinessUnitID } = useContext(InvoiceDataContext);
   const { user } = useContext(AuthContext);
   const { setKey } = useContext(ActiveKeyContext);
@@ -369,7 +370,10 @@ function CustomerInvoiceForm({ pageTitles }) {
   });
   const method = useForm({
     defaultValues: {
-      Session: sessionSelectData[0],
+      Session: {
+        SessionID: sessionSelectData[0]?.SessionID,
+        SessionTitle: sessionSelectData[0]?.SessionTitle,
+      },
       InvoiceNo: 1,
       Customer: [],
       InvoiceType: [],
@@ -423,73 +427,80 @@ function CustomerInvoiceForm({ pageTitles }) {
 
   const customerInvoiceMutation = useMutation({
     mutationFn: async (formData) => {
-      let InvoiceDetail = formData?.detail?.map((item, index) => {
-        return {
-          RowID: index + 1,
-          BusinessUnitID: item.BusinessUnit.BusinessUnitID,
-          CustomerBranch: item.CustomerBranch.CustomerBranchID,
-          ProductToInvoiceID: item.ProductInfo.ProductInfoID,
-          ServiceToInvoiceID:
-            item.ServiceInfo.length === 0
-              ? null
-              : item.ServiceInfo.ProductInfoID,
-          Quantity: item.Qty,
-          Rate: item.Rate,
-          CGS: item.CGS,
-          Amount: item.Amount,
-          Discount: item.Discount,
-          NetAmount: item.NetAmount,
-          DetailDescription: item.DetailDescription,
+      if (formData?.detail.length === 0) {
+        toast.error("Please add atleast 1 item!", {
+          position: "top-left",
+        });
+      } else {
+        let InvoiceDetail = formData?.detail?.map((item, index) => {
+          return {
+            RowID: index + 1,
+            BusinessUnitID: item.BusinessUnit.BusinessUnitID,
+            CustomerBranch: item.CustomerBranch.CustomerBranchID,
+            ProductToInvoiceID: item.ProductInfo.ProductInfoID,
+            ServiceToInvoiceID:
+              item.ServiceInfo.length === 0
+                ? null
+                : item.ServiceInfo.ProductInfoID,
+            Quantity: item.Qty,
+            Rate: item.Rate,
+            CGS: item.CGS,
+            Amount: item.Amount,
+            Discount: item.Discount,
+            NetAmount: item.NetAmount,
+            DetailDescription: item.DetailDescription,
+          };
+        });
+
+        let DataToSend = {
+          SessionID:
+            formData?.Session?.SessionID || sessionSelectData[0]?.SessionID,
+          InvoiceNo: formData?.InvoiceNo,
+          InvoiceDate: formData?.InvoiceDate || new Date(),
+          InvoiceDueDate: formData?.DueDate || new Date(),
+          InvoiceType: formData?.InvoiceType?.value,
+          CustomerID: formData?.Customer?.CustomerID,
+          AccountID: formData?.CustomerLedgers?.AccountID,
+          InvoiceTitle: formData?.InvoiceTitle,
+          Description: formData?.Description,
+          EntryUserID: user.userID,
+          TotalRate: formData?.Total_Rate,
+          TotalCGS: formData?.Total_CGS,
+          TotalDiscount: formData?.Total_Discount,
+          TotalNetAmount: formData?.Total_Amount,
+          InvoiceDetail: JSON.stringify(InvoiceDetail),
         };
-      });
 
-      let DataToSend = {
-        SessionID: formData?.Session?.SessionID,
-        InvoiceNo: formData?.InvoiceNo,
-        InvoiceDate: formData?.InvoiceDate || new Date(),
-        InvoiceDueDate: formData?.DueDate || new Date(),
-        InvoiceType: formData?.InvoiceType?.value,
-        CustomerID: formData?.Customer?.CustomerID,
-        AccountID: formData?.CustomerLedgers?.AccountID,
-        InvoiceTitle: formData?.InvoiceTitle,
-        Description: formData?.Description,
-        EntryUserID: user.userID,
-        TotalRate: formData?.Total_Rate,
-        TotalCGS: formData?.Total_CGS,
-        TotalDiscount: formData?.Total_Discount,
-        TotalNetAmount: formData?.Total_Amount,
-        InvoiceDetail: JSON.stringify(InvoiceDetail),
-      };
-
-      if (
-        CustomerInvoice?.length !== 0 &&
-        CustomerInvoice?.Master[0]?.CustomerInvoiceID !== undefined
-      ) {
-        DataToSend.CustomerInvoiceID =
-          CustomerInvoice?.Master[0]?.CustomerInvoiceID;
-      } else {
-        DataToSend.CustomerInvoiceID = 0;
-      }
-
-      const { data } = await axios.post(
-        apiUrl + `/CustomerInvoice/CustomerInvoiceInsertUpdate`,
-        DataToSend
-      );
-
-      if (data.success === true) {
-        setCustomerInvoiceID(0);
-        setCustomerInvoice([]);
-        method.reset();
-        invoiceHeaderForm.reset();
-        setKey("search");
-        queryClient.invalidateQueries({ queryKey: ["customerInvoices"] });
-        if (CustomerInvoice?.Master[0]?.CustomerInvoiceID !== undefined) {
-          toast.success("Invoice updated successfully!");
+        if (
+          CustomerInvoice?.length !== 0 &&
+          CustomerInvoice?.Master[0]?.CustomerInvoiceID !== undefined
+        ) {
+          DataToSend.CustomerInvoiceID =
+            CustomerInvoice?.Master[0]?.CustomerInvoiceID;
         } else {
-          toast.success("Invoice created successfully!");
+          DataToSend.CustomerInvoiceID = 0;
         }
-      } else {
-        toast.error(data.message);
+
+        const { data } = await axios.post(
+          apiUrl + `/CustomerInvoice/CustomerInvoiceInsertUpdate`,
+          DataToSend
+        );
+
+        if (data.success === true) {
+          setCustomerInvoiceID(0);
+          setCustomerInvoice([]);
+          method.reset();
+          invoiceHeaderForm.reset();
+          setKey("search");
+          queryClient.invalidateQueries({ queryKey: ["customerInvoices"] });
+          if (CustomerInvoice?.Master[0]?.CustomerInvoiceID !== undefined) {
+            toast.success("Invoice updated successfully!");
+          } else {
+            toast.success("Invoice created successfully!");
+          }
+        } else {
+          toast.error(data.message);
+        }
       }
     },
   });
@@ -528,7 +539,7 @@ function CustomerInvoiceForm({ pageTitles }) {
       });
       method.setValue("Description", CustomerInvoice?.Master[0]?.Description);
       method.setValue(
-        "InvoiceDate",
+        "InoviceDate",
         parseISO(CustomerInvoice?.Master[0]?.InvoiceDate)
       );
       method.setValue(
@@ -588,6 +599,9 @@ function CustomerInvoiceForm({ pageTitles }) {
     setCustomerInvoiceID(0);
     method.reset();
     invoiceHeaderForm.reset();
+    method.setValue("InvoiceDate", new Date());
+    method.setValue("DueDate", new Date());
+    method.setValue("Session", sessionSelectData[0]);
     setIsEnable(true);
   }
 
@@ -596,6 +610,9 @@ function CustomerInvoiceForm({ pageTitles }) {
     setCustomerInvoiceID(0);
     method.reset();
     invoiceHeaderForm.reset();
+    method.setValue("InvoiceDate", new Date());
+    method.setValue("DueDate", new Date());
+    method.setValue("Session", sessionSelectData[0]);
     setIsEnable(true);
   }
 
@@ -607,6 +624,7 @@ function CustomerInvoiceForm({ pageTitles }) {
   }
 
   async function handleOpenPdfInNewTab(InvoiceID) {
+    setPrintLoading(true);
     const { data } = await axios.post(
       `http://192.168.9.110:90/api/Reports/InvoicePrint?CustomerInvoiceID=${InvoiceID}&Export=p`
     );
@@ -622,7 +640,7 @@ function CustomerInvoiceForm({ pageTitles }) {
       '" type="application/pdf" />';
     html += "</body>";
     html += "</html>";
-
+    setPrintLoading(false);
     setTimeout(() => {
       win.document.write(html);
     }, 0);
@@ -636,15 +654,24 @@ function CustomerInvoiceForm({ pageTitles }) {
         </>
       ) : (
         <>
-          <div className="mb-2 text-end">
-            <Button
-              label="Print"
-              severity="warning"
-              icon="pi pi-print"
-              className="rounded"
-              onClick={() => handleOpenPdfInNewTab(CustomerInvoiceID)}
-            ></Button>
-          </div>
+          {CustomerInvoiceID > 0 && !isEnable ? (
+            <>
+              <div className="mb-2 text-end">
+                <Button
+                  label={printLoading ? "Loading..." : "Print"}
+                  severity="warning"
+                  icon="pi pi-print"
+                  className="rounded"
+                  type="button"
+                  loading={printLoading}
+                  loadingIcon="pi pi-spin pi-print"
+                  onClick={() => handleOpenPdfInNewTab(CustomerInvoiceID)}
+                ></Button>
+              </div>
+            </>
+          ) : (
+            <></>
+          )}
           <h4 className="p-3 mb-4 bg-light text-dark text-center  shadow-sm rounded-2">
             Customer Invoice
           </h4>
@@ -685,7 +712,7 @@ function CustomerInvoiceForm({ pageTitles }) {
                   required
                 />
               </Form.Group>
-              <Form.Group as={Col} controlId="">
+              <Form.Group as={Col} controlId="InoviceDate">
                 <Form.Label>Invoice Date</Form.Label>
 
                 <div>
@@ -903,10 +930,8 @@ function CustomerInvoiceForm({ pageTitles }) {
             handleAddNew={handleAddNew}
             handleCancel={handleCancel}
             viewRecord={!isEnable}
-            editRecord={
-              isEnable && (CustomerInvoice?.length !== 0 ? true : false)
-            }
-            newRecord={CustomerInvoice?.length !== 0 ? false : true}
+            editRecord={isEnable && (CustomerInvoiceID > 0 ? true : false)}
+            newRecord={CustomerInvoiceID === 0 ? true : false}
             handleEdit={handleEdit}
             handleDelete={handleDelete}
             customOnClick={() => {

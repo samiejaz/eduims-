@@ -264,9 +264,7 @@ function GenProductInfoEntry({ pageTitles }) {
     mutationFn: async (formData) => {
       let selectedBusinessUnitIDs;
       if (selectedBusinessUnits.length === 0) {
-        selectedBusinessUnitIDs = BusinessUnits?.map((b, i) => {
-          return { RowID: i + 1, BusinessUnitID: b.BusinessUnitID };
-        });
+        selectedBusinessUnitIDs = { RowID: 0, BusinessUnitID: null };
       } else {
         selectedBusinessUnitIDs = selectedBusinessUnits?.map((b, i) => {
           return { RowID: i + 1, BusinessUnitID: b.BusinessUnitID };
@@ -306,7 +304,7 @@ function GenProductInfoEntry({ pageTitles }) {
         setKey("search");
         queryClient.invalidateQueries({ queryKey: ["productInfo"] });
 
-        if (ProductInfo.length !== 0) {
+        if (ProductInfoID > 0) {
           toast.success("ProductInfo Info updated successfully!");
         } else {
           toast.success("ProductInfo Info saved successfully!");
@@ -515,10 +513,8 @@ function GenProductInfoEntry({ pageTitles }) {
               handleAddNew={handleAddNew}
               handleCancel={handleCancel}
               viewRecord={!isEnable}
-              editRecord={
-                isEnable && (ProductInfo?.length !== 0 ? true : false)
-              }
-              newRecord={ProductInfo?.length !== 0 ? false : true}
+              editRecord={isEnable && (ProductInfoID > 0 ? true : false)}
+              newRecord={ProductInfoID === 0 ? true : false}
               handleEdit={handleEdit}
               handleDelete={handleDelete}
             />

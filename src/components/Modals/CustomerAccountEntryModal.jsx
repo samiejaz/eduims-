@@ -43,6 +43,7 @@ export function CustomerAccountEntryModal({ CustomerID }) {
         severity="success"
         size="small"
         className="rounded-2"
+        type="button"
         onClick={() => setVisible(true)}
         style={{
           padding: "1px 0px",

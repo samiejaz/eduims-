@@ -22,7 +22,6 @@ import {
   CompanyInfo,
   GenCustomerEntry,
 } from "./pages";
-import PDFViewer from "./pages/PDFViewer";
 
 const App = () => {
   return (
@@ -77,7 +76,6 @@ const App = () => {
             path="/general/appConfiguration"
             element={<AppConfiguration />}
           />
-          <Route path="/pdf" element={<PDFViewer />} />
 
           {/* <Route path="/users/departmententry" element={<Department />} /> */}
           {/* <Route path="/customers/segmentsEntry" element={<Segments />} />

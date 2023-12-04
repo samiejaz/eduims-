@@ -97,7 +97,7 @@ export async function fetchAllSoftwareCustomersForSelect(CustomerID) {
 }
 export async function fetchAllSelectDescripitons(InvoiceType = "") {
   let whereClause;
-  console.log(InvoiceType);
+
   if (InvoiceType === "") {
     whereClause = "";
   } else {
