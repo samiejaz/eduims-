@@ -3,11 +3,24 @@ import { toast } from "react-toastify";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
-export async function fetchAllProductCategories(LoginUserID) {
+export async function fetchAllProductCategories(
+  LoginUserID,
+  ProductType = "Product"
+) {
   const { data } = await axios.post(
     apiUrl + "/EduIMS/GetProductCategoryWhere?LoginUserID=" + LoginUserID
   );
-  return data.data;
+  let newData = data.data.map((product) => {
+    return {
+      ProductType:
+        product.ProductType === "Product" ? ProductType : product.ProductType,
+      ProductCategoryID: product.ProductCategoryID,
+      InActive: product.InActive,
+      ProductCategoryTitle: product.ProductCategoryTitle,
+    };
+  });
+
+  return newData;
 }
 
 export async function fetchProductCategoryById(ProductCategoryID, LoginUserID) {

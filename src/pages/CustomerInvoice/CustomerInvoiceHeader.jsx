@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
-import { Row, Col, Form, ButtonGroup, Button } from "react-bootstrap";
-import { Controller, useForm, useFormContext, useWatch } from "react-hook-form";
+import { Row, Col, Form, ButtonGroup } from "react-bootstrap";
+import { Controller, useFormContext } from "react-hook-form";
 import ReactSelect from "react-select";
-import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
 import { useContext } from "react";
 import { InvoiceDataContext } from "./CustomerInvoiceDataContext";
+import { AutoComplete } from "primereact/autocomplete";
+import { useQuery } from "@tanstack/react-query";
+import { fetchAllSelectDescripitons } from "../../api/SelectData";
+import { useState } from "react";
+import { useEffect } from "react";
 
 function CustomerInvoiceHeader(props) {
   const {
@@ -16,6 +19,8 @@ function CustomerInvoiceHeader(props) {
     pageTitles,
     InvoiceType,
   } = props;
+
+  const [descriptions, setDescripitons] = useState([]);
 
   const {
     control,
@@ -34,6 +39,26 @@ function CustomerInvoiceHeader(props) {
     append(data);
     reset();
   }
+
+  useEffect(() => {
+    setValue("products", JSON.stringify(productsInfoSelectData));
+  }, [productsInfoSelectData]);
+
+  const { data: items } = useQuery({
+    queryKey: ["invoiceDescripitons"],
+    queryFn: () => fetchAllSelectDescripitons(InvoiceType?.value),
+    enabled: InvoiceType?.value !== "",
+    initialData: [],
+  });
+
+  const search = (event) => {
+    let _filteredItems;
+    let query = event.query;
+    _filteredItems = items.filter((item) => {
+      return item.toLowerCase().includes(query.toLowerCase());
+    });
+    setDescripitons(_filteredItems);
+  };
 
   return (
     <>
@@ -58,15 +83,15 @@ function CustomerInvoiceHeader(props) {
                   ref={ref}
                   onChange={(selectedOption) => {
                     onChange(selectedOption);
-
                     setValue("ProductInfo", []);
-
                     setBusinessUnitID(selectedOption?.BusinessUnitID);
+
                     setFocus("CustomerBranch");
                   }}
                   noOptionsMessage={() => "No business unit found!"}
                   isClearable
                   placeholder="Select a business unit"
+                  openMenuOnFocus
                 />
               )}
             />
@@ -103,6 +128,7 @@ function CustomerInvoiceHeader(props) {
                     }s found!`
                   }
                   isClearable
+                  openMenuOnFocus
                 />
               )}
             />
@@ -149,6 +175,7 @@ function CustomerInvoiceHeader(props) {
                     }s found!`
                   }
                   isClearable
+                  openMenuOnFocus
                 />
               )}
             />
@@ -178,6 +205,7 @@ function CustomerInvoiceHeader(props) {
                   noOptionsMessage={() => `No services found!`}
                   isClearable
                   isDisabled={InvoiceType?.value === "Product"}
+                  openMenuOnFocus
                 />
               )}
             />
@@ -279,8 +307,35 @@ function CustomerInvoiceHeader(props) {
         <Row className="py-3" style={{ marginTop: "-25px" }}>
           <Form.Group as={Col} controlId="DetailDescription">
             <Form.Label>Description</Form.Label>
-            <Form.Control type="textarea" {...register("DetailDescription")} />
+
+            <Controller
+              name="DetailDescription"
+              control={control}
+              render={({ field, fieldState }) => (
+                <>
+                  <AutoComplete
+                    className="w-100"
+                    panelStyle={{ left: "103px", width: "1482px" }}
+                    inputClassName="w-100"
+                    inputId={field.name}
+                    value={field.value}
+                    onChange={field.onChange}
+                    inputRef={field.ref}
+                    suggestions={descriptions}
+                    completeMethod={search}
+                  />
+                </>
+              )}
+            />
           </Form.Group>
+
+          <Form.Control
+            type="text"
+            {...register("products")}
+            style={{ display: "none" }}
+          />
+        </Row>
+        <Row className="py-3" style={{ marginTop: "-25px" }}>
           <Form.Group as={Col}>
             <Form.Label>Actions</Form.Label>
             <ButtonGroup className="d-block">

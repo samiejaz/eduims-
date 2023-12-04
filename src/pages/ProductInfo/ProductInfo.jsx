@@ -254,11 +254,22 @@ function GenProductInfoEntry({ pageTitles }) {
     initialData: [],
   });
 
+  const { data: BusinessUnits } = useQuery({
+    queryKey: ["businessUnits"],
+    queryFn: () => fetchAllBusinessUnitsForSelect(),
+    initialData: [],
+  });
+
   const productInfoMutation = useMutation({
     mutationFn: async (formData) => {
-      let selectedBusinessUnitIDs = selectedBusinessUnits?.map((b, i) => {
-        return { RowID: i + 1, BusinessUnitID: b.BusinessUnitID };
-      });
+      let selectedBusinessUnitIDs;
+      if (selectedBusinessUnits.length === 0) {
+        selectedBusinessUnitIDs = { RowID: 0, BusinessUnitID: null };
+      } else {
+        selectedBusinessUnitIDs = selectedBusinessUnits?.map((b, i) => {
+          return { RowID: i + 1, BusinessUnitID: b.BusinessUnitID };
+        });
+      }
 
       const dataToSend = {
         ProductInfoID: 0,
@@ -269,7 +280,10 @@ function GenProductInfoEntry({ pageTitles }) {
         EntryUserID: user.userID,
       };
 
-      if (ProductInfo?.data[0]?.ProductInfoID !== undefined) {
+      if (
+        ProductInfo?.length !== 0 &&
+        ProductInfo?.data[0]?.ProductInfoID !== undefined
+      ) {
         dataToSend.ProductInfoID = ProductInfo?.data[0]?.ProductInfoID;
       } else {
         dataToSend.ProductInfoID = 0;
@@ -284,11 +298,13 @@ function GenProductInfoEntry({ pageTitles }) {
         setProductInfoID(0);
         reset();
         resetSelectValues();
+        setSelectedBusinessUnits([]);
         setIsEnable(true);
+        setProductInfo([]);
         setKey("search");
         queryClient.invalidateQueries({ queryKey: ["productInfo"] });
 
-        if (ProductInfo?.data[0]?.ProductInfoID !== undefined) {
+        if (ProductInfoID > 0) {
           toast.success("ProductInfo Info updated successfully!");
         } else {
           toast.success("ProductInfo Info saved successfully!");
@@ -299,7 +315,7 @@ function GenProductInfoEntry({ pageTitles }) {
         });
       }
     },
-    onError: () => {
+    onError: (error) => {
       toast.error("Some error occured!");
     },
   });
@@ -309,8 +325,7 @@ function GenProductInfoEntry({ pageTitles }) {
     onSuccess: (response) => {
       if (response === true) {
         queryClient.invalidateQueries({ queryKey: ["productInfo"] });
-
-        setProductInfo(undefined);
+        setProductInfo([]);
         setProductInfoID(0);
         reset();
         setIsEnable(true);
@@ -335,12 +350,6 @@ function GenProductInfoEntry({ pageTitles }) {
     }
   }, [ProductInfoID, ProductInfo]);
 
-  const { data: BusinessUnits } = useQuery({
-    queryKey: ["businessUnits"],
-    queryFn: () => fetchAllBusinessUnitsForSelect(),
-    initialData: [],
-  });
-
   function onSubmit(data) {
     productInfoMutation.mutate(data);
   }
@@ -350,7 +359,7 @@ function GenProductInfoEntry({ pageTitles }) {
   }
 
   function handleAddNew() {
-    setProductInfo(undefined);
+    setProductInfo([]);
     setProductInfoID(0);
     setTimeout(() => {
       resetSelectValues();
@@ -361,7 +370,7 @@ function GenProductInfoEntry({ pageTitles }) {
   }
 
   function handleCancel() {
-    setProductInfo(undefined);
+    setProductInfo([]);
     setProductInfoID(0);
     setTimeout(() => {
       resetSelectValues();
@@ -384,9 +393,9 @@ function GenProductInfoEntry({ pageTitles }) {
     setValue("ProductCategory", []);
   }
 
-  function isRowSelectable(e) {
-    console.log(e);
-  }
+  const isRowSelectable = (event) => {
+    return isEnable ? true : false;
+  };
 
   return (
     <>
@@ -473,17 +482,16 @@ function GenProductInfoEntry({ pageTitles }) {
 
             <Row className="p-3" style={{ marginTop: "-25px" }}>
               <Form.Group as={Col}>
-                <Form.Label>Business Units</Form.Label>
                 <DataTable
+                  id="businessUnitTable"
                   value={BusinessUnits}
                   selectionMode={"checkbox"}
                   selection={selectedBusinessUnits}
                   onSelectionChange={(e) => setSelectedBusinessUnits(e.value)}
                   dataKey="BusinessUnitID"
                   tableStyle={{ minWidth: "50rem" }}
-                  // isDataSelectable={isRowSelectable}
-
                   size="sm"
+                  isDataSelectable={isRowSelectable}
                 >
                   <Column
                     selectionMode="multiple"
@@ -505,8 +513,8 @@ function GenProductInfoEntry({ pageTitles }) {
               handleAddNew={handleAddNew}
               handleCancel={handleCancel}
               viewRecord={!isEnable}
-              editRecord={isEnable && (ProductInfo ? true : false)}
-              newRecord={ProductInfo ? false : true}
+              editRecord={isEnable && (ProductInfoID > 0 ? true : false)}
+              newRecord={ProductInfoID === 0 ? true : false}
               handleEdit={handleEdit}
               handleDelete={handleDelete}
             />

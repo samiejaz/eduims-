@@ -98,6 +98,7 @@ const useCustomerEntryHook = () => {
 
   function handleCancelClick() {
     queryClient.invalidateQueries({ queryKey: ["Customers"] });
+    queryClient.invalidateQueries({ queryKey: ["oldcustomers"] });
     setDialogIndex(0);
     setCustomerID(0);
     customerEntryFrom.reset(customerEntryDefaultValues);
@@ -194,6 +195,7 @@ const useCustomerEntryHook = () => {
           onHide={() => {
             setVisible(false);
             queryClient.invalidateQueries({ queryKey: ["Customers"] });
+            queryClient.invalidateQueries({ queryKey: ["oldcustomers"] });
           }}
           footer={footerContent}
         >

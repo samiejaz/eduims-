@@ -95,3 +95,16 @@ export async function fetchAllSoftwareCustomersForSelect(CustomerID) {
   );
   return data.data;
 }
+export async function fetchAllSelectDescripitons(InvoiceType = "") {
+  let whereClause;
+
+  if (InvoiceType === "") {
+    whereClause = "";
+  } else {
+    whereClause = "?InvoiceType=" + InvoiceType;
+  }
+  const { data } = await axios.post(
+    apiUrl + "/Select/SelectInvoiceDescription"
+  );
+  return data.data.map((i) => i.Description);
+}

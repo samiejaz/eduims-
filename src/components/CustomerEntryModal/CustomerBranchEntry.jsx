@@ -527,9 +527,6 @@ function CustomerBranchesDataTable(props) {
             showGridlines
             value={CustomerBranches?.data || []}
             dataKey="CustomerBranchID"
-            paginator
-            rows={10}
-            rowsPerPageOptions={[5, 10, 25, 50]}
             removableSort
             emptyMessage={`No ${
               pageTitles?.branch?.toLowerCase() || "customer branch"

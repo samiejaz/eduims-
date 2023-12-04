@@ -63,17 +63,9 @@ function CustomerInvoiceDetailTable(props) {
     setValue(`detail.${index}.products`, JSON.stringify(data));
   }
 
-  const selectStyles = {
-    menu: (base) => ({
-      ...base,
-      zIndex: 1000, // Set the z-index to a large value
-    }),
-  };
-
   return (
     <>
       <div className="py-3 mb-4">
-        <p>{renderCount}</p>
         <form>
           <hr />
           <Table
@@ -110,42 +102,12 @@ function CustomerInvoiceDetailTable(props) {
                 >
                   Service
                 </th>
-                <th
-                  className="p-2 bg-info text-white"
-                  style={{ width: "80px" }}
-                >
-                  Qty
-                </th>
-                <th
-                  className="p-2 bg-info text-white"
-                  style={{ width: "80px" }}
-                >
-                  Rate
-                </th>
-                <th
-                  className="p-2 bg-info text-white"
-                  style={{ width: "80px" }}
-                >
-                  CGS
-                </th>
-                <th
-                  className="p-2 bg-info text-white"
-                  style={{ width: "80px" }}
-                >
-                  Amount
-                </th>
-                <th
-                  className="p-2 bg-info text-white"
-                  style={{ width: "80px" }}
-                >
-                  Discount
-                </th>
-                <th
-                  className="p-2 bg-info text-white"
-                  style={{ width: "80px" }}
-                >
-                  Net Amount
-                </th>
+                <th className="p-2 bg-info text-white">Qty</th>
+                <th className="p-2 bg-info text-white">Rate</th>
+                <th className="p-2 bg-info text-white">CGS</th>
+                <th className="p-2 bg-info text-white">Amount</th>
+                <th className="p-2 bg-info text-white">Discount</th>
+                <th className="p-2 bg-info text-white">Net Amount</th>
                 <th className="p-2 bg-info text-white">Description</th>
                 <th
                   className="p-2 bg-info text-white"
@@ -191,14 +153,13 @@ function CustomerInvoiceDetailTable(props) {
                             noOptionsMessage={() => "No business unit found!"}
                             openMenuOnFocus
                             components={{ DropdownIndicator: () => null }}
-                            classNames={selectStyles}
                             isDisabled={!isEnable}
                           />
                         )}
                       />
                     </td>
 
-                    <td style={{ width: "250px" }}>
+                    <td style={{ width: "400px" }}>
                       <Controller
                         control={control}
                         name={`detail.${index}.CustomerBranch`}
@@ -224,7 +185,7 @@ function CustomerInvoiceDetailTable(props) {
                       />
                     </td>
 
-                    <td style={{ width: "250px" }}>
+                    <td style={{ width: "400px" }}>
                       <Controller
                         control={control}
                         name={`detail.${index}.ProductInfo`}
@@ -251,7 +212,7 @@ function CustomerInvoiceDetailTable(props) {
                         )}
                       />
                     </td>
-                    <td style={{ width: "250px" }}>
+                    <td style={{ width: "400px" }}>
                       <Controller
                         control={control}
                         name={`detail.${index}.ServiceInfo`}
@@ -279,13 +240,12 @@ function CustomerInvoiceDetailTable(props) {
                       />
                     </td>
 
-                    <td style={{ width: "80px" }}>
+                    <td style={{ width: "150px" }}>
                       <Form.Control
                         type="text"
                         {...register(`detail.${index}.Qty`, {
                           valueAsNumber: true,
                           required: true,
-                          min: 1,
                         })}
                         required
                         disabled={!isEnable}
@@ -306,13 +266,12 @@ function CustomerInvoiceDetailTable(props) {
                         }}
                       />
                     </td>
-                    <td style={{ width: "150px" }}>
+                    <td style={{ width: "200px" }}>
                       <Form.Control
                         type="text"
                         {...register(`detail.${index}.Rate`, {
                           valueAsNumber: true,
                           required: true,
-                          min: 1,
                         })}
                         required
                         disabled={!isEnable}
@@ -334,7 +293,7 @@ function CustomerInvoiceDetailTable(props) {
                         }}
                       />
                     </td>
-                    <td style={{ width: "150px" }}>
+                    <td style={{ width: "200px" }}>
                       <Form.Control
                         type="text"
                         {...register(`detail.${index}.CGS`, {
@@ -352,7 +311,7 @@ function CustomerInvoiceDetailTable(props) {
                         }}
                       />
                     </td>
-                    <td style={{ width: "150px" }}>
+                    <td style={{ width: "200px" }}>
                       <Form.Control
                         type="text"
                         disabled
@@ -360,7 +319,7 @@ function CustomerInvoiceDetailTable(props) {
                         {...register(`detail.${index}.Amount`)}
                       />
                     </td>
-                    <td style={{ width: "150px" }}>
+                    <td style={{ width: "200px" }}>
                       <Form.Control
                         type="text"
                         {...register(`detail.${index}.Discount`, {
@@ -386,7 +345,7 @@ function CustomerInvoiceDetailTable(props) {
                       />
                     </td>
 
-                    <td style={{ width: "150px" }}>
+                    <td style={{ width: "200px" }}>
                       <Form.Control
                         type="text"
                         disabled
@@ -394,14 +353,14 @@ function CustomerInvoiceDetailTable(props) {
                         {...register(`detail.${index}.NetAmount`)}
                       />
                     </td>
-                    <td style={{ width: "250px" }}>
+                    <td style={{ width: "1000px" }}>
                       <Form.Control
                         type="text"
                         disabled={!isEnable}
                         {...register(`detail.${index}.DetailDescription`)}
                       />
                     </td>
-                    <td style={{ width: "250px", display: "none" }}>
+                    <td style={{ display: "none" }}>
                       <Form.Control
                         type="text"
                         {...register(`detail.${index}.products`)}
