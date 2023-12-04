@@ -58,9 +58,9 @@ function GenProductCategory() {
   );
 }
 
-function GenProductCategorySearch({ pageTitles }) {
+function GenProductCategorySearch() {
   const queryClient = useQueryClient();
-
+  const { pageTitles } = useContext(AppConfigurationContext);
   const { user } = useContext(AuthContext);
   const { setKey } = useContext(ActiveKeyContext);
 
@@ -93,7 +93,7 @@ function GenProductCategorySearch({ pageTitles }) {
     isFetching,
   } = useQuery({
     queryKey: ["productCategories"],
-    queryFn: () => fetchAllProductCategories(user.userID),
+    queryFn: () => fetchAllProductCategories(user.userID, pageTitles?.product),
     initialData: [],
   });
 

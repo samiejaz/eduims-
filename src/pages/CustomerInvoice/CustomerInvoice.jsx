@@ -1,5 +1,5 @@
-import { Form, Row, Col, Button, Spinner } from "react-bootstrap";
-import { Button as PrimeButton } from "primereact/button";
+import { Form, Row, Col, Spinner } from "react-bootstrap";
+
 import {
   Controller,
   FormProvider,
@@ -13,7 +13,7 @@ import { useContext, useEffect, useState } from "react";
 import ReactDatePicker from "react-datepicker";
 import { AppConfigurationContext } from "../../context/AppConfigurationContext";
 import { DevTool } from "@hookform/devtools";
-import useCustomerEntryHook from "../../hooks/useCustomerEntryHook";
+
 import { CustomerEntryForm } from "../../components/CustomerEntryFormComponent";
 import CustomerInvoiceHeader from "./CustomerInvoiceHeader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -34,7 +34,7 @@ import {
 } from "./CustomerInvoiceDataContext";
 import { AuthContext } from "../../context/AuthContext";
 import axios from "axios";
-import { fetchAllCustomerBranches } from "../../api/CustomerBranchData";
+
 import { toast } from "react-toastify";
 import { ActiveKeyContext } from "../../context/ActiveKeyContext";
 import useEditModal from "../../hooks/useEditModalHook";
@@ -42,14 +42,17 @@ import useDeleteModal from "../../hooks/useDeleteModalHook";
 import {
   fetchAllCustomerInvoices,
   fetchCustomerInvoiceById,
+  fetchMaxInvoiceNo,
 } from "../../api/CustomerInvoiceData";
 import { FilterMatchMode } from "primereact/api";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import ActionButtons from "../../components/ActionButtons";
 import { parseISO } from "date-fns";
+import { CustomSpinner } from "../../components/CustomSpinner";
+import ButtonRow from "../../components/ButtonRow";
+import { Button } from "primereact/button";
 
-let renderCount = 0;
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 function CustomerInvoice() {
   const { pageTitles } = useContext(AppConfigurationContext);
@@ -265,7 +268,7 @@ function CustomerInvoiceFormMaster({ pageTitles }) {
 }
 
 function CustomerInvoiceForm({ pageTitles }) {
-  renderCount++;
+  const queryClient = useQueryClient();
   const [InvoiceType, setInvoiceType] = useState();
   const [CustomerID, setCustomerID] = useState(0);
   const [AccountID, setAccountID] = useState(0);
@@ -273,11 +276,18 @@ function CustomerInvoiceForm({ pageTitles }) {
   const [isLoading, setIsLoading] = useState(false);
   const { BusinessUnitID } = useContext(InvoiceDataContext);
   const { user } = useContext(AuthContext);
+  const { setKey } = useContext(ActiveKeyContext);
 
   const { isEnable, setIsEnable, setCustomerInvoiceID, CustomerInvoiceID } =
     useContext(CustomerInvoiceDataContext);
+
+  const { data: sessionSelectData } = useQuery({
+    queryKey: ["sessionsData"],
+    queryFn: () => fetchAllSessionsForSelect(),
+    initialData: [],
+  });
+
   useEffect(() => {
-    console.log(CustomerInvoiceID);
     async function fetchCustomerInvoice() {
       if (
         CustomerInvoiceID !== undefined &&
@@ -293,18 +303,40 @@ function CustomerInvoiceForm({ pageTitles }) {
           setKey("search");
           toast.error("Network Error Occured!");
         }
-        setCustomerInvoice(data);
-        setIsLoading(false);
+
+        if (data.success === true) {
+          setCustomerInvoice(data);
+          setIsLoading(false);
+          setAccountID(data?.Master[0].AccountID);
+          setCustomerID(data?.Master[0].CustomerID);
+          if (data?.Master[0].InvoiceType === "Product") {
+            setInvoiceType({ label: "Product", value: "Product" });
+          }
+        } else {
+          method.reset();
+          setCustomerInvoice([]);
+          toast.error("No Data Found!", {
+            autoClose: 1500,
+          });
+          setIsEnable(true);
+          setKey("search");
+        }
       } else {
-        setCustomerInvoice(null);
+        setCustomerInvoice([]);
         setTimeout(() => {
-          reset(defaultValues);
+          method.reset();
           setIsEnable(true);
         }, 200);
       }
     }
+    async function fetchInvoiceNo() {
+      const data = await fetchMaxInvoiceNo();
+      method.setValue("InvoiceNo", data.data[0]?.InvoiceNo);
+    }
     if (CustomerInvoiceID !== 0) {
       fetchCustomerInvoice();
+    } else {
+      fetchInvoiceNo();
     }
   }, [CustomerInvoiceID]);
 
@@ -318,11 +350,6 @@ function CustomerInvoiceForm({ pageTitles }) {
   //     SessionTitle: "Session 2",
   //   },
   // ];
-  const { data: sessionSelectData } = useQuery({
-    queryKey: ["sessionsData"],
-    queryFn: () => fetchAllSessionsForSelect(),
-    initialData: [],
-  });
 
   const invoiceHeaderForm = useForm({
     defaultValues: {
@@ -366,14 +393,12 @@ function CustomerInvoiceForm({ pageTitles }) {
     queryFn: () => fetchAllOldCustomersForSelect(),
     initialData: [],
   });
-
   const { data: CustomerAccounts } = useQuery({
     queryKey: ["customerAccounts", CustomerID],
     queryFn: () => fetchAllCustomerAccountsForSelect(CustomerID),
     enabled: CustomerID !== 0,
     initialData: [],
   });
-
   const { data: businessSelectData } = useQuery({
     queryKey: ["businessUnits"],
     queryFn: () => fetchAllBusinessUnitsForSelect(),
@@ -398,9 +423,9 @@ function CustomerInvoiceForm({ pageTitles }) {
 
   const customerInvoiceMutation = useMutation({
     mutationFn: async (formData) => {
-      let InvoiceDetail = formData?.detail?.map((item) => {
+      let InvoiceDetail = formData?.detail?.map((item, index) => {
         return {
-          RowID: item.RowID,
+          RowID: index + 1,
           BusinessUnitID: item.BusinessUnit.BusinessUnitID,
           CustomerBranch: item.CustomerBranch.CustomerBranchID,
           ProductToInvoiceID: item.ProductInfo.ProductInfoID,
@@ -419,7 +444,6 @@ function CustomerInvoiceForm({ pageTitles }) {
       });
 
       let DataToSend = {
-        CustomerInvoiceID: 0,
         SessionID: formData?.Session?.SessionID,
         InvoiceNo: formData?.InvoiceNo,
         InvoiceDate: formData?.InvoiceDate || new Date(),
@@ -437,15 +461,33 @@ function CustomerInvoiceForm({ pageTitles }) {
         InvoiceDetail: JSON.stringify(InvoiceDetail),
       };
 
+      if (
+        CustomerInvoice?.length !== 0 &&
+        CustomerInvoice?.Master[0]?.CustomerInvoiceID !== undefined
+      ) {
+        DataToSend.CustomerInvoiceID =
+          CustomerInvoice?.Master[0]?.CustomerInvoiceID;
+      } else {
+        DataToSend.CustomerInvoiceID = 0;
+      }
+
       const { data } = await axios.post(
         apiUrl + `/CustomerInvoice/CustomerInvoiceInsertUpdate`,
         DataToSend
       );
 
       if (data.success === true) {
-        toast.success("Invoice created successfully!");
+        setCustomerInvoiceID(0);
+        setCustomerInvoice([]);
         method.reset();
         invoiceHeaderForm.reset();
+        setKey("search");
+        queryClient.invalidateQueries({ queryKey: ["customerInvoices"] });
+        if (CustomerInvoice?.Master[0]?.CustomerInvoiceID !== undefined) {
+          toast.success("Invoice updated successfully!");
+        } else {
+          toast.success("Invoice created successfully!");
+        }
       } else {
         toast.error(data.message);
       }
@@ -466,7 +508,10 @@ function CustomerInvoiceForm({ pageTitles }) {
       method.setValue("InvoiceTitle", CustomerInvoice?.Master[0]?.InvoiceTitle);
       method.setValue("InvoiceNo", CustomerInvoice?.Master[0]?.InvoiceNo);
       method.setValue("InvoiceType", {
-        label: CustomerInvoice?.Master[0]?.InvoiceType,
+        label:
+          CustomerInvoice?.Master[0]?.InvoiceType === "Product"
+            ? pageTitles?.product
+            : CustomerInvoice?.Master[0]?.InvoiceType,
         value: CustomerInvoice?.Master[0]?.InvoiceType,
       });
       method.setValue("Customer", {
@@ -504,7 +549,8 @@ function CustomerInvoiceForm({ pageTitles }) {
       // Detail Values
       method.setValue(
         "detail",
-        CustomerInvoice?.Detail.map((invoice) => {
+        CustomerInvoice?.Detail.map((invoice, index) => {
+          filteredProductsBasedOnRow(invoice.BusinessUnitID, index);
           return {
             ProductInfo: {
               ProductInfoID: invoice.ProductToInvoiceID,
@@ -529,265 +575,346 @@ function CustomerInvoiceForm({ pageTitles }) {
       );
     }
   }, [CustomerInvoiceID, CustomerInvoice]);
+  async function filteredProductsBasedOnRow(SelectedBusinessUnitID, index) {
+    const data = await fetchAllProductsForSelect(SelectedBusinessUnitID);
+    method.setValue(`detail.${index}.products`, JSON.stringify(data));
+  }
+  function handleEdit() {
+    setIsEnable(true);
+  }
+
+  function handleAddNew() {
+    setCustomerInvoice([]);
+    setCustomerInvoiceID(0);
+    method.reset();
+    invoiceHeaderForm.reset();
+    setIsEnable(true);
+  }
+
+  function handleCancel() {
+    setCustomerInvoice([]);
+    setCustomerInvoiceID(0);
+    method.reset();
+    invoiceHeaderForm.reset();
+    setIsEnable(true);
+  }
+
+  function handleDelete() {
+    // deleteMutation.mutate({
+    //   SessionID,
+    //   LoginUserID: user.userID,
+    // });
+  }
+
+  async function handleOpenPdfInNewTab(InvoiceID) {
+    const { data } = await axios.post(
+      `http://192.168.9.110:90/api/Reports/InvoicePrint?CustomerInvoiceID=${InvoiceID}&Export=p`
+    );
+
+    const win = window.open("");
+    let html = "";
+
+    html += "<html>";
+    html += '<body style="margin:0!important">';
+    html +=
+      '<embed width="100%" height="100%" src="data:application/pdf;base64,' +
+      data +
+      '" type="application/pdf" />';
+    html += "</body>";
+    html += "</html>";
+
+    setTimeout(() => {
+      win.document.write(html);
+    }, 0);
+  }
 
   return (
     <>
-      <h4 className="p-3 mb-4 bg-light text-dark text-center  shadow-sm rounded-2">
-        Customer Invoice ({renderCount})
-      </h4>
+      {isLoading ? (
+        <>
+          <CustomSpinner />
+        </>
+      ) : (
+        <>
+          <div className="mb-2 text-end">
+            <Button
+              label="Print"
+              severity="warning"
+              icon="pi pi-print"
+              className="rounded"
+              onClick={() => handleOpenPdfInNewTab(CustomerInvoiceID)}
+            ></Button>
+          </div>
+          <h4 className="p-3 mb-4 bg-light text-dark text-center  shadow-sm rounded-2">
+            Customer Invoice
+          </h4>
 
-      {/* <CustomerEntryForm /> */}
+          {/* <CustomerEntryForm /> */}
 
-      <form onSubmit={method.handleSubmit(onSubmit)} id="parenForm">
-        <Row className="p-3" style={{ marginTop: "-25px" }}>
-          <Form.Group as={Col} controlId="Session">
-            <Form.Label>Session</Form.Label>
-            <Controller
-              control={method.control}
-              name="Session"
-              render={({ field: { onChange, value } }) => (
-                <ReactSelect
-                  isDisabled={!isEnable}
-                  options={sessionSelectData}
-                  required
-                  getOptionValue={(option) => option.SessionID}
-                  getOptionLabel={(option) => option.SessionTitle}
-                  value={value}
-                  onChange={(selectedOption) => onChange(selectedOption)}
-                  placeholder="Select a session"
-                  noOptionsMessage={() => "No session found!"}
+          <form onSubmit={method.handleSubmit(onSubmit)} id="parenForm">
+            <Row className="p-3" style={{ marginTop: "-25px" }}>
+              <Form.Group as={Col} controlId="Session">
+                <Form.Label>Session</Form.Label>
+                <span className="text-danger fw-bold ">*</span>
+                <Controller
+                  control={method.control}
+                  name="Session"
+                  rules={{ required: "Please select a session" }}
+                  render={({ field: { onChange, value } }) => (
+                    <ReactSelect
+                      isDisabled={!isEnable}
+                      options={sessionSelectData}
+                      required
+                      getOptionValue={(option) => option.SessionID}
+                      getOptionLabel={(option) => option.SessionTitle}
+                      value={value || sessionSelectData[0]}
+                      onChange={(selectedOption) => onChange(selectedOption)}
+                      placeholder="Select a session"
+                      noOptionsMessage={() => "No session found!"}
+                    />
+                  )}
                 />
-              )}
-            />
-          </Form.Group>
+              </Form.Group>
 
-          <Form.Group as={Col} controlId="InvoiceNo">
-            <Form.Label>Invoice No</Form.Label>
-            <Form.Control
-              type="number"
-              {...method.register("InvoiceNo")}
-              disabled
-              required
-            />
-          </Form.Group>
-          <Form.Group as={Col} controlId="">
-            <Form.Label>Invoice Date</Form.Label>
-            <div>
-              <Controller
-                disabled={!isEnable}
-                control={method.control}
-                name="InoviceDate"
-                render={({ field }) => (
-                  <ReactDatePicker
+              <Form.Group as={Col} controlId="InvoiceNo">
+                <Form.Label>Invoice No</Form.Label>
+                <Form.Control
+                  type="number"
+                  {...method.register("InvoiceNo")}
+                  disabled
+                  required
+                />
+              </Form.Group>
+              <Form.Group as={Col} controlId="">
+                <Form.Label>Invoice Date</Form.Label>
+
+                <div>
+                  <Controller
                     disabled={!isEnable}
-                    placeholderText="Select date"
-                    onChange={(date) => field.onChange(date)}
-                    selected={field.value || new Date()}
-                    dateFormat={"dd-MMM-yyyy"}
-                    className="binput"
+                    control={method.control}
+                    name="InoviceDate"
+                    render={({ field }) => (
+                      <ReactDatePicker
+                        disabled={!isEnable}
+                        placeholderText="Select date"
+                        onChange={(date) => field.onChange(date)}
+                        selected={field.value || new Date()}
+                        dateFormat={"dd-MMM-yyyy"}
+                        className="binput"
+                      />
+                    )}
                   />
-                )}
-              />
-            </div>
-          </Form.Group>
+                </div>
+              </Form.Group>
 
-          <Form.Group as={Col} controlId="DueDate">
-            <Form.Label>DueDate</Form.Label>
-            <div>
-              <Controller
-                control={method.control}
-                name="DueDate"
-                render={({ field }) => (
-                  <ReactDatePicker
-                    disabled={!isEnable}
-                    placeholderText="Select due date"
-                    onChange={(date) => field.onChange(date)}
-                    selected={field.value || new Date()}
-                    dateFormat={"dd-MMM-yyyy"}
-                    className="binput"
+              <Form.Group as={Col} controlId="DueDate">
+                <Form.Label>DueDate</Form.Label>
+                <div>
+                  <Controller
+                    control={method.control}
+                    name="DueDate"
+                    render={({ field }) => (
+                      <ReactDatePicker
+                        disabled={!isEnable}
+                        placeholderText="Select due date"
+                        onChange={(date) => field.onChange(date)}
+                        selected={field.value || new Date()}
+                        dateFormat={"dd-MMM-yyyy"}
+                        className="binput"
+                      />
+                    )}
                   />
-                )}
-              />
-            </div>
-          </Form.Group>
-        </Row>
-        <Row className="p-3" style={{ marginTop: "-25px" }}>
-          <Form.Group as={Col} controlId="InvoiceTitle">
-            <Form.Label>Invoice Title</Form.Label>
-            <span className="text-danger fw-bold ">*</span>
-            <Form.Control
-              type="text"
-              disabled={!isEnable}
-              {...method.register("InvoiceTitle", {
-                required: "Please enter the title!",
-              })}
-            />
-          </Form.Group>
-          <Form.Group as={Col} controlId="InvoiceType">
-            <Form.Label>Invoice Type</Form.Label>
-            <span className="text-danger fw-bold ">*</span>
-            <Controller
-              control={method.control}
-              name="InvoiceType"
-              rules={{ required: "Please select a type!" }}
-              render={({ field: { onChange, value, ref } }) => (
-                <ReactSelect
-                  isDisabled={!isEnable}
-                  options={typesOptions}
-                  required
-                  value={value}
-                  ref={ref}
-                  onChange={(selectedOption) => {
-                    onChange(selectedOption);
-                    setInvoiceType(selectedOption);
-                    method.setFocus("Customer");
-                    remove();
-                  }}
-                  placeholder="Select a type"
-                  noOptionsMessage={() => "No types found!"}
-                  openMenuOnFocus
+                </div>
+              </Form.Group>
+            </Row>
+            <Row className="p-3" style={{ marginTop: "-25px" }}>
+              <Form.Group as={Col} controlId="InvoiceTitle">
+                <Form.Label>Invoice Title</Form.Label>
+                <span className="text-danger fw-bold ">*</span>
+                <Form.Control
+                  type="text"
+                  disabled={!isEnable}
+                  {...method.register("InvoiceTitle", {
+                    required: "Please enter the title!",
+                  })}
                 />
-              )}
-            />
-            <span className="text-danger">{method?.errors?.Type?.message}</span>
-          </Form.Group>
+              </Form.Group>
+              <Form.Group as={Col} controlId="InvoiceType">
+                <Form.Label>Invoice Type</Form.Label>
+                <span className="text-danger fw-bold ">*</span>
+                <Controller
+                  control={method.control}
+                  name="InvoiceType"
+                  rules={{ required: "Please select a type!" }}
+                  render={({ field: { onChange, value, ref } }) => (
+                    <ReactSelect
+                      isDisabled={!isEnable}
+                      options={typesOptions}
+                      required
+                      value={value}
+                      ref={ref}
+                      onChange={(selectedOption) => {
+                        onChange(selectedOption);
+                        setInvoiceType(selectedOption);
+                        method.setFocus("Customer");
+                        remove();
+                      }}
+                      placeholder="Select a type"
+                      noOptionsMessage={() => "No types found!"}
+                      openMenuOnFocus
+                    />
+                  )}
+                />
+                <span className="text-danger">
+                  {method?.errors?.Type?.message}
+                </span>
+              </Form.Group>
 
-          <Form.Group as={Col} controlId="Customer">
-            <Form.Label>
-              Customer Name
-              {isEnable && (
-                <>
-                  <CustomerEntryForm IconButton={true} />
-                </>
-              )}
-            </Form.Label>
-            <Controller
-              control={method.control}
-              name="Customer"
-              render={({ field: { onChange, value, ref } }) => (
-                <ReactSelect
-                  isDisabled={!isEnable}
-                  options={customerSelectData}
-                  required
-                  getOptionValue={(option) => option.CustomerID}
-                  getOptionLabel={(option) => option.CustomerName}
-                  value={value}
-                  ref={ref}
-                  onChange={(selectedOption) => {
-                    onChange(selectedOption);
-                    setCustomerID(selectedOption?.CustomerID);
-                    method.setFocus("CustomerLedgers");
-                    remove();
-                  }}
-                  placeholder="Select a customer"
-                  noOptionsMessage={() => "No customers found!"}
-                  isClearable
-                  openMenuOnFocus
+              <Form.Group as={Col} controlId="Customer">
+                <Form.Label>
+                  Customer Name
+                  <span className="text-danger fw-bold ">*</span>
+                  {isEnable && (
+                    <>
+                      <CustomerEntryForm IconButton={true} />
+                    </>
+                  )}
+                </Form.Label>
+
+                <Controller
+                  control={method.control}
+                  name="Customer"
+                  render={({ field: { onChange, value, ref } }) => (
+                    <ReactSelect
+                      isDisabled={!isEnable}
+                      options={customerSelectData}
+                      required
+                      getOptionValue={(option) => option.CustomerID}
+                      getOptionLabel={(option) => option.CustomerName}
+                      value={value}
+                      ref={ref}
+                      onChange={(selectedOption) => {
+                        onChange(selectedOption);
+                        setCustomerID(selectedOption?.CustomerID);
+                        method.setFocus("CustomerLedgers");
+                        remove();
+                      }}
+                      placeholder="Select a customer"
+                      noOptionsMessage={() => "No customers found!"}
+                      isClearable
+                      openMenuOnFocus
+                    />
+                  )}
                 />
-              )}
-            />
-          </Form.Group>
-          <Form.Group as={Col} controlId="CustomerLedgers">
-            <Form.Label>Customer Ledgers </Form.Label>
-            <Controller
-              control={method.control}
-              name="CustomerLedgers"
-              render={({ field: { onChange, value, ref } }) => (
-                <ReactSelect
-                  isDisabled={!isEnable}
-                  options={CustomerAccounts}
-                  required
-                  ref={ref}
-                  getOptionValue={(option) => option.AccountID}
-                  getOptionLabel={(option) => option.AccountTitle}
-                  value={value}
-                  onChange={(selectedOption) => {
-                    onChange(selectedOption);
-                    setAccountID(selectedOption?.AccountID);
-                    method.setFocus("Description");
-                    remove();
-                  }}
-                  placeholder="Select a customer"
-                  noOptionsMessage={() => "No ledgers found!"}
-                  isClearable
-                  openMenuOnFocus
+              </Form.Group>
+              <Form.Group as={Col} controlId="CustomerLedgers">
+                <Form.Label>Customer Ledgers </Form.Label>
+                <span className="text-danger fw-bold ">*</span>
+                <Controller
+                  control={method.control}
+                  name="CustomerLedgers"
+                  render={({ field: { onChange, value, ref } }) => (
+                    <ReactSelect
+                      isDisabled={!isEnable}
+                      options={CustomerAccounts}
+                      required
+                      ref={ref}
+                      getOptionValue={(option) => option.AccountID}
+                      getOptionLabel={(option) => option.AccountTitle}
+                      value={value}
+                      onChange={(selectedOption) => {
+                        onChange(selectedOption);
+                        setAccountID(selectedOption?.AccountID);
+                        method.setFocus("Description");
+                        remove();
+                      }}
+                      placeholder="Select a customer"
+                      noOptionsMessage={() => "No ledgers found!"}
+                      isClearable
+                      openMenuOnFocus
+                    />
+                  )}
                 />
-              )}
-            />
-          </Form.Group>
-        </Row>
-        <Row className="p-3" style={{ marginTop: "-25px" }}>
-          <Form.Group as={Col} controlId="Description">
-            <Form.Label>Description</Form.Label>
-            <Form.Control
-              as={"textarea"}
-              rows={2}
-              disabled={!isEnable}
-              className="form-control"
-              {...method.register("Description")}
-            />
-          </Form.Group>
-        </Row>
-      </form>
-      {isEnable && (
-        <div
-          style={{
-            padding: "1rem",
-            borderRadius: "6px",
-          }}
-          className="bg-light shadow-sm"
-        >
-          <h5 className="p-3 mb-4 bg-light text-dark text-center  ">
-            Detail Entry
-          </h5>
-          <FormProvider {...invoiceHeaderForm}>
-            <CustomerInvoiceHeader
-              businessSelectData={businessSelectData}
-              productsInfoSelectData={productsInfoSelectData}
-              servicesInfoSelectData={servicesInfoSelectData}
-              customerBranchSelectData={customerBranchSelectData}
-              append={append}
-              fields={fields}
-              pageTitles={pageTitles}
-              InvoiceType={InvoiceType}
-            />
-          </FormProvider>
-        </div>
+              </Form.Group>
+            </Row>
+            <Row className="p-3" style={{ marginTop: "-25px" }}>
+              <Form.Group as={Col} controlId="Description">
+                <Form.Label>Description</Form.Label>
+                <Form.Control
+                  as={"textarea"}
+                  rows={2}
+                  disabled={!isEnable}
+                  className="form-control"
+                  {...method.register("Description")}
+                />
+              </Form.Group>
+            </Row>
+          </form>
+          {isEnable && (
+            <div
+              style={{
+                padding: "1rem",
+                borderRadius: "6px",
+              }}
+              className="bg-light shadow-sm"
+            >
+              <h5 className="p-3 mb-4 bg-light text-dark text-center  ">
+                Detail Entry
+              </h5>
+              <FormProvider {...invoiceHeaderForm}>
+                <CustomerInvoiceHeader
+                  businessSelectData={businessSelectData}
+                  productsInfoSelectData={productsInfoSelectData}
+                  servicesInfoSelectData={servicesInfoSelectData}
+                  customerBranchSelectData={customerBranchSelectData}
+                  append={append}
+                  fields={fields}
+                  pageTitles={pageTitles}
+                  InvoiceType={InvoiceType}
+                />
+              </FormProvider>
+            </div>
+          )}
+
+          <>
+            <Row className="p-3" style={{ marginTop: "-25px" }}>
+              <FormProvider {...method}>
+                <CustomerInvoiceDetailTable
+                  businessSelectData={businessSelectData}
+                  productsInfoSelectData={productsInfoSelectData}
+                  servicesInfoSelectData={servicesInfoSelectData}
+                  customerBranchSelectData={customerBranchSelectData}
+                  pageTitles={pageTitles}
+                  fields={fields}
+                  append={append}
+                  remove={remove}
+                  InvoiceType={InvoiceType}
+                  isEnable={isEnable}
+                />
+              </FormProvider>
+            </Row>
+          </>
+
+          <ButtonRow
+            isDirty={method.isDirty}
+            isValid={true}
+            editMode={isEnable}
+            isSubmitting={customerInvoiceMutation.isPending}
+            handleAddNew={handleAddNew}
+            handleCancel={handleCancel}
+            viewRecord={!isEnable}
+            editRecord={
+              isEnable && (CustomerInvoice?.length !== 0 ? true : false)
+            }
+            newRecord={CustomerInvoice?.length !== 0 ? false : true}
+            handleEdit={handleEdit}
+            handleDelete={handleDelete}
+            customOnClick={() => {
+              method.handleSubmit(onSubmit)();
+            }}
+          />
+        </>
       )}
-
-      <>
-        <Row className="p-3" style={{ marginTop: "-25px" }}>
-          <FormProvider {...method}>
-            <CustomerInvoiceDetailTable
-              businessSelectData={businessSelectData}
-              productsInfoSelectData={productsInfoSelectData}
-              servicesInfoSelectData={servicesInfoSelectData}
-              customerBranchSelectData={customerBranchSelectData}
-              pageTitles={pageTitles}
-              fields={fields}
-              append={append}
-              remove={remove}
-              InvoiceType={InvoiceType}
-              isEnable={isEnable}
-            />
-          </FormProvider>
-        </Row>
-      </>
-
-      <Row className="p-3" style={{ marginTop: "-25px" }}>
-        <div style={{ textAlign: "end" }}>
-          <Button
-            variant="success"
-            style={{ width: "20%" }}
-            type="submit"
-            form="parenForm"
-          >
-            Save
-          </Button>
-        </div>
-      </Row>
-
-      <DevTool control={method.control} />
     </>
   );
 }

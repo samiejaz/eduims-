@@ -27,7 +27,7 @@ export async function fetchAllCustomerInvoices(LoginUserID) {
   return newData ?? [];
 }
 
-// URL: /EduIMS/GetCustomerBranchWhere?CustomerInvoiceID=??&LoginUserID=??
+// URL: /EduIMS/GetCustomerInvoiceWhere?CustomerInvoiceID=??&LoginUserID=??
 export async function fetchCustomerInvoiceById(CustomerInvoiceID, LoginUserID) {
   try {
     const { data } = await axios.post(
@@ -36,6 +36,17 @@ export async function fetchCustomerInvoiceById(CustomerInvoiceID, LoginUserID) {
     return data;
   } catch (error) {
     console.log(error);
+  }
+}
+
+export async function fetchMaxInvoiceNo(LoginUserID) {
+  try {
+    const { data } = await axios.post(
+      `${apiUrl}/${CONTROLLER}/GetInvoiceNo?LoginUserID=${LoginUserID}`
+    );
+    return data;
+  } catch (error) {
+    toast.error(error);
   }
 }
 // URL: /EduIMS/CustomerBranchDelete?CustomerInvoiceID=??&LoginUserID=??

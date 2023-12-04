@@ -12,6 +12,7 @@ function ButtonRow({
   handleEdit,
   handleDelete,
   disableDelete = false,
+  customOnClick = undefined,
 }) {
   return (
     <Row className="p-3" style={{ marginTop: "-25px" }}>
@@ -55,6 +56,7 @@ function ButtonRow({
               style={{ marginTop: "30px" }}
               className="btn btn-primary p-2 rounded-sm fw-bold"
               type="submit"
+              onClick={customOnClick}
             >
               {isSubmitting ? (
                 <>
@@ -91,6 +93,7 @@ function ButtonRow({
               style={{ marginTop: "30px" }}
               className="btn btn-primary p-2 rounded-sm fw-bold"
               type="submit"
+              onClick={customOnClick}
             >
               {isSubmitting ? (
                 <>

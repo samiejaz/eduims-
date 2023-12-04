@@ -261,3 +261,6 @@ a {
   display: none !important;
   z-index: 1 !important;
 }
+#businessUnitTable .p-datatable-wrapper .p-datatable-table  .p-datatable-thead tr .p-selection-column .p-column-header-content {
+  display: none; 
+}

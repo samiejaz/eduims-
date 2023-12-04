@@ -184,7 +184,7 @@ const defaultValues = {
 
 function GenOldCustomerEntryForm() {
   const queryClient = useQueryClient();
-  const [OldCustomerData, setOldCustomerData] = useState();
+  const [OldCustomerData, setOldCustomerData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Hooks
@@ -256,7 +256,10 @@ function GenOldCustomerEntryForm() {
         EntryUserID: user.userID,
       };
 
-      if (OldCustomerData?.data[0]?.CustomerID !== 0) {
+      if (
+        OldCustomerData?.length !== 0 &&
+        OldCustomerData?.data[0]?.CustomerID !== 0
+      ) {
         DataToSend.CustomerID = OldCustomerData?.data[0]?.CustomerID;
       } else {
         DataToSend.CustomerID = 0;
@@ -269,13 +272,14 @@ function GenOldCustomerEntryForm() {
 
       if (data.success === true) {
         setOldCustomerID(0);
+        setOldCustomerData([]);
         reset();
         resetSelectValues();
         setIsEnable(true);
         setKey("search");
         queryClient.invalidateQueries({ queryKey: ["oldCustomers"] });
 
-        if (OldCustomerData?.data[0]?.CustomerID !== undefined) {
+        if (OldCustomerData?.data !== undefined) {
           toast.success("Customer updated successfully!");
         } else {
           toast.success("Customer saved successfully!");
@@ -330,7 +334,7 @@ function GenOldCustomerEntryForm() {
   }
 
   function handleAddNew() {
-    setOldCustomerData(undefined);
+    setOldCustomerData([]);
     setOldCustomerID(0);
     setTimeout(() => {
       resetSelectValues();
@@ -340,7 +344,7 @@ function GenOldCustomerEntryForm() {
   }
 
   function handleCancel() {
-    setOldCustomerData(undefined);
+    setOldCustomerData([]);
     setOldCustomerID(0);
     setTimeout(() => {
       resetSelectValues();
@@ -401,7 +405,7 @@ function GenOldCustomerEntryForm() {
                       placeholder="Select a customer"
                       noOptionsMessage={() => "No customer found!"}
                       isClearable
-                      // isMulti
+                      isMulti
                     />
                   )}
                 />
@@ -422,7 +426,7 @@ function GenOldCustomerEntryForm() {
                       placeholder="Select a customer"
                       noOptionsMessage={() => "No customer found!"}
                       isClearable
-                      // isMulti
+                      isMulti
                     />
                   )}
                 />
@@ -454,8 +458,10 @@ function GenOldCustomerEntryForm() {
               handleAddNew={handleAddNew}
               handleCancel={handleCancel}
               viewRecord={!isEnable}
-              editRecord={isEnable && (OldCustomerData ? true : false)}
-              newRecord={OldCustomerData ? false : true}
+              editRecord={
+                isEnable && (OldCustomerData?.length !== 0 ? true : false)
+              }
+              newRecord={OldCustomerData?.length !== 0 ? false : true}
               handleEdit={handleEdit}
               handleDelete={handleDelete}
               disableDelete={true}
