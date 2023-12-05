@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect } from "react";
 import { Row, Col, Form, ButtonGroup, Button, Table } from "react-bootstrap";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import ReactSelect from "react-select";
@@ -60,6 +60,7 @@ function CustomerInvoiceDetailTable(props) {
     const data = await fetchAllProductsForSelect(
       selectedOption?.BusinessUnitID
     );
+    console.log(data, selectedOption);
     setValue(`detail.${index}.products`, JSON.stringify(data));
   }
 
@@ -258,9 +259,16 @@ function CustomerInvoiceDetailTable(props) {
                           const rate = parseFloat(
                             0 + getValues([`detail.${index}.Rate`])
                           );
+                          const disc = parseFloat(
+                            0 + getValues([`detail.${index}.Discount`])
+                          );
                           setValue(
                             `detail.${index}.Amount`,
                             e.target.value * rate
+                          );
+                          setValue(
+                            `detail.${index}.NetAmount`,
+                            e.target.value * rate - disc
                           );
                           handleNetAmountTotal();
                         }}
@@ -284,9 +292,16 @@ function CustomerInvoiceDetailTable(props) {
                           const qty = parseFloat(
                             0 + getValues([`detail.${index}.Qty`])
                           );
+                          const disc = parseFloat(
+                            0 + getValues([`detail.${index}.Discount`])
+                          );
                           setValue(
                             `detail.${index}.Amount`,
-                            e.target.value - qty
+                            e.target.value * qty
+                          );
+                          setValue(
+                            `detail.${index}.NetAmount`,
+                            e.target.value * qty - disc
                           );
                           setValue(`detail.${index}.Rate`, e.target.value);
                           handleNetAmountTotal();

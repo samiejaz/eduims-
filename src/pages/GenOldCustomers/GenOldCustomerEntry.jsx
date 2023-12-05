@@ -31,6 +31,7 @@ import {
   fetchAllSoftwareCustomersForSelect,
 } from "../../api/SelectData";
 // import { Select } from "react-select-virtualized";
+import { MultiSelect } from "primereact/multiselect";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
@@ -248,10 +249,8 @@ function GenOldCustomerEntryForm() {
   const oldCustomerMutation = useMutation({
     mutationFn: async (formData) => {
       let DataToSend = {
-        ActivationDbID: formData?.ActivationDbID?.map((r) => r.ACTCustomerID),
-        SoftwareMgtDbID: formData?.SoftwareMgtDbID?.map(
-          (r) => r.SoftCustomerID
-        ),
+        ActivationDbID: formData?.ActivationDbID,
+        SoftwareMgtDbID: formData?.SoftwareMgtDbID,
         CustomerName: formData.CustomerName,
         EntryUserID: user.userID,
       };
@@ -310,13 +309,17 @@ function GenOldCustomerEntryForm() {
 
   useEffect(() => {
     if (OldCustomerID !== 0 && OldCustomerData?.data) {
-      () => resetSelectValues();
-
       if (OldCustomerData?.data[0]?.ActivationDbID !== 0) {
-        setValue("ActivationDbID", OldCustomerData?.dataAct);
+        setValue(
+          "ActivationDbID",
+          OldCustomerData?.dataAct?.map((item) => item.ACTCustomerID)
+        );
       }
       if (OldCustomerData?.data[0]?.SoftwareMgtDbID !== 0) {
-        setValue("SoftwareMgtDbID", OldCustomerData?.dataSoft);
+        setValue(
+          "SoftwareMgtDbID",
+          OldCustomerData?.dataSoft?.map((item) => item.SoftCustomerID)
+        );
       }
       setValue("CustomerName", OldCustomerData?.data[0]?.CustomerName);
       setValue("InActive", OldCustomerData?.data[0]?.InActive);
@@ -325,6 +328,7 @@ function GenOldCustomerEntryForm() {
 
   // Mutations
   function onSubmit(data) {
+    // console.log(data);
     oldCustomerMutation.mutate(data);
   }
 
@@ -391,7 +395,7 @@ function GenOldCustomerEntryForm() {
             <Row className="p-3" style={{ marginTop: "-25px" }}>
               <Form.Group as={Col} controlId="ActivationDbID">
                 <Form.Label>Customer Name (Activation)</Form.Label>
-                <Controller
+                {/* <Controller
                   control={control}
                   name="ActivationDbID"
                   render={({ field: { onChange, value } }) => (
@@ -408,25 +412,51 @@ function GenOldCustomerEntryForm() {
                       isMulti
                     />
                   )}
+                /> */}
+                <br />
+                <Controller
+                  name="ActivationDbID"
+                  control={control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      value={field.value}
+                      options={activationClients}
+                      onChange={(e) => {
+                        field.onChange(e.value);
+                      }}
+                      optionLabel="ACTCustomerName"
+                      optionValue="ACTCustomerID"
+                      placeholder="Select a customer"
+                      className="w-100"
+                      display="chip"
+                      filter
+                      showClear
+                      virtualScrollerOptions={{ itemSize: 43 }}
+                      disabled={!isEnable}
+                    />
+                  )}
                 />
               </Form.Group>
               <Form.Group as={Col} controlId="SoftwareMgtDbID">
                 <Form.Label>Customer Name (Software Mgt.)</Form.Label>
+                <br />
                 <Controller
-                  control={control}
                   name="SoftwareMgtDbID"
-                  render={({ field: { onChange, value } }) => (
-                    <Select
-                      isDisabled={!isEnable}
+                  control={control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      value={field.value}
                       options={softwareClients}
-                      getOptionLabel={(option) => option.SoftCustomerName}
-                      getOptionValue={(option) => option.SoftCustomerID}
-                      value={value}
-                      onChange={(selectedOption) => onChange(selectedOption)}
+                      onChange={(e) => field.onChange(e.value)}
+                      optionLabel="SoftCustomerName"
+                      optionValue="SoftCustomerID"
                       placeholder="Select a customer"
-                      noOptionsMessage={() => "No customer found!"}
-                      isClearable
-                      isMulti
+                      className="w-100"
+                      display="chip"
+                      filter
+                      showClear
+                      virtualScrollerOptions={{ itemSize: 43 }}
+                      disabled={!isEnable}
                     />
                   )}
                 />

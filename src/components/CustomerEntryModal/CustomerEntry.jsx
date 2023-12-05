@@ -16,6 +16,7 @@ function CustomerEntry(props) {
   const {
     register,
     setValue,
+    reset,
     formState: { errors },
   } = useFormContext();
 
@@ -27,7 +28,7 @@ function CustomerEntry(props) {
         setIsLoading(false);
       }
     }
-    if (CustomerID !== 0) {
+    if (CustomerID !== 0 && CustomerID !== undefined) {
       fetchOldCustomer();
     }
   }, [CustomerID]);
@@ -53,7 +54,6 @@ function CustomerEntry(props) {
       setValue("InActive", CustomerData?.data[0]?.InActive);
     }
   }, [CustomerID, CustomerData]);
-  console.log(isLoading);
 
   return (
     <>

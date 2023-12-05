@@ -5,12 +5,14 @@ import { ButtonGroup } from "react-bootstrap";
 import CustomerEntry from "../components/CustomerEntryModal/CustomerEntry";
 import CustomerBranchEntry from "../components/CustomerEntryModal/CustomerBranchEntry";
 
-import { FormProvider, useForm } from "react-hook-form";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AuthContext } from "../context/AuthContext";
 import { AppConfigurationContext } from "../context/AppConfigurationContext";
+import { Dropdown } from "primereact/dropdown";
+import { useOldCustomerSelectData } from "./SelectData/useCustomersSelectData";
 
 const customerEntryDefaultValues = {
   CustomerName: "",
@@ -47,7 +49,10 @@ const useCustomerEntryHook = () => {
   const [CustomerID, setCustomerID] = useState(0);
   const [dialogIndex, setDialogIndex] = useState(0);
 
-  const customerEntryFrom = useForm(customerEntryDefaultValues);
+  const oldCustomers = useOldCustomerSelectData();
+  const customerEntryFrom = useForm({
+    defaultValues: customerAccountDefaultValues,
+  });
   const customerAccountsForm = useForm({
     defaultValues: customerAccountDefaultValues,
   });
@@ -111,8 +116,44 @@ const useCustomerEntryHook = () => {
       header: "Customer Entry",
       content: (
         <>
+          <div className="d-flex align-items-center justify-content-between">
+            <div>
+              <h6>
+                {CustomerID === 0
+                  ? "Add New Customer"
+                  : "Update the selected customer"}
+              </h6>
+            </div>
+            <Controller
+              name="Customers"
+              control={customerEntryFrom.control}
+              render={({ field }) => (
+                <Dropdown
+                  id={field.name}
+                  value={field.value}
+                  optionValue="CustomerID"
+                  optionLabel="CustomerName"
+                  placeholder="Select a customer"
+                  options={oldCustomers.data}
+                  focusInputRef={field.ref}
+                  onChange={(e) => {
+                    field.onChange(e.value);
+                    if (e.value === undefined) {
+                      customerEntryFrom.reset();
+                      setCustomerID(0);
+                    } else {
+                      setCustomerID(e.value);
+                    }
+                  }}
+                  style={{ width: "49%" }}
+                  filter
+                  showClear
+                />
+              )}
+            />
+          </div>
           <FormProvider {...customerEntryFrom}>
-            <CustomerEntry />
+            <CustomerEntry CustomerID={CustomerID} />
           </FormProvider>
         </>
       ),

@@ -40,6 +40,17 @@ export async function fetchCustomerBranchesByCustomerID(
     toast.error(error.message);
   }
 }
+// URL: /Branch/GetAllBranches?LoginUserID==??
+export async function fetchAllCustomersBranch(LoginUserID) {
+  try {
+    const { data } = await axios.post(
+      `${apiUrl}/Branch/GetAllBranches?LoginUserID=${LoginUserID}`
+    );
+    return data;
+  } catch (error) {
+    toast.error(error.message);
+  }
+}
 // URL: /EduIMS/CustomerBranchDelete?AccountID=??&LoginUserID=??
 export async function deleteCustomerBranchByID(serviceInfo) {
   const { data } = await axios.post(

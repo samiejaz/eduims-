@@ -71,7 +71,7 @@ export async function fetchAllServicesForSelect(BusinessUnitID) {
 export async function fetchAllActivationCustomersForSelect(CustomerID) {
   let whereClause;
 
-  if (CustomerID === undefined) {
+  if (CustomerID === undefined || CustomerID === 0) {
     whereClause = "?CustomerID=" + 0;
   } else {
     whereClause = "?CustomerID=" + CustomerID;
@@ -84,7 +84,7 @@ export async function fetchAllActivationCustomersForSelect(CustomerID) {
 }
 export async function fetchAllSoftwareCustomersForSelect(CustomerID) {
   let whereClause;
-  if (CustomerID === undefined) {
+  if (CustomerID === undefined || CustomerID === 0) {
     whereClause = "?CustomerID=" + 0;
   } else {
     whereClause = "?CustomerID=" + CustomerID;
@@ -107,4 +107,8 @@ export async function fetchAllSelectDescripitons(InvoiceType = "") {
     apiUrl + "/Select/SelectInvoiceDescription"
   );
   return data.data.map((i) => i.Description);
+}
+export async function fetchAllCustomersBranch() {
+  const { data } = await axios.post(apiUrl + "/Branch/SelectBranch");
+  return data.data;
 }
