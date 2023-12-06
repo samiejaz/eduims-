@@ -27,6 +27,7 @@ import {
 } from "../../api/BankAccountData";
 import { fetchAllBusinessUnitsForSelect } from "../../api/SelectData";
 import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
+import { useBusinessUnitsSelectData } from "../../hooks/SelectData/useSelectData";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
@@ -247,11 +248,7 @@ function BankAccountOpeningEntry() {
     }
   }, [BankAccountID]);
 
-  const { data } = useQuery({
-    queryKey: ["businessUnits"],
-    queryFn: () => fetchAllBusinessUnitsForSelect(),
-    initialData: [],
-  });
+  const businessUnits = useBusinessUnitsSelectData();
 
   const bankAccountMutation = useMutation({
     mutationFn: async (formData) => {
@@ -418,7 +415,7 @@ function BankAccountOpeningEntry() {
                   render={({ field: { onChange, value } }) => (
                     <Select
                       isDisabled={!isEnable}
-                      options={data}
+                      options={businessUnits.data}
                       required
                       getOptionValue={(option) => option.BusinessUnitID}
                       getOptionLabel={(option) => option.BusinessUnitName}

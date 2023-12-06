@@ -37,6 +37,10 @@ import {
 } from "../../api/ProductInfoData";
 import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
 import { AppConfigurationContext } from "../../context/AppConfigurationContext";
+import {
+  useBusinessUnitsSelectData,
+  useProductsCategoriesSelectData,
+} from "../../hooks/SelectData/useSelectData";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
@@ -248,17 +252,9 @@ function GenProductInfoEntry({ pageTitles }) {
     }
   }, [ProductInfoID]);
 
-  const { data } = useQuery({
-    queryKey: ["productCategories"],
-    queryFn: () => fetchAllProductCategoriesForSelect(),
-    initialData: [],
-  });
-
-  const { data: BusinessUnits } = useQuery({
-    queryKey: ["businessUnits"],
-    queryFn: () => fetchAllBusinessUnitsForSelect(),
-    initialData: [],
-  });
+  // Select Data
+  const productCategories = useProductsCategoriesSelectData();
+  const businessUnits = useBusinessUnitsSelectData();
 
   const productInfoMutation = useMutation({
     mutationFn: async (formData) => {
@@ -315,7 +311,7 @@ function GenProductInfoEntry({ pageTitles }) {
         });
       }
     },
-    onError: (error) => {
+    onError: () => {
       toast.error("Some error occured!");
     },
   });
@@ -448,7 +444,7 @@ function GenProductInfoEntry({ pageTitles }) {
                     <Select
                       required
                       isDisabled={!isEnable}
-                      options={data}
+                      options={productCategories.data}
                       getOptionValue={(option) => option.ProductCategoryID}
                       getOptionLabel={(option) => option.ProductCategoryTitle}
                       value={value}
@@ -484,7 +480,7 @@ function GenProductInfoEntry({ pageTitles }) {
               <Form.Group as={Col}>
                 <DataTable
                   id="businessUnitTable"
-                  value={BusinessUnits}
+                  value={businessUnits.data}
                   selectionMode={"checkbox"}
                   selection={selectedBusinessUnits}
                   onSelectionChange={(e) => setSelectedBusinessUnits(e.value)}
