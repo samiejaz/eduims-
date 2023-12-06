@@ -1,6 +1,6 @@
 import { useState, useContext } from "react";
 import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
-import { Form, Row, Col } from "react-bootstrap";
+import { Form, Row, Col, ButtonGroup } from "react-bootstrap";
 import { Button } from "primereact/button";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,6 +8,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { toast } from "react-toastify";
 import axios from "axios";
 import {
+  deleteAllCustomersBranchByID,
   fetchAllCustomersBranch,
   fetchCustomerAccountByID,
 } from "./CustomerEntryAPI";
@@ -15,6 +16,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { FilterMatchMode } from "primereact/api";
 import { Dialog } from "primereact/dialog";
+import useDeleteModal from "../../hooks/useDeleteModalHook";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
@@ -44,7 +46,12 @@ function CustomerAccountDataTableHeader(props) {
   const { CustomerID, isEnable, pageTitles } = props;
   const { user } = useContext(AuthContext);
 
-  const { register, handleSubmit, reset } = useForm({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
     defaultValues: {
       BranchTitle: "",
     },
@@ -104,10 +111,13 @@ function CustomerAccountDataTableHeader(props) {
               <Form.Control
                 type="text"
                 placeholder=""
-                required
                 disabled={!isEnable}
                 className="form-control"
-                {...register("BranchTitle")}
+                {...register("BranchTitle", {
+                  required: `${
+                    pageTitles?.branch || "Customer Branch"
+                  } Title is required!`,
+                })}
               />
               <Button
                 severity="info"
@@ -116,11 +126,19 @@ function CustomerAccountDataTableHeader(props) {
                   handleSubmit(onSubmit)();
                 }}
                 type="button"
-                disabled={!isEnable}
-              >
-                Add
-              </Button>
+                disabled={
+                  !isEnable || AllCustomersBranchEntryMutation.isPending
+                }
+                label={
+                  AllCustomersBranchEntryMutation?.isPending
+                    ? `Adding...`
+                    : "Add"
+                }
+                loadingIcon={"pi pi-spin pi-spinner"}
+                loading={AllCustomersBranchEntryMutation.isPending}
+              ></Button>
             </div>
+            <p className="text-danger">{errors?.BranchTitle?.message}</p>
           </Form.Group>
         </Row>
       </form>
@@ -145,6 +163,13 @@ function AllCustomersBranchDetailTable(props) {
     initialData: [],
   });
 
+  const {
+    render: DeleteModal,
+    handleShow: handleDeleteShow,
+    handleClose: handleDeleteClose,
+    setIdToDelete,
+  } = useDeleteModal(handleDelete);
+
   const AllCustomersBranchEntryMutation = useMutation({
     mutationFn: async (formData) => {
       let DataToSend = {
@@ -166,6 +191,7 @@ function AllCustomersBranchDetailTable(props) {
         queryClient.invalidateQueries({
           queryKey: ["allCustomerBranchesDetail"],
         });
+        queryClient.invalidateQueries({ queryKey: ["customerBranchesDetail"] });
         setVisible(false);
       } else {
         toast.error(data.message, {
@@ -179,8 +205,29 @@ function AllCustomersBranchDetailTable(props) {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: deleteAllCustomersBranchByID,
+    onSuccess: (response) => {
+      if (response === true) {
+        queryClient.invalidateQueries({
+          queryKey: ["allCustomerBranchesDetail"],
+        });
+      }
+    },
+  });
+
   function onSubmit(data) {
     AllCustomersBranchEntryMutation.mutate(data);
+  }
+
+  function handleDelete(BranchID) {
+    deleteMutation.mutate({
+      BranchID: BranchID,
+      LoginUserID: user.userID,
+    });
+
+    handleDeleteClose();
+    setIdToDelete(0);
   }
 
   return (
@@ -203,23 +250,45 @@ function AllCustomersBranchDetailTable(props) {
       >
         <Column
           body={(rowData) => (
-            <Button
-              icon="pi pi-pencil"
-              severity="success"
-              size="small"
-              className="rounded"
-              style={{
-                padding: "0.3rem 1.25rem",
-                fontSize: ".8em",
-              }}
-              disabled={!isEnable}
-              type="button"
-              onClick={() => {
-                setVisible(true);
-                setValue("BranchTitle", rowData?.BranchTitle);
-                setValue("BranchID", rowData?.BranchID);
-              }}
-            />
+            <>
+              <ButtonGroup className="gap-2">
+                <Button
+                  icon="pi pi-pencil"
+                  severity="success"
+                  size="small"
+                  className="rounded"
+                  style={{
+                    padding: "0.3rem .7rem",
+                    fontSize: ".8em",
+                    width: "30px",
+                  }}
+                  disabled={!isEnable}
+                  type="button"
+                  onClick={() => {
+                    setVisible(true);
+                    setValue("BranchTitle", rowData?.BranchTitle);
+                    setValue("BranchID", rowData?.BranchID);
+                  }}
+                />
+                <Button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  size="small"
+                  className="rounded"
+                  style={{
+                    padding: "0.3rem .7rem",
+                    fontSize: ".8em",
+                    width: "30px",
+                  }}
+                  onClick={() => {
+                    handleDeleteShow(rowData?.BranchID);
+                    // setVisible(true);
+                    // setCustomerBranchID(rowData?.CustomerBranchID);
+                    // setIsEnable(true);
+                  }}
+                />
+              </ButtonGroup>
+            </>
           )}
           header="Actions"
           resizeable={false}
@@ -287,6 +356,7 @@ function AllCustomersBranchDetailTable(props) {
             </Row>
           </Dialog>
         </div>
+        {DeleteModal}
       </form>
     </>
   );

@@ -76,7 +76,7 @@ function CustomerBranchEntryHeader(props) {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      CustomerBranchTitle: "",
+      CustomerBranch: [],
       BranchAddress: "",
       ContactPersonName: "",
       ContactPersonNo: "",
@@ -134,6 +134,7 @@ function CustomerBranchEntryHeader(props) {
         AccountIDs: JSON.stringify(formData?.CustomerAccounts),
         EntryUserID: user.userID,
       };
+
       const { data } = await axios.post(
         apiUrl + "/EduIMS/CustomerBranchInsertUpdate",
         DataToSend
@@ -145,6 +146,9 @@ function CustomerBranchEntryHeader(props) {
           `${pageTitles?.branch || "Customer Branch"} saved successfully!`
         );
         queryClient.invalidateQueries({ queryKey: ["customerBranchesDetail"] });
+        queryClient.invalidateQueries({
+          queryKey: ["customerAccounts", CustomerID],
+        });
       } else {
         toast.error(data.message, {
           autoClose: 1500,
@@ -328,8 +332,8 @@ function CustomerBranchEntryHeader(props) {
         <Row className="mt-2 mb-2">
           <ButtonGroup className="gap-2">
             <Button
-              disabled={!isEnable}
-              label="Add"
+              disabled={!isEnable || customerBranchMutation.isPending}
+              label={customerBranchMutation?.isPending ? `Adding...` : "Add"}
               className="rounded text-center"
               severity="success"
               type="button"
@@ -337,6 +341,8 @@ function CustomerBranchEntryHeader(props) {
                 padding: "0.3rem 1.25rem",
                 fontSize: ".8em",
               }}
+              loading={customerBranchMutation.isPending}
+              loadingIcon={"pi pi-spin pi-spinner"}
               onClick={() => {
                 handleSubmit(onSubmit)();
               }}
@@ -407,7 +413,7 @@ function CustomerBranchesDataTable(props) {
       let DataToSend = {
         CustomerBranchID: formData?.CustomerBranchID,
         CustomerID: CustomerID,
-        CustomerBranchTitle: formData?.CustomerBranchTitle,
+        BranchID: formData?.CustomerBranch?.BranchID,
         BranchAddress: formData?.BranchAddress,
         ContactPersonName: formData?.ContactPersonName,
         ContactPersonNo: formData?.ContactPersonNo,
@@ -417,6 +423,7 @@ function CustomerBranchesDataTable(props) {
         AccountIDs: JSON.stringify(formData?.CustomerAccounts),
         EntryUserID: user.userID,
       };
+
       const { data } = await axios.post(
         apiUrl + "/EduIMS/CustomerBranchInsertUpdate",
         DataToSend
@@ -427,6 +434,9 @@ function CustomerBranchesDataTable(props) {
           `${pageTitles?.branch || "Customer Branch"} updated! successfully!`
         );
         queryClient.invalidateQueries({ queryKey: ["customerBranchesDetail"] });
+        queryClient.invalidateQueries({
+          queryKey: ["customerAccounts", CustomerID],
+        });
         setVisible(false);
       } else {
         toast.error(data.message, {
@@ -500,6 +510,7 @@ function CustomerBranchesDataTable(props) {
 
   useEffect(() => {
     if (CustomerBranchID !== 0 && CustomerBranchData?.BracnhInfo) {
+      console.log(CustomerBranchData);
       setValue(
         "CustomerBranchID",
         CustomerBranchData?.BracnhInfo[0].CustomerBranchID

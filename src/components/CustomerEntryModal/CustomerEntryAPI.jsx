@@ -65,3 +65,17 @@ export async function deleteCustomerBranchByID(serviceInfo) {
     return false;
   }
 }
+// URL: /EduIMS/CustomerBranchDelete?AccountID=??&LoginUserID=??
+export async function deleteAllCustomersBranchByID(BranchInfo) {
+  const { data } = await axios.post(
+    `${apiUrl}/Branch/BranchDelete?BranchID=${BranchInfo.BranchID}&LoginUserID=${BranchInfo.LoginUserID}`
+  );
+
+  if (data.success === true) {
+    toast.success("Branch sucessfully deleted!");
+    return true;
+  } else {
+    toast.error(data.message);
+    return false;
+  }
+}

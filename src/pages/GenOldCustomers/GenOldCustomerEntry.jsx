@@ -32,6 +32,10 @@ import {
 } from "../../api/SelectData";
 // import { Select } from "react-select-virtualized";
 import { MultiSelect } from "primereact/multiselect";
+import {
+  useActivationClientsSelectData,
+  useSoftwareClientsSelectData,
+} from "../../hooks/SelectData/useSelectData";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
@@ -235,16 +239,19 @@ function GenOldCustomerEntryForm() {
   }, [OldCustomerID]);
 
   // Queries
-  const { data: activationClients } = useQuery({
-    queryKey: ["activationClients", OldCustomerID],
-    queryFn: () => fetchAllActivationCustomersForSelect(OldCustomerID),
-    initialData: [],
-  });
-  const { data: softwareClients } = useQuery({
-    queryKey: ["softwareClients", OldCustomerID],
-    queryFn: () => fetchAllSoftwareCustomersForSelect(OldCustomerID),
-    initialData: [],
-  });
+  // const { data: activationClients } = useQuery({
+  //   queryKey: ["activationClients", OldCustomerID],
+  //   queryFn: () => fetchAllActivationCustomersForSelect(OldCustomerID),
+  //   initialData: [],
+  // });
+  // const { data: softwareClients } = useQuery({
+  //   queryKey: ["softwareClients", OldCustomerID],
+  //   queryFn: () => fetchAllSoftwareCustomersForSelect(OldCustomerID),
+  //   initialData: [],
+  // });
+
+  const activationClients = useActivationClientsSelectData();
+  const softwareClients = useSoftwareClientsSelectData();
 
   const oldCustomerMutation = useMutation({
     mutationFn: async (formData) => {
@@ -420,7 +427,7 @@ function GenOldCustomerEntryForm() {
                   render={({ field }) => (
                     <MultiSelect
                       value={field.value}
-                      options={activationClients}
+                      options={activationClients.data}
                       onChange={(e) => {
                         field.onChange(e.value);
                       }}
@@ -433,6 +440,18 @@ function GenOldCustomerEntryForm() {
                       showClear
                       virtualScrollerOptions={{ itemSize: 43 }}
                       disabled={!isEnable}
+                      autoFocus
+                      pt={{
+                        label: {
+                          className: "multi-select-value-container gap-2",
+                          style: { padding: "0.475rem 0.75rem" },
+                        },
+                        headerCheckbox: {
+                          root: {
+                            style: { display: "none" },
+                          },
+                        },
+                      }}
                     />
                   )}
                 />
@@ -446,7 +465,7 @@ function GenOldCustomerEntryForm() {
                   render={({ field }) => (
                     <MultiSelect
                       value={field.value}
-                      options={softwareClients}
+                      options={softwareClients.data}
                       onChange={(e) => field.onChange(e.value)}
                       optionLabel="SoftCustomerName"
                       optionValue="SoftCustomerID"
@@ -454,9 +473,24 @@ function GenOldCustomerEntryForm() {
                       className="w-100"
                       display="chip"
                       filter
+                      selectAll={false}
+                      selec
                       showClear
+                      emptyMessage={"No Customers Found!"}
                       virtualScrollerOptions={{ itemSize: 43 }}
                       disabled={!isEnable}
+                      focus={true}
+                      pt={{
+                        label: {
+                          className: "multi-select-value-container gap-2",
+                          style: { padding: "0.475rem 0.75rem" },
+                        },
+                        headerCheckbox: {
+                          root: {
+                            style: { display: "none" },
+                          },
+                        },
+                      }}
                     />
                   )}
                 />

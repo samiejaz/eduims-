@@ -52,6 +52,13 @@ import { parseISO } from "date-fns";
 import { CustomSpinner } from "../../components/CustomSpinner";
 import ButtonRow from "../../components/ButtonRow";
 import { Button } from "primereact/button";
+import {
+  useBusinessUnitsSelectData,
+  useCustomerLedgersSelectData,
+  useOldCustomerSelectData,
+  useProductsInfoSelectData,
+  useServicesInfoSelectData,
+} from "../../hooks/SelectData/useSelectData";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 function CustomerInvoice() {
@@ -300,6 +307,8 @@ function CustomerInvoiceForm({ pageTitles }) {
           CustomerInvoiceID,
           user.userID
         );
+        console.log(CustomerInvoiceID);
+        console.log(data);
         if (!data) {
           setKey("search");
           toast.error("Network Error Occured!");
@@ -392,32 +401,12 @@ function CustomerInvoiceForm({ pageTitles }) {
     name: "detail",
   });
 
-  const { data: customerSelectData } = useQuery({
-    queryKey: ["oldcustomers"],
-    queryFn: () => fetchAllOldCustomersForSelect(),
-    initialData: [],
-  });
-  const { data: CustomerAccounts } = useQuery({
-    queryKey: ["customerAccounts", CustomerID],
-    queryFn: () => fetchAllCustomerAccountsForSelect(CustomerID),
-    enabled: CustomerID !== 0,
-    initialData: [],
-  });
-  const { data: businessSelectData } = useQuery({
-    queryKey: ["businessUnits"],
-    queryFn: () => fetchAllBusinessUnitsForSelect(),
-    initialData: [],
-  });
-  const { data: productsInfoSelectData } = useQuery({
-    queryKey: ["productsInfo", BusinessUnitID],
-    queryFn: () => fetchAllProductsForSelect(BusinessUnitID),
-    initialData: [],
-  });
-  const { data: servicesInfoSelectData } = useQuery({
-    queryKey: ["servicesInfo"],
-    queryFn: () => fetchAllServicesForSelect(),
-    initialData: [],
-  });
+  const customerSelectData = useOldCustomerSelectData();
+  const CustomerAccounts = useCustomerLedgersSelectData(CustomerID);
+  const businessSelectData = useBusinessUnitsSelectData();
+  const productsInfoSelectData = useProductsInfoSelectData(BusinessUnitID);
+  const servicesInfoSelectData = useServicesInfoSelectData();
+
   const { data: customerBranchSelectData } = useQuery({
     queryKey: ["customerBranches", AccountID],
     queryFn: () => fetchAllCustomerBranchesData(AccountID),
@@ -436,7 +425,7 @@ function CustomerInvoiceForm({ pageTitles }) {
           return {
             RowID: index + 1,
             BusinessUnitID: item.BusinessUnit.BusinessUnitID,
-            CustomerBranch: item.CustomerBranch.CustomerBranchID,
+            BranchID: item.CustomerBranch.BranchID,
             ProductToInvoiceID: item.ProductInfo.ProductInfoID,
             ServiceToInvoiceID:
               item.ServiceInfo.length === 0
@@ -455,7 +444,7 @@ function CustomerInvoiceForm({ pageTitles }) {
         let DataToSend = {
           SessionID:
             formData?.Session?.SessionID || sessionSelectData[0]?.SessionID,
-          InvoiceNo: formData?.InvoiceNo,
+          InvoiceNo: formData?.InvoiceNo || 1,
           InvoiceDate: formData?.InvoiceDate || new Date(),
           InvoiceDueDate: formData?.DueDate || new Date(),
           InvoiceType: formData?.InvoiceType?.value,
@@ -493,7 +482,7 @@ function CustomerInvoiceForm({ pageTitles }) {
           invoiceHeaderForm.reset();
           setKey("search");
           queryClient.invalidateQueries({ queryKey: ["customerInvoices"] });
-          if (CustomerInvoice?.Master[0]?.CustomerInvoiceID !== undefined) {
+          if (CustomerInvoiceID !== 0) {
             toast.success("Invoice updated successfully!");
           } else {
             toast.success("Invoice created successfully!");
@@ -516,6 +505,7 @@ function CustomerInvoiceForm({ pageTitles }) {
   useEffect(() => {
     if (CustomerInvoiceID !== 0 && CustomerInvoice?.Master) {
       // Master Values
+
       method.setValue("InvoiceTitle", CustomerInvoice?.Master[0]?.InvoiceTitle);
       method.setValue("InvoiceNo", CustomerInvoice?.Master[0]?.InvoiceNo);
       method.setValue("InvoiceType", {
@@ -572,8 +562,8 @@ function CustomerInvoiceForm({ pageTitles }) {
               ProductInfoTitle: invoice.ServiceTitle,
             },
             CustomerBranch: {
-              CustomerBranchID: invoice.CustomerBranchID,
-              CustomerBranchTitle: invoice.CustomerBranchTitle,
+              BranchID: invoice.BranchID,
+              BranchTitle: invoice.BranchTitle,
             },
             BusinessUnit: {
               BusinessUnitID: invoice.BusinessUnitID,
@@ -624,6 +614,7 @@ function CustomerInvoiceForm({ pageTitles }) {
   }
 
   async function handleOpenPdfInNewTab(InvoiceID) {
+    console.log(InvoiceID);
     setPrintLoading(true);
     const { data } = await axios.post(
       `http://192.168.9.110:90/api/Reports/InvoicePrint?CustomerInvoiceID=${InvoiceID}&Export=p`
@@ -814,7 +805,7 @@ function CustomerInvoiceForm({ pageTitles }) {
                   render={({ field: { onChange, value, ref } }) => (
                     <ReactSelect
                       isDisabled={!isEnable}
-                      options={customerSelectData}
+                      options={customerSelectData.data}
                       required
                       getOptionValue={(option) => option.CustomerID}
                       getOptionLabel={(option) => option.CustomerName}
@@ -843,7 +834,7 @@ function CustomerInvoiceForm({ pageTitles }) {
                   render={({ field: { onChange, value, ref } }) => (
                     <ReactSelect
                       isDisabled={!isEnable}
-                      options={CustomerAccounts}
+                      options={CustomerAccounts.data}
                       required
                       ref={ref}
                       getOptionValue={(option) => option.AccountID}
@@ -890,9 +881,9 @@ function CustomerInvoiceForm({ pageTitles }) {
               </h5>
               <FormProvider {...invoiceHeaderForm}>
                 <CustomerInvoiceHeader
-                  businessSelectData={businessSelectData}
-                  productsInfoSelectData={productsInfoSelectData}
-                  servicesInfoSelectData={servicesInfoSelectData}
+                  businessSelectData={businessSelectData.data}
+                  productsInfoSelectData={productsInfoSelectData.data}
+                  servicesInfoSelectData={servicesInfoSelectData.data}
                   customerBranchSelectData={customerBranchSelectData}
                   append={append}
                   fields={fields}
@@ -907,9 +898,9 @@ function CustomerInvoiceForm({ pageTitles }) {
             <Row className="p-3" style={{ marginTop: "-25px" }}>
               <FormProvider {...method}>
                 <CustomerInvoiceDetailTable
-                  businessSelectData={businessSelectData}
-                  productsInfoSelectData={productsInfoSelectData}
-                  servicesInfoSelectData={servicesInfoSelectData}
+                  businessSelectData={businessSelectData.data}
+                  productsInfoSelectData={productsInfoSelectData.data}
+                  servicesInfoSelectData={servicesInfoSelectData.data}
                   customerBranchSelectData={customerBranchSelectData}
                   pageTitles={pageTitles}
                   fields={fields}

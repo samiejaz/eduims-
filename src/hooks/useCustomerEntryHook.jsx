@@ -12,7 +12,7 @@ import { toast } from "react-toastify";
 import { AuthContext } from "../context/AuthContext";
 import { AppConfigurationContext } from "../context/AppConfigurationContext";
 import { Dropdown } from "primereact/dropdown";
-import { useOldCustomerSelectData } from "./SelectData/useCustomersSelectData";
+import { useOldCustomerSelectData } from "./SelectData/useSelectData";
 
 const customerEntryDefaultValues = {
   CustomerName: "",
@@ -145,7 +145,7 @@ const useCustomerEntryHook = () => {
                       setCustomerID(e.value);
                     }
                   }}
-                  style={{ width: "49%" }}
+                  style={{ width: "49.2%" }}
                   filter
                   showClear
                 />

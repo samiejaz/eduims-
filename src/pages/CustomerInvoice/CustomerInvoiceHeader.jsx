@@ -111,8 +111,8 @@ function CustomerInvoiceHeader(props) {
               render={({ field: { onChange, value, ref } }) => (
                 <ReactSelect
                   options={customerBranchSelectData}
-                  getOptionValue={(option) => option.CustomerBranchID}
-                  getOptionLabel={(option) => option.CustomerBranchTitle}
+                  getOptionValue={(option) => option.BranchID}
+                  getOptionLabel={(option) => option.BranchTitle}
                   value={value}
                   ref={ref}
                   onChange={(selectedOption) => {
