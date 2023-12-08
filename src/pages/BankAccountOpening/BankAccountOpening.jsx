@@ -25,7 +25,6 @@ import {
   fetchAllBankAccounts,
   fetchBankAccountById,
 } from "../../api/BankAccountData";
-import { fetchAllBusinessUnitsForSelect } from "../../api/SelectData";
 import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
 import { useBusinessUnitsSelectData } from "../../hooks/SelectData/useSelectData";
 
@@ -101,7 +100,7 @@ function BankAccountOpeningSearch() {
     deleteMutation.mutate({ BankAccountID, LoginUserID: user.userID });
     handleDeleteClose();
     setIdToDelete(0);
-    setBankAccountID(null);
+    setBankAccountID(0);
   }
   function handleView(BankAccountID) {
     setKey("entry");
@@ -264,7 +263,7 @@ function BankAccountOpeningEntry() {
         EntryUserID: user.userID,
       };
 
-      if (BankAccount?.data[0]?.BankAccountID !== undefined) {
+      if (BankAccountID !== 0) {
         dataToSend.BankAccountID = BankAccount?.data[0]?.BankAccountID;
       } else {
         dataToSend.BankAccountID = 0;
@@ -276,18 +275,17 @@ function BankAccountOpeningEntry() {
       );
 
       if (data.success === true) {
+        if (BankAccountID !== 0) {
+          toast.success("BankAccount Info updated successfully!");
+        } else {
+          toast.success("BankAccount Info saved successfully!");
+        }
         setBankAccountID(0);
         reset();
         resetSelectValues();
         setIsEnable(true);
         setKey("search");
         queryClient.invalidateQueries({ queryKey: ["bankAccountOpenings"] });
-
-        if (BankAccount?.data[0]?.BankAccountID !== undefined) {
-          toast.success("BankAccount Info updated successfully!");
-        } else {
-          toast.success("BankAccount Info saved successfully!");
-        }
       } else {
         toast.error(data.message, {
           autoClose: 1500,
@@ -499,8 +497,8 @@ function BankAccountOpeningEntry() {
               handleAddNew={handleAddNew}
               handleCancel={handleCancel}
               viewRecord={!isEnable}
-              editRecord={isEnable && (BankAccount ? true : false)}
-              newRecord={BankAccount ? false : true}
+              editRecord={isEnable && (BankAccountID > 0 ? true : false)}
+              newRecord={BankAccountID === 0 ? true : false}
               handleEdit={handleEdit}
               handleDelete={handleDelete}
             />

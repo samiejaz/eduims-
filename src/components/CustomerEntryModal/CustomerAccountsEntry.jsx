@@ -250,10 +250,15 @@ function CustomerAccountDetailTable(props) {
             style={{ width: "40vw" }}
             footer={
               <Button
-                label="Update"
                 severity="success"
                 className="rounded"
-                type="submit"
+                label={
+                  customerAccountEntryMutation.isPending
+                    ? "Updating..."
+                    : "Update"
+                }
+                loading={customerAccountEntryMutation.isPending}
+                loadingIcon="pi pi-spin pi-spinner"
                 onClick={() => {
                   handleSubmit(onSubmit)();
                 }}

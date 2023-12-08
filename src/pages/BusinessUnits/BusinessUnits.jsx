@@ -103,7 +103,7 @@ function BusinessUnitsSearch() {
     deleteMutation.mutate({ BusinessUnitID: id, LoginUserID: user.userID });
     handleDeleteClose();
     setIdToDelete(0);
-    setBusinessUnitID(null);
+    setBusinessUnitID(0);
   }
 
   function handleEdit(id) {
@@ -304,7 +304,7 @@ function BusinessUnitsForm() {
       newFormData.append("Description", formData.Description || "");
       newFormData.append("EntryUserID", user.userID);
       newFormData.append("Inactive", formData.InActive === false ? 0 : 1);
-      if (BusinessUnit?.data[0]?.BusinessUnitID !== undefined) {
+      if (BusinessUnitID !== 0) {
         newFormData.append(
           "BusinessUnitID",
           BusinessUnit?.data[0]?.BusinessUnitID
@@ -332,18 +332,18 @@ function BusinessUnitsForm() {
       );
 
       if (data.success === true) {
-        setBusinessUnitID(0);
-        reset();
-        setIsEnable(true);
-        setKey("search");
-        queryClient.invalidateQueries({ queryKey: ["businessUnits"] });
-        if (BusinessUnit?.data[0]?.BusinessUnitID !== undefined) {
+        if (BusinessUnitID !== 0) {
           toast.success("Business Unit updated successfully!");
         } else {
           toast.success("Business Unit saved successfully!");
         }
-        setImgData("");
+        setBusinessUnitID(0);
+        setIsEnable(true);
         setEditImage(false);
+        reset();
+        setKey("search");
+        queryClient.invalidateQueries({ queryKey: ["businessUnits"] });
+        setImgData("");
       } else {
         toast.error(data.message, {
           autoClose: 1500,
@@ -737,10 +737,8 @@ function BusinessUnitsForm() {
               handleAddNew={handleAddNew}
               handleCancel={handleCancel}
               viewRecord={!isEnable}
-              editRecord={
-                isEnable && (BusinessUnit?.data?.length !== 0 ? true : false)
-              }
-              newRecord={BusinessUnit?.data?.length === 0 ? true : false}
+              editRecord={isEnable && (BusinessUnitID > 0 ? true : false)}
+              newRecord={BusinessUnitID === 0 ? true : false}
               handleEdit={handleEdit}
               handleDelete={handleDelete}
             />
