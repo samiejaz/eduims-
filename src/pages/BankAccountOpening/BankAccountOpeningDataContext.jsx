@@ -4,7 +4,7 @@ import { createContext } from "react";
 export const BankAccountOpeningDataContext = createContext();
 
 export const BankAccountOpeningDataProivder = ({ children }) => {
-  const [BankAccountID, setBankAccountID] = useState(null);
+  const [BankAccountID, setBankAccountID] = useState(0);
   const [isEnable, setIsEnable] = useState(true);
 
   return (

@@ -189,6 +189,7 @@ function CustomerBranchEntryHeader(props) {
               name="CustomerBranch"
               render={({ field: { onChange, value } }) => (
                 <Select
+                  isDisabled={!isEnable}
                   options={CustomersBranch}
                   getOptionValue={(option) => option.BranchID}
                   getOptionLabel={(option) => option.BranchTitle}
@@ -618,9 +619,6 @@ function CustomerBranchesDataTable(props) {
                     }}
                     onClick={() => {
                       handleDeleteShow(rowData?.CustomerBranchID);
-                      // setVisible(true);
-                      // setCustomerBranchID(rowData?.CustomerBranchID);
-                      // setIsEnable(true);
                     }}
                   />
                 </ButtonGroup>
@@ -671,10 +669,16 @@ function CustomerBranchesDataTable(props) {
                   ) : (
                     <>
                       <Button
-                        label="Update"
+                        label={
+                          customerAccountEntryMutation.isPending
+                            ? "Updating..."
+                            : "Update"
+                        }
                         severity="success"
                         className="rounded"
-                        type="submit"
+                        type="button"
+                        loading={customerAccountEntryMutation.isPending}
+                        loadingIcon="pi pi-spin pi-spinner"
                         onClick={() => {
                           handleSubmit(onSubmit)();
                         }}

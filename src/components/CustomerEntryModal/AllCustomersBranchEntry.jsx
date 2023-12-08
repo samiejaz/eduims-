@@ -10,7 +10,6 @@ import axios from "axios";
 import {
   deleteAllCustomersBranchByID,
   fetchAllCustomersBranch,
-  fetchCustomerAccountByID,
 } from "./CustomerEntryAPI";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
@@ -63,7 +62,7 @@ function CustomerAccountDataTableHeader(props) {
         BranchID: 0,
         BranchTitle: formData?.BranchTitle,
         EntryUserID: user.userID,
-        InActive: 0,
+        InActive: formData?.InActive ? 1 : 0,
       };
       const { data } = await axios.post(
         apiUrl + "/Branch/BranchInsertUpdate",
@@ -141,6 +140,24 @@ function CustomerAccountDataTableHeader(props) {
             <p className="text-danger">{errors?.BranchTitle?.message}</p>
           </Form.Group>
         </Row>
+        <Row>
+          <Form.Group
+            as={Col}
+            controlId="InActiveG"
+            style={{ marginTop: "-15px" }}
+          >
+            <div className="d-flex gap-2">
+              <Form.Check
+                aria-label="InActive"
+                id="InActive"
+                name="InActive"
+                {...register("InActive")}
+                disabled={!isEnable}
+              />
+              <Form.Label>InActive</Form.Label>
+            </div>
+          </Form.Group>
+        </Row>
       </form>
     </>
   );
@@ -177,7 +194,7 @@ function AllCustomersBranchDetailTable(props) {
         BranchTitle: formData?.BranchTitle,
         CustomerID: CustomerID,
         EntryUserID: user.userID,
-        InActive: 0,
+        InActive: formData?.InActive ? 1 : 0,
       };
       const { data } = await axios.post(
         apiUrl + "/Branch/BranchInsertUpdate",
@@ -199,8 +216,7 @@ function AllCustomersBranchDetailTable(props) {
         });
       }
     },
-    onError: (error) => {
-      console.log(error);
+    onError: () => {
       toast.error("Error while saving data!");
     },
   });
@@ -282,9 +298,6 @@ function AllCustomersBranchDetailTable(props) {
                   }}
                   onClick={() => {
                     handleDeleteShow(rowData?.BranchID);
-                    // setVisible(true);
-                    // setCustomerBranchID(rowData?.CustomerBranchID);
-                    // setIsEnable(true);
                   }}
                 />
               </ButtonGroup>
@@ -322,10 +335,16 @@ function AllCustomersBranchDetailTable(props) {
             style={{ width: "40vw" }}
             footer={
               <Button
-                label="Update"
                 severity="success"
                 className="rounded"
                 type="button"
+                label={
+                  AllCustomersBranchEntryMutation.isPending
+                    ? "Updating..."
+                    : "Update"
+                }
+                loading={AllCustomersBranchEntryMutation.isPending}
+                loadingIcon="pi pi-spin pi-spinner"
                 onClick={() => {
                   handleSubmit(onSubmit)();
                 }}
@@ -352,6 +371,20 @@ function AllCustomersBranchDetailTable(props) {
                   className="form-control"
                   {...register("BranchTitle")}
                 />
+              </Form.Group>
+            </Row>
+            <Row>
+              <Form.Group as={Col} controlId="InActiveG" className="mt-2">
+                <div className="d-flex gap-2">
+                  <Form.Check
+                    aria-label="InActive"
+                    id="InActive"
+                    name="InActive"
+                    {...register("InActive")}
+                    disabled={!isEnable}
+                  />
+                  <Form.Label>InActive</Form.Label>
+                </div>
               </Form.Group>
             </Row>
           </Dialog>
