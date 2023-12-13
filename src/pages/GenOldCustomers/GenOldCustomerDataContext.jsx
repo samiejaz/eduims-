@@ -4,7 +4,7 @@ import { createContext } from "react";
 export const GenOldCustomerDataContext = createContext();
 
 export const GenOldCustomerDataProivder = ({ children }) => {
-  const [OldCustomerID, setOldCustomerID] = useState();
+  const [OldCustomerID, setOldCustomerID] = useState(0);
   const [isEnable, setIsEnable] = useState(true);
 
   return (

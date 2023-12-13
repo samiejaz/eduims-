@@ -104,7 +104,7 @@ function GenUsersSearch() {
     mutation.mutate({ UserID, LoginUserID: user.userID });
     handleDeleteClose();
     setIdToDelete(0);
-    setUserID(null);
+    setUserID(0);
   }
 
   return (
@@ -238,12 +238,7 @@ function GenUsersEntry() {
           autoClose: 1000,
         });
       } else {
-        setUserID(0);
-        reset();
-        setIsEnable(true);
-        setKey("search");
-        queryClient.invalidateQueries({ queryKey: ["users"] });
-        if (UserData?.data[0]?.LoginUserID !== undefined) {
+        if (UserID !== 0) {
           toast.success("User updated successfully!", {
             autoClose: 1000,
           });
@@ -252,6 +247,12 @@ function GenUsersEntry() {
             autoClose: 1000,
           });
         }
+        setUserID(0);
+        setUserData([]);
+        reset();
+        setIsEnable(true);
+        setKey("search");
+        queryClient.invalidateQueries({ queryKey: ["users"] });
       }
     },
     onError: () => {
@@ -267,7 +268,8 @@ function GenUsersEntry() {
       toast.success("User successfully deleted!", {
         autoClose: 1000,
       });
-      setUserID(null);
+      setUserData([]);
+      setUserID(0);
       setIsEnable(true);
       setKey("search");
     },
@@ -293,14 +295,14 @@ function GenUsersEntry() {
   }
 
   function handleAddNew() {
-    setUserData(undefined);
+    setUserData([]);
     setUserID(0);
     reset();
     setIsEnable(true);
   }
 
   function handleCancel() {
-    setUserData(undefined);
+    setUserData([]);
     setUserID(0);
     reset();
     setIsEnable(true);
@@ -438,8 +440,8 @@ function GenUsersEntry() {
               handleAddNew={handleAddNew}
               handleCancel={handleCancel}
               viewRecord={!isEnable}
-              editRecord={isEnable && (UserData ? true : false)}
-              newRecord={UserData ? false : true}
+              editRecord={isEnable && (UserID > 0 ? true : false)}
+              newRecord={UserID === 0 ? true : false}
               handleEdit={handleEdit}
               handleDelete={handleDelete}
             />

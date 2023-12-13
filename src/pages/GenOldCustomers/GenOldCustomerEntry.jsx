@@ -109,7 +109,7 @@ function GenOldCustomerEntrySearch() {
     deleteMutation.mutate({ OldCustomerID, LoginUserID: user.userID });
     handleDeleteClose();
     setIdToDelete(0);
-    setOldCustomerID(null);
+    setOldCustomerID(0);
   }
   function handleView(OldCustomerID) {
     setKey("entry");
@@ -277,6 +277,11 @@ function GenOldCustomerEntryForm() {
       );
 
       if (data.success === true) {
+        if (OldCustomerID !== 0) {
+          toast.success("Customer updated successfully!");
+        } else {
+          toast.success("Customer saved successfully!");
+        }
         setOldCustomerID(0);
         setOldCustomerData([]);
         reset();
@@ -284,12 +289,6 @@ function GenOldCustomerEntryForm() {
         setIsEnable(true);
         setKey("search");
         queryClient.invalidateQueries({ queryKey: ["oldCustomers"] });
-
-        if (OldCustomerData?.data !== undefined) {
-          toast.success("Customer updated successfully!");
-        } else {
-          toast.success("Customer saved successfully!");
-        }
       } else {
         toast.error(data.message, {
           autoClose: 1500,
@@ -306,7 +305,7 @@ function GenOldCustomerEntryForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["oldCustomers"] });
       toast.success("Customer successfully deleted!");
-      setOldCustomerID(null);
+      setOldCustomerID(0);
       setIsEnable(true);
       setKey("search");
     },
@@ -522,10 +521,8 @@ function GenOldCustomerEntryForm() {
               handleAddNew={handleAddNew}
               handleCancel={handleCancel}
               viewRecord={!isEnable}
-              editRecord={
-                isEnable && (OldCustomerData?.length !== 0 ? true : false)
-              }
-              newRecord={OldCustomerData?.length !== 0 ? false : true}
+              editRecord={isEnable && (OldCustomerID > 0 ? true : false)}
+              newRecord={OldCustomerID === 0 ? true : false}
               handleEdit={handleEdit}
               handleDelete={handleDelete}
               disableDelete={true}

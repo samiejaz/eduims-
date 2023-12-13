@@ -276,10 +276,7 @@ function GenProductInfoEntry({ pageTitles }) {
         EntryUserID: user.userID,
       };
 
-      if (
-        ProductInfo?.length !== 0 &&
-        ProductInfo?.data[0]?.ProductInfoID !== undefined
-      ) {
+      if (ProductInfo?.data && ProductInfoID !== 0) {
         dataToSend.ProductInfoID = ProductInfo?.data[0]?.ProductInfoID;
       } else {
         dataToSend.ProductInfoID = 0;

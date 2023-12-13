@@ -99,7 +99,7 @@ function GenServiceInfoSearch() {
     deleteMutation.mutate({ ServicesInfoID, LoginUserID: user.userID });
     handleDeleteClose();
     setIdToDelete(0);
-    setServiceInfoID(null);
+    setServiceInfoID(0);
   }
   function handleView(ServicesInfoID) {
     setKey("entry");
@@ -236,7 +236,7 @@ function GenServiceInfoEntry() {
         EntryUserID: user.userID,
       };
 
-      if (ServiceInfo?.data[0]?.ServicesInfoID !== undefined) {
+      if (ServiceInfo?.data && ServicesInfoID !== 0) {
         dataToSend.ServicesInfoID = ServiceInfo?.data[0]?.ServicesInfoID;
       } else {
         dataToSend.ServicesInfoID = 0;
@@ -255,7 +255,7 @@ function GenServiceInfoEntry() {
         setIsEnable(true);
         setKey("search");
         queryClient.invalidateQueries({ queryKey: ["serviceInfo"] });
-        if (ServiceInfo?.data[0]?.ServicesInfoID !== undefined) {
+        if (ServicesInfoID !== 0) {
           toast.success("ServiceInfo Info updated successfully!");
         } else {
           toast.success("ServiceInfo Info saved successfully!");
@@ -274,7 +274,7 @@ function GenServiceInfoEntry() {
       if (response === true) {
         queryClient.invalidateQueries({ queryKey: ["serviceInfo"] });
 
-        setServiceInfo(undefined);
+        setServiceInfo([]);
         setServiceInfoID(0);
         reset();
         setIsEnable(true);
@@ -306,7 +306,7 @@ function GenServiceInfoEntry() {
   }
 
   function handleAddNew() {
-    setServiceInfo(undefined);
+    setServiceInfo([]);
     setServiceInfoID(0);
     setTimeout(() => {
       resetSelectValues();
@@ -316,7 +316,7 @@ function GenServiceInfoEntry() {
   }
 
   function handleCancel() {
-    setServiceInfo(undefined);
+    setServiceInfo([]);
     setServiceInfoID(0);
     setTimeout(() => {
       resetSelectValues();
@@ -418,8 +418,8 @@ function GenServiceInfoEntry() {
               handleAddNew={handleAddNew}
               handleCancel={handleCancel}
               viewRecord={!isEnable}
-              editRecord={isEnable && (ServiceInfo ? true : false)}
-              newRecord={ServiceInfo ? false : true}
+              editRecord={isEnable && ServicesInfoID > 0}
+              newRecord={ServicesInfoID === 0}
               handleEdit={handleEdit}
               handleDelete={handleDelete}
             />
