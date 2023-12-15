@@ -268,7 +268,7 @@ function BusinessUnitsForm() {
         setBusinessUnit(data);
         setIsLoading(false);
       } else {
-        setBusinessUnit(null);
+        setBusinessUnit([]);
         setTimeout(() => {
           reset(defaultValues);
           setIsEnable(true);
@@ -313,13 +313,8 @@ function BusinessUnitsForm() {
         newFormData.append("BusinessUnitID", 0);
       }
 
-      if (imgData && BusinessUnit?.data[0]?.Logo && !formData?.BusinessImage) {
-        let file = convertBase64StringToFile(BusinessUnit?.data[0]?.Logo);
-        console.log(file);
-        newFormData.append("image", file);
-      } else {
-        newFormData.append("image", formData?.BusinessImage[0]);
-      }
+      let file = convertBase64StringToFile(imgData);
+      newFormData.append("image", file);
 
       const { data } = await axios.post(
         "http://192.168.9.110:90/api/EduIMS/BusinessUnitsInsertUpdate",
@@ -350,7 +345,7 @@ function BusinessUnitsForm() {
         });
       }
     },
-    onError: () => {
+    onError: (err) => {
       toast.error("Something went wrong", {
         autoClose: 1000,
       });
@@ -372,7 +367,7 @@ function BusinessUnitsForm() {
         setIsEnable(true);
         setKey("search");
         setEditImage(false);
-        setImgData();
+        setImgData("");
       } else {
         toast.error(data.message, {
           autoClose: 2000,

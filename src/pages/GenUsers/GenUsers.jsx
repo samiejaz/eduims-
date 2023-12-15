@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Form, InputGroup, Row, Col, Spinner } from "react-bootstrap";
+import {
+  Form,
+  InputGroup,
+  Row,
+  Col,
+  Spinner,
+  ButtonGroup,
+  Button,
+} from "react-bootstrap";
 import TabHeader from "../../components/TabHeader";
 import ActionButtons from "../../components/ActionButtons";
 import ButtonRow from "../../components/ButtonRow";
@@ -21,7 +29,12 @@ import axios from "axios";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { FilterMatchMode } from "primereact/api";
-import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
+import {
+  convertBase64StringToFile,
+  preventFormByEnterKeySubmission,
+} from "../../utils/CommonFunctions";
+import { Image } from "primereact/image";
+import { CheckBox } from "../../components/Forms/form";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
@@ -179,6 +192,8 @@ function GenUsersSearch() {
 function GenUsersEntry() {
   const [isLoading, setIsLoading] = useState(false);
   const [UserData, setUserData] = useState(false);
+  const [imgData, setImgData] = useState("");
+  const [editImage, setEditImage] = useState(false);
   const queryClient = useQueryClient();
 
   const {
@@ -186,6 +201,7 @@ function GenUsersEntry() {
     handleSubmit,
     setValue,
     reset,
+    control,
     formState: { errors, isValid, isDirty },
   } = useForm();
 
@@ -207,6 +223,8 @@ function GenUsersEntry() {
         }
         setUserData(data);
         setIsLoading(false);
+      } else {
+        setImgData("");
       }
     }
     if (UserID !== 0) {
@@ -216,21 +234,30 @@ function GenUsersEntry() {
 
   const userMutation = useMutation({
     mutationFn: async (formData) => {
-      let DataToSend = {
-        FirstName: formData.FirstName,
-        LastName: formData.LastName,
-        Email: formData.Email,
-        Username: formData.Username,
-        Password: formData.Password,
-        InActive: formData.InActive ? 1 : 0,
-        EntryUserID: user.userID,
-      };
-      if (UserData?.data[0]?.LoginUserID !== 0) {
-        DataToSend.LoginUserID = UserData?.data[0]?.LoginUserID;
+      let newFormData = new FormData();
+      newFormData.append("FirstName", formData.FirstName);
+      newFormData.append("LastName", formData.LastName);
+      newFormData.append("Email", formData.Email);
+      newFormData.append("Username", formData.Username);
+      newFormData.append("Password", formData.Password);
+      newFormData.append("Inactive", formData.InActive === false ? 0 : 1);
+      newFormData.append("EntryUserID", user.userID);
+      if (UserData?.data && UserID !== 0) {
+        newFormData.append("LoginUserID", UserData?.data[0]?.LoginUserID);
+      } else {
+        newFormData.append("LoginUserID", 0);
       }
+      let file = convertBase64StringToFile(imgData);
+      newFormData.append("image", file);
+
       const { data } = await axios.post(
         apiUrl + "/EduIMS/UsersInsertUpdate",
-        DataToSend
+        newFormData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
 
       if (data.success === false) {
@@ -253,9 +280,11 @@ function GenUsersEntry() {
         setIsEnable(true);
         setKey("search");
         queryClient.invalidateQueries({ queryKey: ["users"] });
+        setImgData("");
       }
     },
-    onError: () => {
+    onError: (err) => {
+      console.log(err);
       toast.error("Error while saving data!!");
     },
   });
@@ -272,17 +301,20 @@ function GenUsersEntry() {
       setUserID(0);
       setIsEnable(true);
       setKey("search");
+      setImgData("");
     },
   });
 
   useEffect(() => {
     if (UserID !== 0 && UserData?.data) {
+      console.log(UserData);
       setValue("FirstName", UserData?.data[0]?.FirstName);
       setValue("LastName", UserData?.data[0]?.LastName);
       setValue("Email", UserData?.data[0]?.Email);
       setValue("Username", UserData?.data[0]?.UserName);
       setValue("Password", UserData?.data[0]?.Password);
       setValue("InActive", UserData?.data[0]?.InActive);
+      setImgData(UserData?.data[0]?.ProfilePic);
     }
   }, [UserID, UserData]);
 
@@ -299,6 +331,7 @@ function GenUsersEntry() {
     setUserID(0);
     reset();
     setIsEnable(true);
+    setImgData("");
   }
 
   function handleCancel() {
@@ -306,6 +339,7 @@ function GenUsersEntry() {
     setUserID(0);
     reset();
     setIsEnable(true);
+    setImgData("");
   }
 
   function handleDelete() {
@@ -313,6 +347,30 @@ function GenUsersEntry() {
       UserID: UserData?.data[0]?.LoginUserID,
       LoginUserID: user.userID,
     });
+  }
+
+  function onImageChange(e) {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      let base64Data;
+      if (reader.result.includes("data:image/png;base64,")) {
+        base64Data = reader.result.replace(/^data:image\/png;base64,/, "");
+      } else {
+        base64Data = reader.result.replace(/^data:image\/jpeg;base64,/, "");
+      }
+      setImgData(base64Data);
+    });
+    reader.readAsDataURL(e.target.files[0]);
+  }
+
+  function handleImageEdit() {
+    setEditImage(true);
+  }
+
+  function handleImageDelete() {
+    setValue("UserImage", []);
+    setImgData("");
+    setEditImage(false);
   }
 
   return (
@@ -422,16 +480,103 @@ function GenUsersEntry() {
 
             <Row className="p-3" style={{ marginTop: "-25px" }}>
               <Form.Group as={Col} controlId="InActive">
-                <Form.Check
+                {/* <Form.Check
                   aria-label="Inactive"
                   label="Inactive"
                   {...register("InActive", {
                     disabled: !isEnable,
                   })}
+                /> */}
+                <CheckBox
+                  control={control}
+                  isEnable={isEnable}
+                  ID={"InActive"}
+                  Label={"InActive"}
                 />
               </Form.Group>
             </Row>
-
+            {(editImage || imgData === "") && (
+              <Row className="p-3" style={{ marginTop: "-25px" }}>
+                <Form.Group controlId="UserImage" className="mb-3">
+                  <Form.Label>Image</Form.Label>
+                  <Form.Control
+                    type="file"
+                    {...register("UserImage", {
+                      disabled: !isEnable,
+                    })}
+                    onChange={onImageChange}
+                    accept="image/jpeg, image/png"
+                  />
+                </Form.Group>
+              </Row>
+            )}
+            {imgData && (
+              <Row className="p-3" style={{ marginTop: "-25px" }}>
+                {isEnable && (
+                  <>
+                    <div className="text-end mb-1">
+                      <ButtonGroup className="gap-1">
+                        <Button
+                          onClick={() => handleImageDelete()}
+                          size="sm"
+                          variant="danger"
+                          className="rounded"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            fill="currentColor"
+                            className="bi bi-trash3"
+                            viewBox="0 0 16 16"
+                          >
+                            <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z" />
+                          </svg>
+                        </Button>
+                        <Button
+                          onClick={() => handleImageEdit()}
+                          size="sm"
+                          variant="success"
+                          className="rounded"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            fill="currentColor"
+                            className="bi bi-pencil-square"
+                            viewBox="0 0 16 16"
+                          >
+                            <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                            <path
+                              fillRule="evenodd"
+                              d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"
+                            />
+                          </svg>
+                        </Button>
+                      </ButtonGroup>
+                    </div>
+                  </>
+                )}
+                <Form.Group
+                  as={Col}
+                  controlId="UserImagePreview"
+                  className="mb-3"
+                >
+                  <div className="card flex justify-content-center">
+                    <>
+                      <Image
+                        src={"data:image/png;base64," + imgData}
+                        alt="Image"
+                        width="250"
+                        preview
+                        className="text-center"
+                      />
+                    </>
+                  </div>
+                </Form.Group>
+              </Row>
+            )}
             <ButtonRow
               isDirty={isDirty}
               isValid={isValid}

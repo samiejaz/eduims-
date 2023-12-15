@@ -34,7 +34,7 @@ function AppConfiguration() {
   useEffect(() => {
     async function fetchCompanyInfo() {
       const { data } = await axios.post(
-        `${apiUrl}/EduIMS/GetConfigInfo?LoginUserID=${user.userID}`
+        `${apiUrl}/EduIMS/GetConfigInfo?LoginUserID=${user?.userID}`
       );
       if (data.success === true) {
         setConfigID(data?.data[0]?.ConfigID);
@@ -58,7 +58,7 @@ function AppConfiguration() {
         ConfigID: ConfigID,
         ProductTitle: formData?.ProductName,
         CustomerBranchTitle: formData?.BranchName,
-        EntryUserID: user.userID,
+        EntryUserID: user?.userID,
       };
 
       const { data } = await axios.post(
