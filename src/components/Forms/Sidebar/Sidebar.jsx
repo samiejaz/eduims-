@@ -22,15 +22,19 @@ import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { AppConfigurationContext } from "../../../context/AppConfigurationContext";
+import useUserProfile from "../../../hooks/useUserProfile";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 function Sidebar({ logoImage, userImage }) {
-  const [profile, setProfile] = useState(false);
-  const closeProfile = () => setProfile(false);
-  const showProfile = () => setProfile(true);
   const { logoutUser, user } = useContext(AuthContext);
   const { pageTitles } = useContext(AppConfigurationContext);
+  const {
+    handleCloseProfile,
+    handleShowProfile,
+    render: UserProfileModal,
+  } = useUserProfile();
+
   const [showToast, setShowToast] = useState(false);
   const [changepass, setChangepass] = useState(false);
   const closechangepass = () => {
@@ -266,12 +270,12 @@ function Sidebar({ logoImage, userImage }) {
               title={Personname}
               style={{ marginRight: "20px", marginLeft: "20px" }}
             >
-              <Dropdown.Item onClick={showProfile}>Profile</Dropdown.Item>
+              <Dropdown.Item onClick={handleShowProfile}>Profile</Dropdown.Item>
 
               <Dropdown.Item onClick={showchangepass}>
                 Change Password
               </Dropdown.Item>
-              <Dropdown.Item onClick={logoutUser} active>
+              <Dropdown.Item onClick={() => logoutUser()} active>
                 Sign Out
               </Dropdown.Item>
             </SplitButton>
@@ -281,61 +285,7 @@ function Sidebar({ logoImage, userImage }) {
       </Navbar>
 
       {/* Modal for Profile */}
-
-      <Modal show={profile} onHide={closeProfile}>
-        <Modal.Header closeButton>
-          <Modal.Title>Your Profile</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-              <Form.Label>First Name</Form.Label>
-              <Form.Control
-                type="text"
-                disabled={true}
-                autoFocus
-                value={"Huzaifa"}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-              <Form.Label>Last Name</Form.Label>
-              <Form.Control
-                type="text"
-                disabled={true}
-                autoFocus
-                value={"Sajid"}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-              <Form.Label>Email address</Form.Label>
-              <Form.Control
-                type="email"
-                autoFocus
-                disabled={true}
-                value={"huzaifasajid2000@yahoo.com"}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-              <Form.Label>User Name</Form.Label>
-              <Form.Control
-                type="text"
-                autoFocus
-                disabled={true}
-                value={"huzaifasajid20"}
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={closeProfile}>
-            Close
-          </Button>
-          <Button variant="warning" onClick={closeProfile}>
-            Edit Profile
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
+      {UserProfileModal}
       {/* Modal for Change Password */}
 
       <Modal show={changepass} onHide={closechangepass}>

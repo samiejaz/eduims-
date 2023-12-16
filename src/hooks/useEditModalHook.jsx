@@ -7,7 +7,6 @@ const useEditModal = (handleEdit) => {
 
   const handleShow = (id) => {
     setIdToEdit(id);
-
     setShowModal(true);
   };
 

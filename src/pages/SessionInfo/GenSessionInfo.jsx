@@ -99,9 +99,10 @@ function GenSessionInfoSearch() {
   }
   function handleDelete(SessionID) {
     deleteMutation.mutate({ SessionID, LoginUserID: user.userID });
+    setSessionID(0);
     handleDeleteClose();
     setIdToDelete(0);
-    setSessionID(null);
+    setIsEnable(true);
   }
   function handleView(SessionID) {
     setKey("entry");
@@ -232,7 +233,7 @@ function GenSessionInfoEntry() {
         EntryUserID: user.userID,
       };
 
-      if (Session?.data[0]?.SessionID !== undefined) {
+      if (Session?.data && SessionID !== 0) {
         dataToSend.SessionID = Session?.data[0]?.SessionID;
       } else {
         dataToSend.SessionID = 0;
@@ -244,16 +245,17 @@ function GenSessionInfoEntry() {
       );
 
       if (data.success === true) {
-        setSessionID(0);
-        reset();
-        setIsEnable(true);
-        setKey("search");
-        queryClient.invalidateQueries({ queryKey: ["sessions"] });
-        if (Session?.data[0]?.SessionID !== undefined) {
+        if (SessionID !== 0) {
           toast.success("Session Info updated successfully!");
         } else {
           toast.success("Session Info saved successfully!");
         }
+        setSessionID(0);
+        setSession([]);
+        reset();
+        setIsEnable(true);
+        setKey("search");
+        queryClient.invalidateQueries({ queryKey: ["sessions"] });
       } else {
         toast.error(data.message, {
           autoClose: 1500,
@@ -266,7 +268,7 @@ function GenSessionInfoEntry() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       toast.success("Session successfully deleted!");
-      setSession(undefined);
+      setSession([]);
       setSessionID(0);
       reset();
       setIsEnable(true);
@@ -295,14 +297,14 @@ function GenSessionInfoEntry() {
   }
 
   function handleAddNew() {
-    setSession(undefined);
+    setSession([]);
     setSessionID(0);
     reset();
     setIsEnable(true);
   }
 
   function handleCancel() {
-    setSession(undefined);
+    setSession([]);
     setSessionID(0);
     reset();
     setIsEnable(true);
@@ -314,7 +316,7 @@ function GenSessionInfoEntry() {
       LoginUserID: user.userID,
     });
   }
-
+  console.log(SessionID);
   return (
     <>
       {isLoading ? (
@@ -399,8 +401,8 @@ function GenSessionInfoEntry() {
               handleAddNew={handleAddNew}
               handleCancel={handleCancel}
               viewRecord={!isEnable}
-              editRecord={isEnable && (Session ? true : false)}
-              newRecord={Session ? false : true}
+              editRecord={isEnable && SessionID > 0}
+              newRecord={SessionID === 0}
               handleEdit={handleEdit}
               handleDelete={handleDelete}
             />

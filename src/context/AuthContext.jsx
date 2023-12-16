@@ -10,10 +10,12 @@ export const AuthProvier = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  function loginUser(data) {
+  function loginUser(data, navigateToDashBoard = true) {
     localStorage.setItem("user", JSON.stringify(data));
     setUser(data);
-    navigate("/", { replace: true });
+    if (navigateToDashBoard) {
+      navigate("/", { replace: true });
+    }
   }
 
   function logoutUser() {
@@ -22,13 +24,11 @@ export const AuthProvier = ({ children }) => {
     navigate("/auth");
   }
 
-  // localStorage.setItem("user", { userID: 1 });
-
   useEffect(() => {
     function checkUser() {
       if (!user) {
         const userData = localStorage.getItem("user");
-        if (userData) {
+        if (userData !== null) {
           setUser(JSON.parse(userData));
           navigate(location.pathname, { replace: true });
         } else {
@@ -41,7 +41,7 @@ export const AuthProvier = ({ children }) => {
   }, [user, navigate]);
 
   return (
-    <AuthContext.Provider value={{ user, loginUser, logoutUser }}>
+    <AuthContext.Provider value={{ user, loginUser, logoutUser, setUser }}>
       {children}
     </AuthContext.Provider>
   );

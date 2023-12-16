@@ -3,7 +3,6 @@ import { Navbar } from "react-bootstrap";
 import Logo from "../images/logo.png";
 import User from "../images/profilelogo.png";
 import Sidebar from "../components/Forms/Sidebar/Sidebar";
-import BasicDemo from "./PrimeSide";
 
 function RootLayout() {
   return (

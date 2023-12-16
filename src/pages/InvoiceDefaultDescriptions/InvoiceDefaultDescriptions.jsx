@@ -120,7 +120,7 @@ function InvoiceDefaultDescriptionsSearch({ pageTitles }) {
     });
     handleDeleteClose();
     setIdToDelete(0);
-    setDescriptionID(null);
+    setDescriptionID(0);
   }
   function handleView(DescriptionID) {
     setKey("entry");
@@ -270,18 +270,19 @@ function InvoiceDefaultDescriptionsEntry({ pageTitles }) {
       );
 
       if (data.success === true) {
+        if (DescriptionID !== 0) {
+          toast.success("Inovice Description updated successfully!");
+        } else {
+          toast.success("Inovice Description saved successfully!");
+        }
         setDescriptionID(0);
+        setInvoiceDefaultDescription([]);
         reset(defaultValues);
         setIsEnable(true);
         setKey("search");
         queryClient.invalidateQueries({
           queryKey: ["invoiceDefaultDescriptions"],
         });
-        if (InvoiceDefaultDescription?.data[0]?.DescriptionID !== undefined) {
-          toast.success("Inovice Description updated successfully!");
-        } else {
-          toast.success("Inovice Description saved successfully!");
-        }
       } else {
         toast.error(data.message, {
           autoClose: 1500,
@@ -427,10 +428,8 @@ function InvoiceDefaultDescriptionsEntry({ pageTitles }) {
               handleAddNew={handleAddNew}
               handleCancel={handleCancel}
               viewRecord={!isEnable}
-              editRecord={
-                isEnable && (InvoiceDefaultDescription ? true : false)
-              }
-              newRecord={InvoiceDefaultDescription ? false : true}
+              editRecord={isEnable && (DescriptionID !== 0 ? true : false)}
+              newRecord={DescriptionID === 0 ? true : false}
               handleEdit={handleEdit}
               handleDelete={handleDelete}
             />
