@@ -2,7 +2,10 @@ import React, { useEffect } from "react";
 import { Row, Col, Form, ButtonGroup, Button, Table } from "react-bootstrap";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import ReactSelect from "react-select";
-import { fetchAllProductsForSelect } from "../../api/SelectData";
+import {
+  fetchAllProductsForSelect,
+  fetchAllServicesForSelect,
+} from "../../api/SelectData";
 
 let renderCount = 0;
 function CustomerInvoiceDetailTable(props) {
@@ -14,9 +17,8 @@ function CustomerInvoiceDetailTable(props) {
     append,
     remove,
     businessSelectData,
-    servicesInfoSelectData,
-    InvoiceType,
     isEnable,
+    typesOption,
   } = props;
 
   const {
@@ -60,8 +62,13 @@ function CustomerInvoiceDetailTable(props) {
     const data = await fetchAllProductsForSelect(
       selectedOption?.BusinessUnitID
     );
-    console.log(data, selectedOption);
     setValue(`detail.${index}.products`, JSON.stringify(data));
+  }
+  async function filteredServicesBasedOnRow(selectedOption, index) {
+    const data = await fetchAllServicesForSelect(
+      selectedOption?.BusinessUnitID
+    );
+    setValue(`detail.${index}.services`, JSON.stringify(data));
   }
 
   return (
@@ -74,7 +81,7 @@ function CustomerInvoiceDetailTable(props) {
             hover
             size="sm"
             responsive
-            style={{ width: "1700px" }}
+            style={{ minWidth: "3000px" }}
           >
             <thead className="">
               <tr className="text-center bg-info-subtle ">
@@ -83,8 +90,15 @@ function CustomerInvoiceDetailTable(props) {
                   className="p-2 bg-info text-white"
                   style={{ width: "400px" }}
                 >
+                  InvoiceType
+                </th>
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ width: "400px" }}
+                >
                   Business Unit
                 </th>
+
                 <th
                   className="p-2 bg-info text-white"
                   style={{ width: "400px" }}
@@ -116,6 +130,12 @@ function CustomerInvoiceDetailTable(props) {
                 >
                   Products
                 </th>
+                <th
+                  className="p-2 bg-info text-white"
+                  style={{ display: "none" }}
+                >
+                  Services
+                </th>
                 <th className="p-2 bg-info text-white">Actions</th>
               </tr>
             </thead>
@@ -133,8 +153,30 @@ function CustomerInvoiceDetailTable(props) {
                         value={index + 1}
                       />
                     </td>
-
-                    <td style={{ width: "250px" }}>
+                    <td style={{ width: "500px" }}>
+                      <Controller
+                        control={control}
+                        name={`detail.${index}.InvoiceType`}
+                        rules={{ required: "Please select a type!" }}
+                        render={({ field: { onChange, value, ref } }) => (
+                          <ReactSelect
+                            options={typesOption}
+                            required
+                            value={value}
+                            ref={ref}
+                            onChange={(selectedOption) => {
+                              onChange(selectedOption);
+                              setFocus(`detail.${index}.BusinessUnit`);
+                            }}
+                            placeholder="Select a type"
+                            noOptionsMessage={() => "No types found!"}
+                            openMenuOnFocus
+                            isDisabled={!isEnable}
+                          />
+                        )}
+                      />
+                    </td>
+                    <td style={{ width: "500px" }}>
                       <Controller
                         control={control}
                         name={`detail.${index}.BusinessUnit`}
@@ -148,6 +190,7 @@ function CustomerInvoiceDetailTable(props) {
                             onChange={(selectedOption) => {
                               onChange(selectedOption);
                               filteredProductsBasedOnRow(selectedOption, index);
+                              filteredServicesBasedOnRow(selectedOption, index);
                               setValue(`detail.${index}.ProductInfo`, []);
                               setFocus(`detail.${index}.CustomerBranch`);
                             }}
@@ -160,7 +203,7 @@ function CustomerInvoiceDetailTable(props) {
                       />
                     </td>
 
-                    <td style={{ width: "400px" }}>
+                    <td style={{ width: "500px" }}>
                       <Controller
                         control={control}
                         name={`detail.${index}.CustomerBranch`}
@@ -184,7 +227,7 @@ function CustomerInvoiceDetailTable(props) {
                       />
                     </td>
 
-                    <td style={{ width: "400px" }}>
+                    <td style={{ width: "500px" }}>
                       <Controller
                         control={control}
                         name={`detail.${index}.ProductInfo`}
@@ -211,16 +254,20 @@ function CustomerInvoiceDetailTable(props) {
                         )}
                       />
                     </td>
-                    <td style={{ width: "400px" }}>
+                    <td style={{ width: "500px" }}>
                       <Controller
                         control={control}
                         name={`detail.${index}.ServiceInfo`}
                         render={({ field: { onChange, value, ref } }) => (
                           <ReactSelect
-                            options={servicesInfoSelectData}
+                            options={JSON.parse(
+                              watch(`detail.${index}.services`)?.toString() ||
+                                "[]"
+                            )}
                             getOptionValue={(option) => option.ProductInfoID}
                             isDisabled={
-                              InvoiceType?.value === "Product" || !isEnable
+                              watch(`detail.${index}.InvoiceType`)?.value ===
+                                "Product" || !isEnable
                             }
                             getOptionLabel={(option) => option.ProductInfoTitle}
                             value={value}
@@ -233,7 +280,6 @@ function CustomerInvoiceDetailTable(props) {
                             required
                             openMenuOnFocus
                             components={{ DropdownIndicator: () => null }}
-                            menuPlacement="top"
                           />
                         )}
                       />
@@ -377,6 +423,12 @@ function CustomerInvoiceDetailTable(props) {
                       <Form.Control
                         type="text"
                         {...register(`detail.${index}.products`)}
+                      />
+                    </td>
+                    <td style={{ display: "none" }}>
+                      <Form.Control
+                        type="text"
+                        {...register(`detail.${index}.services`)}
                       />
                     </td>
                     <td>

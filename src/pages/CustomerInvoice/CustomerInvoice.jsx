@@ -1,5 +1,6 @@
 import { Form, Row, Col, Spinner } from "react-bootstrap";
-
+import { Button } from "primereact/button";
+import { Dialog } from "primereact/dialog";
 import {
   Controller,
   FormProvider,
@@ -51,7 +52,6 @@ import ActionButtons from "../../components/ActionButtons";
 import { parseISO } from "date-fns";
 import { CustomSpinner } from "../../components/CustomSpinner";
 import ButtonRow from "../../components/ButtonRow";
-import { Button } from "primereact/button";
 import {
   useBusinessUnitsSelectData,
   useCustomerLedgersSelectData,
@@ -59,6 +59,7 @@ import {
   useProductsInfoSelectData,
   useServicesInfoSelectData,
 } from "../../hooks/SelectData/useSelectData";
+import TextInput from "../../components/Forms/TextInput";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 function CustomerInvoice() {
@@ -276,7 +277,6 @@ function CustomerInvoiceFormMaster({ pageTitles }) {
 
 function CustomerInvoiceForm({ pageTitles }) {
   const queryClient = useQueryClient();
-  const [InvoiceType, setInvoiceType] = useState();
   const [CustomerID, setCustomerID] = useState(0);
   const [AccountID, setAccountID] = useState(0);
   const [CustomerInvoice, setCustomerInvoice] = useState([]);
@@ -307,8 +307,7 @@ function CustomerInvoiceForm({ pageTitles }) {
           CustomerInvoiceID,
           user.userID
         );
-        console.log(CustomerInvoiceID);
-        console.log(data);
+
         if (!data) {
           setKey("search");
           toast.error("Network Error Occured!");
@@ -394,18 +393,23 @@ function CustomerInvoiceForm({ pageTitles }) {
       Total_Amount: 0,
       InvoiceTitle: "",
       detail: [],
+      installments: [],
     },
   });
   const { append, fields, remove } = useFieldArray({
     control: method.control,
     name: "detail",
   });
+  const installmentsFieldArray = useFieldArray({
+    control: method.control,
+    name: "installments",
+  });
 
   const customerSelectData = useOldCustomerSelectData();
   const CustomerAccounts = useCustomerLedgersSelectData(CustomerID);
   const businessSelectData = useBusinessUnitsSelectData();
   const productsInfoSelectData = useProductsInfoSelectData(BusinessUnitID);
-  const servicesInfoSelectData = useServicesInfoSelectData();
+  const servicesInfoSelectData = useServicesInfoSelectData(BusinessUnitID);
 
   const { data: customerBranchSelectData } = useQuery({
     queryKey: ["customerBranches", AccountID],
@@ -424,6 +428,7 @@ function CustomerInvoiceForm({ pageTitles }) {
         let InvoiceDetail = formData?.detail?.map((item, index) => {
           return {
             RowID: index + 1,
+            InvoiceType: item.InvoiceType.value,
             BusinessUnitID: item.BusinessUnit.BusinessUnitID,
             BranchID: item.CustomerBranch.BranchID,
             ProductToInvoiceID: item.ProductInfo.ProductInfoID,
@@ -447,7 +452,6 @@ function CustomerInvoiceForm({ pageTitles }) {
           InvoiceNo: formData?.InvoiceNo || 1,
           InvoiceDate: formData?.InvoiceDate || new Date(),
           InvoiceDueDate: formData?.DueDate || new Date(),
-          InvoiceType: formData?.InvoiceType?.value,
           CustomerID: formData?.Customer?.CustomerID,
           AccountID: formData?.CustomerLedgers?.AccountID,
           InvoiceTitle: formData?.InvoiceTitle,
@@ -497,6 +501,7 @@ function CustomerInvoiceForm({ pageTitles }) {
   function onSubmit(data) {
     customerInvoiceMutation.mutate(data);
   }
+
   const typesOptions = [
     { label: pageTitles?.product || "Product", value: "Product" },
     { label: "Service", value: "Service" },
@@ -508,13 +513,6 @@ function CustomerInvoiceForm({ pageTitles }) {
 
       method.setValue("InvoiceTitle", CustomerInvoice?.Master[0]?.InvoiceTitle);
       method.setValue("InvoiceNo", CustomerInvoice?.Master[0]?.InvoiceNo);
-      method.setValue("InvoiceType", {
-        label:
-          CustomerInvoice?.Master[0]?.InvoiceType === "Product"
-            ? pageTitles?.product
-            : CustomerInvoice?.Master[0]?.InvoiceType,
-        value: CustomerInvoice?.Master[0]?.InvoiceType,
-      });
       method.setValue("Customer", {
         CustomerID: CustomerInvoice?.Master[0]?.CustomerID,
         CustomerName: CustomerInvoice?.Master[0]?.CustomerName,
@@ -546,13 +544,17 @@ function CustomerInvoiceForm({ pageTitles }) {
         CustomerInvoice?.Master[0]?.TotalDiscount
       );
       method.setValue("Total_Rate", CustomerInvoice?.Master[0]?.TotalRate);
-
+      console.log(CustomerInvoice?.Detail);
       // Detail Values
       method.setValue(
         "detail",
         CustomerInvoice?.Detail.map((invoice, index) => {
           filteredProductsBasedOnRow(invoice.BusinessUnitID, index);
           return {
+            InvoiceType: {
+              label: invoice.InvoiceTypeTitle,
+              value: invoice.InvoiceTypeTitle,
+            },
             ProductInfo: {
               ProductInfoID: invoice.ProductToInvoiceID,
               ProductInfoTitle: invoice.ProductTitle,
@@ -614,7 +616,6 @@ function CustomerInvoiceForm({ pageTitles }) {
   }
 
   async function handleOpenPdfInNewTab(InvoiceID) {
-    console.log(InvoiceID);
     setPrintLoading(true);
     const { data } = await axios.post(
       `http://192.168.9.110:90/api/Reports/InvoicePrint?CustomerInvoiceID=${InvoiceID}&Export=p`
@@ -757,7 +758,7 @@ function CustomerInvoiceForm({ pageTitles }) {
                   })}
                 />
               </Form.Group>
-              <Form.Group as={Col} controlId="InvoiceType">
+              {/*   <Form.Group as={Col} controlId="InvoiceType">
                 <Form.Label>Invoice Type</Form.Label>
                 <span className="text-danger fw-bold ">*</span>
                 <Controller
@@ -786,7 +787,7 @@ function CustomerInvoiceForm({ pageTitles }) {
                 <span className="text-danger">
                   {method?.errors?.Type?.message}
                 </span>
-              </Form.Group>
+              </Form.Group> */}
 
               <Form.Group as={Col} controlId="Customer">
                 <Form.Label>
@@ -885,10 +886,10 @@ function CustomerInvoiceForm({ pageTitles }) {
                   productsInfoSelectData={productsInfoSelectData.data}
                   servicesInfoSelectData={servicesInfoSelectData.data}
                   customerBranchSelectData={customerBranchSelectData}
+                  typesOption={typesOptions}
                   append={append}
                   fields={fields}
                   pageTitles={pageTitles}
-                  InvoiceType={InvoiceType}
                 />
               </FormProvider>
             </div>
@@ -902,11 +903,11 @@ function CustomerInvoiceForm({ pageTitles }) {
                   productsInfoSelectData={productsInfoSelectData.data}
                   servicesInfoSelectData={servicesInfoSelectData.data}
                   customerBranchSelectData={customerBranchSelectData}
+                  typesOption={typesOptions}
                   pageTitles={pageTitles}
                   fields={fields}
                   append={append}
                   remove={remove}
-                  InvoiceType={InvoiceType}
                   isEnable={isEnable}
                 />
               </FormProvider>
@@ -929,6 +930,10 @@ function CustomerInvoiceForm({ pageTitles }) {
               method.handleSubmit(onSubmit)();
             }}
           />
+          <InstallMents
+            installmentsFieldArray={installmentsFieldArray}
+            control={method.control}
+          />
         </>
       )}
     </>
@@ -936,3 +941,50 @@ function CustomerInvoiceForm({ pageTitles }) {
 }
 
 export default CustomerInvoice;
+
+function InstallMents({ installmentsFieldArray, control }) {
+  return (
+    <>
+      <Dialog
+        header={"Installments"}
+        visible={true}
+        maximizable
+        style={{ width: "80vw", height: "80vh" }}
+        onHide={() => false}
+        footer={
+          <>
+            <h1>footer</h1>
+          </>
+        }
+      >
+        <Button
+          label="Add Installment"
+          type="button"
+          onClick={() => installmentsFieldArray.append({ Idate: 0, Amount: 0 })}
+        />
+        {installmentsFieldArray.fields.map((item, index) => {
+          return (
+            <>
+              <div key={item.id}>
+                <div>
+                  <TextInput
+                    control={control}
+                    required={true}
+                    Label={"Installment Date"}
+                    ID={`installments.${index}.Idate`}
+                  />
+                  <TextInput
+                    control={control}
+                    required={true}
+                    Label={"Amount"}
+                    ID={`installments.${index}.Amount`}
+                  />
+                </div>
+              </div>
+            </>
+          );
+        })}
+      </Dialog>
+    </>
+  );
+}

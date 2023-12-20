@@ -181,21 +181,11 @@ const useCustomerEntryHook = () => {
         }}
         className="p-button-text text-center"
       />
-      <Button
-        label={dialogs[dialogIndex - 1]?.header}
-        icon="pi pi-arrow-left"
-        onClick={() => {
-          if (dialogIndex > 0) {
-            setDialogIndex(dialogIndex - 1);
-          }
-        }}
-        disabled={dialogIndex === 0}
-        className="p-button-p text-center"
-      />
+
       {dialogIndex === 0 ? (
         <>
           <Button
-            label={dialogs[dialogIndex + 1]?.header}
+            label={"Save & Go"}
             type={"button"}
             icon="pi pi-arrow-right"
             onClick={() => {
@@ -208,7 +198,19 @@ const useCustomerEntryHook = () => {
           />
         </>
       ) : (
-        <></>
+        <>
+          <Button
+            label={dialogs[dialogIndex - 1]?.header}
+            icon="pi pi-arrow-left"
+            onClick={() => {
+              if (dialogIndex > 0) {
+                setDialogIndex(dialogIndex - 1);
+              }
+            }}
+            disabled={dialogIndex === 0}
+            className="p-button-p text-center"
+          />
+        </>
       )}
     </ButtonGroup>
   );

@@ -92,10 +92,10 @@ export function useProductsCategoriesSelectData() {
 }
 
 // All Services
-export function useServicesInfoSelectData() {
+export function useServicesInfoSelectData(BusinessUnitID = 0) {
   const servicesInfoSelectData = useQuery({
-    queryKey: ["servicesInfo"],
-    queryFn: () => fetchAllServicesForSelect(),
+    queryKey: ["servicesInfo", BusinessUnitID],
+    queryFn: () => fetchAllServicesForSelect(BusinessUnitID),
     initialData: [],
   });
   return servicesInfoSelectData;

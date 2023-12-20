@@ -15,9 +15,9 @@ function CustomerInvoiceHeader(props) {
     customerBranchSelectData,
     productsInfoSelectData,
     servicesInfoSelectData,
+    typesOption,
     append,
     pageTitles,
-    InvoiceType,
   } = props;
 
   const [descriptions, setDescripitons] = useState([]);
@@ -30,12 +30,15 @@ function CustomerInvoiceHeader(props) {
     getValues,
     setValue,
     setFocus,
+    watch,
     formState: { errors, isDirty },
   } = useFormContext();
+  const invoiceType = watch("InvoiceType")?.value === "Product" ? true : false;
 
   const { setBusinessUnitID } = useContext(InvoiceDataContext);
 
   function onSubmit(data) {
+    console.log(data);
     append(data);
     reset();
   }
@@ -46,8 +49,8 @@ function CustomerInvoiceHeader(props) {
 
   const { data: items } = useQuery({
     queryKey: ["invoiceDescripitons"],
-    queryFn: () => fetchAllSelectDescripitons(InvoiceType?.value),
-    enabled: InvoiceType?.value !== "",
+    queryFn: () => fetchAllSelectDescripitons(invoiceType?.value),
+    enabled: invoiceType !== "",
     initialData: [],
   });
 
@@ -59,7 +62,6 @@ function CustomerInvoiceHeader(props) {
     });
     setDescripitons(_filteredItems);
   };
-
   return (
     <>
       <form
@@ -67,6 +69,30 @@ function CustomerInvoiceHeader(props) {
         // onKeyDown={preventFormByEnterKeySubmission}
       >
         <Row className="py-3" style={{ marginTop: "-25px" }}>
+          <Form.Group as={Col} controlId="InvoiceType">
+            <Form.Label>Invoice Type</Form.Label>
+            <span className="text-danger fw-bold ">*</span>
+            <Controller
+              control={control}
+              name="InvoiceType"
+              rules={{ required: "Please select a type!" }}
+              render={({ field: { onChange, value, ref } }) => (
+                <ReactSelect
+                  options={typesOption}
+                  required
+                  value={value}
+                  ref={ref}
+                  onChange={(selectedOption) => {
+                    onChange(selectedOption);
+                    setFocus("Customer");
+                  }}
+                  placeholder="Select a type"
+                  noOptionsMessage={() => "No types found!"}
+                  openMenuOnFocus
+                />
+              )}
+            />
+          </Form.Group>
           <Form.Group as={Col} controlId="BusinessUnit">
             <Form.Label>Business Unit</Form.Label>
             <span className="text-danger fw-bold ">*</span>
@@ -84,8 +110,8 @@ function CustomerInvoiceHeader(props) {
                   onChange={(selectedOption) => {
                     onChange(selectedOption);
                     setValue("ProductInfo", []);
+                    setValue("ServiceInfo", []);
                     setBusinessUnitID(selectedOption?.BusinessUnitID);
-
                     setFocus("CustomerBranch");
                   }}
                   noOptionsMessage={() => "No business unit found!"}
@@ -142,7 +168,7 @@ function CustomerInvoiceHeader(props) {
           <Form.Group as={Col} controlId="ProductInfo">
             <Form.Label>
               {pageTitles?.product || "Product"} to{" "}
-              {InvoiceType?.value === "Product" ? "Invoice" : "Serve"}
+              {invoiceType ? "Invoice" : "Serve"}
             </Form.Label>
             <span className="text-danger fw-bold ">*</span>
             <Controller
@@ -162,9 +188,7 @@ function CustomerInvoiceHeader(props) {
                   ref={ref}
                   onChange={(selectedOption) => {
                     onChange(selectedOption);
-                    InvoiceType?.value === "Product"
-                      ? setFocus("Qty")
-                      : setFocus("ServiceInfo");
+                    invoiceType ? setFocus("Qty") : setFocus("ServiceInfo");
                   }}
                   placeholder={`Select a ${
                     pageTitles?.product.toLowerCase() || "product"
@@ -183,13 +207,9 @@ function CustomerInvoiceHeader(props) {
           </Form.Group>
           <Form.Group as={Col} controlId="ServiceInfo">
             <Form.Label>Service to Invoice</Form.Label>
-            <span className="text-danger fw-bold ">*</span>
             <Controller
               control={control}
               name="ServiceInfo"
-              rules={{
-                required: InvoiceType?.value === "Product" ? false : true,
-              }}
               render={({ field: { onChange, value, ref } }) => (
                 <ReactSelect
                   options={servicesInfoSelectData}
@@ -204,7 +224,7 @@ function CustomerInvoiceHeader(props) {
                   placeholder={`Select a service`}
                   noOptionsMessage={() => `No services found!`}
                   isClearable
-                  isDisabled={InvoiceType?.value === "Product"}
+                  isDisabled={invoiceType}
                   openMenuOnFocus
                 />
               )}

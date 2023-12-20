@@ -27,6 +27,7 @@ export async function fetchAllSessionsForSelect() {
 }
 
 export async function fetchAllCustomerAccountsForSelect(CustomerID) {
+  console.log(CustomerID);
   if (CustomerID === undefined) {
     CustomerID = 0;
   }
@@ -59,7 +60,7 @@ export async function fetchAllCustomerBranchesData(AccountID) {
 }
 export async function fetchAllServicesForSelect(BusinessUnitID) {
   let whereClause = "";
-  if (BusinessUnitID !== undefined) {
+  if (BusinessUnitID !== 0) {
     whereClause = "?BusinessUnitID=" + BusinessUnitID;
   }
   const { data } = await axios.post(
