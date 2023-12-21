@@ -281,7 +281,7 @@ function GenProductInfoEntry({ pageTitles }) {
       } else {
         dataToSend.ProductInfoID = 0;
       }
-
+      console.log(dataToSend);
       const { data } = await axios.post(
         apiUrl + `/EduIMS/ProductInfoInsertUpdate`,
         dataToSend
