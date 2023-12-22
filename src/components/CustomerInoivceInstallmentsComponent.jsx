@@ -15,7 +15,7 @@ export function CustomerInvoiceInstallmentForm({
       <>
         <PrimeButton
           tooltip="Create installment"
-          icon="pi pi-plus"
+          icon="pi pi-money-bill"
           severity="info"
           size="small"
           className="rounded-2"

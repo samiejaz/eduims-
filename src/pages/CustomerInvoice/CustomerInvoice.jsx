@@ -357,17 +357,6 @@ function CustomerInvoiceForm({ pageTitles }) {
     }
   }, [CustomerInvoiceID]);
 
-  // const sessionSelectData = [
-  //   {
-  //     SessionID: 1,
-  //     SessionTitle: "Session 1",
-  //   },
-  //   {
-  //     SessionID: 2,
-  //     SessionTitle: "Session 2",
-  //   },
-  // ];
-
   const invoiceHeaderForm = useForm({
     defaultValues: {
       InvoiceType: [],
@@ -691,9 +680,9 @@ function CustomerInvoiceForm({ pageTitles }) {
           ) : (
             <></>
           )}
-          <h4 className="p-3 mb-4 bg-light text-dark text-center  shadow-sm rounded-2">
+          {/* <h4 className="p-3 mb-4 bg-light text-dark text-center  shadow-sm rounded-2">
             Customer Invoice
-          </h4>
+          </h4> */}
 
           {/* <CustomerEntryForm /> */}
 

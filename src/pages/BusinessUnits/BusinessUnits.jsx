@@ -568,7 +568,7 @@ function BusinessUnitsForm() {
               </Form.Group>
 
               <Form.Group as={Col} controlId="AuthorityPersonNo">
-                <Form.Label>Mobile No</Form.Label>
+                <Form.Label>CEO Mobile No</Form.Label>
 
                 <Form.Control
                   type="text"
@@ -579,7 +579,7 @@ function BusinessUnitsForm() {
                 />
               </Form.Group>
               <Form.Group as={Col} controlId="AuthorityPersonEmail">
-                <Form.Label>Email</Form.Label>
+                <Form.Label>CEO Email</Form.Label>
 
                 <Form.Control
                   type="text"
