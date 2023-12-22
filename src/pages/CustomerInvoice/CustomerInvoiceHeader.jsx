@@ -38,7 +38,6 @@ function CustomerInvoiceHeader(props) {
   const { setBusinessUnitID } = useContext(InvoiceDataContext);
 
   function onSubmit(data) {
-    console.log(data);
     append(data);
     reset();
   }

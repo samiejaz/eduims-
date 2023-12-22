@@ -8,9 +8,7 @@ export async function fetchAllUsers(LoginUserID) {
       apiUrl + `/EduIMS/GetAllUsers?LoginUserID=${LoginUserID}`
     );
     return data.data ?? [];
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 }
 
 export async function deleteUser(user) {
@@ -26,7 +24,5 @@ export async function fetchOldUserById(UserID, LoginUserID) {
       apiUrl + `/EduIMS/GetAllUsers?UserID=${UserID}&LoginUserID=${LoginUserID}`
     );
     return data;
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 }

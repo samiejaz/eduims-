@@ -27,15 +27,9 @@ function GenBusinessNature() {
 }
 
 function GenBusinessNatureSearch() {
-  function handleEdit(id) {
-    console.log(id);
-  }
-  function handleDelete(id) {
-    console.log(id);
-  }
-  function handleView(id) {
-    console.log(id);
-  }
+  function handleEdit(id) {}
+  function handleDelete(id) {}
+  function handleView(id) {}
 
   const columns = [
     {

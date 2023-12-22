@@ -17,9 +17,7 @@ export async function fetchServiceCategoryById(ServiceCategoryID, LoginUserID) {
         `/EduIMS/GetServiceCategoryWhere?ServiceCategoryID=${ServiceCategoryID}&LoginUserID=${LoginUserID}`
     );
     return data;
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 }
 
 export async function deleteServiceCategory(serviceCategory) {

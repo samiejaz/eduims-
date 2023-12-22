@@ -300,3 +300,9 @@ a {
   padding: 2px 8px;
   box-sizing: border-box;
 }
+
+.flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

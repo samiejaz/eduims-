@@ -316,7 +316,7 @@ function GenSessionInfoEntry() {
       LoginUserID: user.userID,
     });
   }
-  console.log(SessionID);
+
   return (
     <>
       {isLoading ? (

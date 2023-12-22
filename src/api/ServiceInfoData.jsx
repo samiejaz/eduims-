@@ -17,9 +17,7 @@ export async function fetchServiceById(ServicesInfoID, LoginUserID) {
         `/EduIMS/GetServicesInfoWhere?ServicesInfoID=${ServicesInfoID}&LoginUserID=${LoginUserID}`
     );
     return data;
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 }
 
 export async function deleteServiceByID(serviceInfo) {

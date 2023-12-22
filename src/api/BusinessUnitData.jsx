@@ -26,9 +26,7 @@ export async function fetchBusinessUnitById(BusinessUnitID, LoginUserID) {
         `/EduIMS/GetBusinessUnitWhere?BusinessUnitID=${BusinessUnitID}&LoginUserID=${LoginUserID}`
     );
     return data;
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 }
 
 export async function deleteBusinessUnit(business) {

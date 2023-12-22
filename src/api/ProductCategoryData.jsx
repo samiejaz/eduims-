@@ -30,9 +30,7 @@ export async function fetchProductCategoryById(ProductCategoryID, LoginUserID) {
         `/EduIMS/GetProductCategoryWhere?ProductCategoryID=${ProductCategoryID}&LoginUserID=${LoginUserID}`
     );
     return data;
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 }
 
 export async function deleteProductCategory(productCategory) {

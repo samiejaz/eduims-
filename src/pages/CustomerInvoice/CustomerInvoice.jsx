@@ -1,6 +1,6 @@
 import { Form, Row, Col, Spinner } from "react-bootstrap";
 import { Button } from "primereact/button";
-import { Dialog } from "primereact/dialog";
+
 import {
   Controller,
   FormProvider,
@@ -10,21 +10,16 @@ import {
 import TabHeader from "../../components/TabHeader";
 import ReactSelect from "react-select";
 import CustomerInvoiceDetailTable from "./CustomerInvoiceDetailTable";
-import { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import ReactDatePicker from "react-datepicker";
 import { AppConfigurationContext } from "../../context/AppConfigurationContext";
-import { DevTool } from "@hookform/devtools";
 
 import { CustomerEntryForm } from "../../components/CustomerEntryFormComponent";
 import CustomerInvoiceHeader from "./CustomerInvoiceHeader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  fetchAllBusinessUnitsForSelect,
-  fetchAllCustomerAccountsForSelect,
   fetchAllCustomerBranchesData,
-  fetchAllOldCustomersForSelect,
   fetchAllProductsForSelect,
-  fetchAllServicesForSelect,
   fetchAllSessionsForSelect,
 } from "../../api/SelectData";
 import {
@@ -44,6 +39,7 @@ import {
   fetchAllCustomerInvoices,
   fetchCustomerInvoiceById,
   fetchMaxInvoiceNo,
+  fetchMaxSessionBasedVoucherNo,
 } from "../../api/CustomerInvoiceData";
 import { FilterMatchMode } from "primereact/api";
 import { DataTable } from "primereact/datatable";
@@ -59,7 +55,7 @@ import {
   useProductsInfoSelectData,
   useServicesInfoSelectData,
 } from "../../hooks/SelectData/useSelectData";
-import TextInput from "../../components/Forms/TextInput";
+import { CustomerInvoiceInstallmentForm } from "../../components/CustomerInoivceInstallmentsComponent";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 function CustomerInvoice() {
@@ -223,11 +219,18 @@ function CustomerInvoiceSearch() {
               style={{ minWidth: "7rem", maxWidth: "7rem", width: "7rem" }}
             ></Column>
             <Column
-              field="InvoiceNo"
+              field="SessionBasedVoucherNo"
               filter
               filterPlaceholder="Search by invoice no"
               sortable
               header="Invoice No"
+            ></Column>
+            <Column
+              field="InvoiceNo"
+              filter
+              filterPlaceholder="Search by ref no"
+              sortable
+              header="Ref No"
             ></Column>
             <Column
               field="InvoiceTitle"
@@ -254,7 +257,7 @@ function CustomerInvoiceSearch() {
             <Column
               field="TotalNetAmount"
               filter
-              filterPlaceholder="Search by customer ledger"
+              filterPlaceholder="Search by net amount"
               sortable
               header="Total Net Amount"
             ></Column>
@@ -339,13 +342,18 @@ function CustomerInvoiceForm({ pageTitles }) {
       }
     }
     async function fetchInvoiceNo() {
-      const data = await fetchMaxInvoiceNo();
-      method.setValue("InvoiceNo", data.data[0]?.InvoiceNo);
+      const data = await fetchMaxInvoiceNo(user?.userID);
+      method.setValue("InvoiceNo", data.data[0]?.Column1);
+    }
+    async function fetchSessionBasedVoucherNo() {
+      const data = await fetchMaxSessionBasedVoucherNo(user?.userID);
+      method.setValue("SessionBasedInvoiceNo", data.data[0]?.Column1);
     }
     if (CustomerInvoiceID !== 0) {
       fetchCustomerInvoice();
     } else {
       fetchInvoiceNo();
+      fetchSessionBasedVoucherNo();
     }
   }, [CustomerInvoiceID]);
 
@@ -382,7 +390,8 @@ function CustomerInvoiceForm({ pageTitles }) {
         SessionID: sessionSelectData[0]?.SessionID,
         SessionTitle: sessionSelectData[0]?.SessionTitle,
       },
-      InvoiceNo: 1,
+      InvoiceNo: "1",
+      SessionBasedInvoiceNo: 1,
       Customer: [],
       InvoiceType: [],
       CustomerLedgers: [],
@@ -499,7 +508,22 @@ function CustomerInvoiceForm({ pageTitles }) {
   });
 
   function onSubmit(data) {
-    customerInvoiceMutation.mutate(data);
+    let TotalInstallMentAmount =
+      method.getValues(`InstallmentTotalRemaining`) || 0;
+    if (
+      TotalInstallMentAmount === 0 ||
+      (TotalInstallMentAmount !== 0 && data.installments.length === 0)
+    ) {
+      customerInvoiceMutation.mutate(data);
+    } else if (TotalInstallMentAmount > 0) {
+      toast.error("Installment Amounts must be equal to Total Net Amount", {
+        position: "top-right",
+      });
+    } else {
+      toast.error("Installment Amounts cannot exceed Total Net Amount", {
+        position: "top-right",
+      });
+    }
   }
 
   const typesOptions = [
@@ -510,9 +534,12 @@ function CustomerInvoiceForm({ pageTitles }) {
   useEffect(() => {
     if (CustomerInvoiceID !== 0 && CustomerInvoice?.Master) {
       // Master Values
-
       method.setValue("InvoiceTitle", CustomerInvoice?.Master[0]?.InvoiceTitle);
       method.setValue("InvoiceNo", CustomerInvoice?.Master[0]?.InvoiceNo);
+      method.setValue(
+        "SessionBasedInvoiceNo",
+        CustomerInvoice?.Master[0]?.SessionBasedVoucherNo
+      );
       method.setValue("Customer", {
         CustomerID: CustomerInvoice?.Master[0]?.CustomerID,
         CustomerName: CustomerInvoice?.Master[0]?.CustomerName,
@@ -544,7 +571,7 @@ function CustomerInvoiceForm({ pageTitles }) {
         CustomerInvoice?.Master[0]?.TotalDiscount
       );
       method.setValue("Total_Rate", CustomerInvoice?.Master[0]?.TotalRate);
-      console.log(CustomerInvoice?.Detail);
+
       // Detail Values
       method.setValue(
         "detail",
@@ -695,10 +722,20 @@ function CustomerInvoiceForm({ pageTitles }) {
                 />
               </Form.Group>
 
-              <Form.Group as={Col} controlId="InvoiceNo">
+              <Form.Group as={Col} controlId="SessionBasedInvoiceNo">
                 <Form.Label>Invoice No</Form.Label>
                 <Form.Control
                   type="number"
+                  size="sm"
+                  //style={{ padding: "1px" }}
+                  {...method.register("SessionBasedInvoiceNo")}
+                  disabled
+                />
+              </Form.Group>
+              <Form.Group as={Col} controlId="InvoiceNo">
+                <Form.Label>Ref No</Form.Label>
+                <Form.Control
+                  type="text"
                   {...method.register("InvoiceNo")}
                   disabled
                   required
@@ -727,7 +764,18 @@ function CustomerInvoiceForm({ pageTitles }) {
               </Form.Group>
 
               <Form.Group as={Col} controlId="DueDate">
-                <Form.Label>DueDate</Form.Label>
+                <Form.Label>
+                  DueDate
+                  {isEnable && (
+                    <>
+                      <CustomerInvoiceInstallmentForm
+                        method={method}
+                        installmentsFieldArray={installmentsFieldArray}
+                      />
+                    </>
+                  )}
+                </Form.Label>
+
                 <div>
                   <Controller
                     control={method.control}
@@ -930,10 +978,6 @@ function CustomerInvoiceForm({ pageTitles }) {
               method.handleSubmit(onSubmit)();
             }}
           />
-          <InstallMents
-            installmentsFieldArray={installmentsFieldArray}
-            control={method.control}
-          />
         </>
       )}
     </>
@@ -941,50 +985,3 @@ function CustomerInvoiceForm({ pageTitles }) {
 }
 
 export default CustomerInvoice;
-
-function InstallMents({ installmentsFieldArray, control }) {
-  return (
-    <>
-      <Dialog
-        header={"Installments"}
-        visible={true}
-        maximizable
-        style={{ width: "80vw", height: "80vh" }}
-        onHide={() => false}
-        footer={
-          <>
-            <h1>footer</h1>
-          </>
-        }
-      >
-        <Button
-          label="Add Installment"
-          type="button"
-          onClick={() => installmentsFieldArray.append({ Idate: 0, Amount: 0 })}
-        />
-        {installmentsFieldArray.fields.map((item, index) => {
-          return (
-            <>
-              <div key={item.id}>
-                <div>
-                  <TextInput
-                    control={control}
-                    required={true}
-                    Label={"Installment Date"}
-                    ID={`installments.${index}.Idate`}
-                  />
-                  <TextInput
-                    control={control}
-                    required={true}
-                    Label={"Amount"}
-                    ID={`installments.${index}.Amount`}
-                  />
-                </div>
-              </div>
-            </>
-          );
-        })}
-      </Dialog>
-    </>
-  );
-}

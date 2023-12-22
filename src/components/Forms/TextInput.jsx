@@ -1,7 +1,7 @@
 import { InputText } from "primereact/inputtext";
 import { Controller } from "react-hook-form";
 
-function TextInput({ Label, ID, control, required, isEnable = true }) {
+function TextInput({ Label = "", ID, control, required, isEnable = true }) {
   return (
     <Controller
       name={ID}

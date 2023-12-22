@@ -285,7 +285,7 @@ function CustomerInvoiceDetailTable(props) {
                       />
                     </td>
 
-                    <td style={{ width: "150px" }}>
+                    <td>
                       <Form.Control
                         type="text"
                         {...register(`detail.${index}.Qty`, {
@@ -295,6 +295,7 @@ function CustomerInvoiceDetailTable(props) {
                         required
                         disabled={!isEnable}
                         pattern="^[0-9]*$"
+                        size="sm"
                         onInput={(e) => {
                           e.target.value = e.target.value.replace(
                             /[^0-9]/g,
@@ -492,7 +493,13 @@ function CustomerInvoiceDetailTable(props) {
             </Form.Group>
             <Form.Group as={Col} controlId="Total_Amount">
               <Form.Label>Total Amount</Form.Label>
-              <Form.Control disabled {...register("Total_Amount")} />
+              <Form.Control
+                disabled
+                {...register("Total_Amount")}
+                onInput={(e) => {
+                  setValue("InstallmentTotalAmount", e.target.value);
+                }}
+              />
             </Form.Group>
           </Row>
         </form>

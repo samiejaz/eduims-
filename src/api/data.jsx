@@ -7,18 +7,14 @@ export async function fetchAllCountries() {
     const { data } = await axios.post(apiUrl + "/EduIMS/GetCountriesIMS");
 
     return data.data;
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 }
 export async function fetchAllProvinces() {
   try {
     const { data } = await axios.post(apiUrl + "/EduIMS/GetProvincesIMS");
 
     return data.data;
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 }
 
 export async function fetchAllCities() {
@@ -26,9 +22,7 @@ export async function fetchAllCities() {
     const { data } = await axios.post(apiUrl + "/EduIMS/GetCitiesIMS");
 
     return data;
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 }
 
 export async function getImg(LoginUserID) {

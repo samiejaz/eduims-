@@ -284,7 +284,6 @@ function GenUsersEntry() {
       }
     },
     onError: (err) => {
-      console.log(err);
       toast.error("Error while saving data!!");
     },
   });
@@ -307,7 +306,6 @@ function GenUsersEntry() {
 
   useEffect(() => {
     if (UserID !== 0 && UserData?.data) {
-      console.log(UserData);
       setValue("FirstName", UserData?.data[0]?.FirstName);
       setValue("LastName", UserData?.data[0]?.LastName);
       setValue("Email", UserData?.data[0]?.Email);

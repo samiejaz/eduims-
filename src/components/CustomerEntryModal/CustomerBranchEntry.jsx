@@ -511,7 +511,6 @@ function CustomerBranchesDataTable(props) {
 
   useEffect(() => {
     if (CustomerBranchID !== 0 && CustomerBranchData?.BracnhInfo) {
-      console.log(CustomerBranchData);
       setValue(
         "CustomerBranchID",
         CustomerBranchData?.BracnhInfo[0].CustomerBranchID
@@ -868,10 +867,10 @@ function CustomerBranchesDataTable(props) {
 }
 
 // function CustomerBranchDetailTable() {
-//   console.log("branch entry detail");
+//
 //   const { createdBranchID, setCreatedBranchID } =
 //     useContext(BranchEntryContext);
-//   console.log(createdBranchID);
+//
 
 //   const methods = useForm();
 //   const { fields, append, remove } = useFieldArray({
@@ -900,7 +899,7 @@ function CustomerBranchesDataTable(props) {
 //   //   initialData: [],
 //   // });
 
-//   // console.log(data);
+//   //
 
 //   return (
 //     <>

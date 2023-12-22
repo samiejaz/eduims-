@@ -334,7 +334,7 @@ function GenOldCustomerEntryForm() {
 
   // Mutations
   function onSubmit(data) {
-    // console.log(data);
+    //
     oldCustomerMutation.mutate(data);
   }
 
