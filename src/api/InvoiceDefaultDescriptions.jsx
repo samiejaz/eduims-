@@ -25,9 +25,7 @@ export async function fetchInvoiceDeafultDescriptionById(
       `${apiUrl}/${CONTROLLER}/${WHEREMETHOD}?DescriptionID=${CustomerBranchID}&LoginUserID=${LoginUserID}`
     );
     return data;
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 }
 // URL: /EduIMS/CustomerBranchDelete?CustomerBranchID=??&LoginUserID=??
 export async function deleteInvoiceDeafultDescriptionsByID(

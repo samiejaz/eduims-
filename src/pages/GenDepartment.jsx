@@ -83,13 +83,13 @@
 //   }
 
 //   function handleDelete(id) {
-//     console.log(id);
+//
 //   }
 //   function handleEdit(id) {
-//     console.log(id);
+//
 //   }
 //   function handleView(id) {
-//     console.log(id);
+//
 //   }
 
 //   return (

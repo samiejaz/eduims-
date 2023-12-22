@@ -9,9 +9,7 @@ export async function fetchAllCleints() {
       apiUrl + "/EduIMS/GetClientDataFromDBesnew"
     );
     return data;
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 }
 export async function fetchAllOldCustomers(LoginUserID) {
   try {

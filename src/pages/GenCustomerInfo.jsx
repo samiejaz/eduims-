@@ -25,15 +25,9 @@ const GenCustomerInfo = (props) => {
 };
 
 function GenCustomerInfoSearch() {
-  function handleEdit(id) {
-    console.log(id);
-  }
-  function handleDelete(id) {
-    console.log(id);
-  }
-  function handleView(id) {
-    console.log(id);
-  }
+  function handleEdit(id) {}
+  function handleDelete(id) {}
+  function handleView(id) {}
   const columns = [
     {
       name: "Actions",

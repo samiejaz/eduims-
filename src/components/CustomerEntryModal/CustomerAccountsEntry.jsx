@@ -295,7 +295,7 @@ function CustomerAccountDetailTable(props) {
 // function CustomerAccountDataTableDetail() {
 //   const { createdAccountID, setCreatedAccountID } =
 //     useContext(AccountEntryContext);
-//   console.log(createdAccountID);
+//
 
 //   const { user } = useContext(AuthContext);
 
@@ -316,7 +316,7 @@ function CustomerAccountDetailTable(props) {
 //           user.userID
 //         );
 
-//         console.log(data);
+//
 //       } else {
 //         setBankAccount(null);
 //         setIsEnable(true);

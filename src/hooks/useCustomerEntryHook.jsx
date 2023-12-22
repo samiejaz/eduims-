@@ -134,6 +134,7 @@ const useCustomerEntryHook = () => {
                   optionValue="CustomerID"
                   optionLabel="CustomerName"
                   placeholder="Select a customer"
+                  onFilter={(e) => console.log(e)}
                   options={oldCustomers.data}
                   focusInputRef={field.ref}
                   onChange={(e) => {

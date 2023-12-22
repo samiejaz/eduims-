@@ -21,9 +21,7 @@ export async function fetchBankAccountById(BankAccountID, LoginUserID) {
       `${apiUrl}/${CONTROLLER}/${WHEREMETHOD}?BankAccountID=${BankAccountID}&LoginUserID=${LoginUserID}`
     );
     return data;
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 }
 
 // URL: /EduIMS/BankAccountDelete?BankAccountID=??&LoginUserID=??

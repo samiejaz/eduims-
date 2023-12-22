@@ -33,9 +33,7 @@ export async function fetchSessionById(SessionID, LoginUserID) {
         `/EduIMS/GetSessionWhere?SessionID=${SessionID}&LoginUserID=${LoginUserID}`
     );
     return data;
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 }
 
 export async function deleteSessionByID(session) {

@@ -17,9 +17,7 @@ export async function fetchProductById(ProductInfoID, LoginUserID) {
         `/EduIMS/GetProductInfoWhere?ProductInfoID=${ProductInfoID}&LoginUserID=${LoginUserID}`
     );
     return data;
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 }
 
 export async function deleteProductByID(productInfo) {

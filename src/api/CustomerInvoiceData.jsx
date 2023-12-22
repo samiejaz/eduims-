@@ -17,6 +17,7 @@ export async function fetchAllCustomerInvoices(LoginUserID) {
     return {
       CustomerInvoiceID: item.CustomerInvoiceID,
       InvoiceNo: item.InvoiceNo,
+      SessionBasedVoucherNo: item.SessionBasedVoucherNo,
       InvoiceTitle: item.InvoiceTitle,
       CustomerName: item.CustomerName,
       AccountTitle: item.AccountTitle,
@@ -34,15 +35,23 @@ export async function fetchCustomerInvoiceById(CustomerInvoiceID, LoginUserID) {
       `${apiUrl}/${CONTROLLER}/${WHEREMETHOD}?CustomerInvoiceID=${CustomerInvoiceID}&LoginUserID=${LoginUserID}`
     );
     return data;
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 }
 
 export async function fetchMaxInvoiceNo(LoginUserID) {
   try {
     const { data } = await axios.post(
       `${apiUrl}/${CONTROLLER}/GetInvoiceNo?LoginUserID=${LoginUserID}`
+    );
+    return data;
+  } catch (error) {
+    toast.error(error);
+  }
+}
+export async function fetchMaxSessionBasedVoucherNo(LoginUserID) {
+  try {
+    const { data } = await axios.post(
+      `${apiUrl}/${CONTROLLER}/GetSessionBasedInvoiceNo?LoginUserID=${LoginUserID}`
     );
     return data;
   } catch (error) {

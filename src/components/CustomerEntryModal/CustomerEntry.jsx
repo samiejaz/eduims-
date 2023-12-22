@@ -4,8 +4,6 @@ import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
 import { Form, Row, Col } from "react-bootstrap";
 import { fetchNewCustomerById } from "../../api/NewCustomerData";
 import { AuthContext } from "../../context/AuthContext";
-import { toast } from "react-toastify";
-import { CustomSpinner } from "../CustomSpinner";
 
 function CustomerEntry(props) {
   const { CustomerID, isEnable = true } = props;
