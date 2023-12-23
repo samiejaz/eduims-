@@ -6,6 +6,7 @@ import {
   fetchAllProductsForSelect,
   fetchAllServicesForSelect,
 } from "../../api/SelectData";
+import NumberInput from "../../components/Forms/NumberInput";
 
 let renderCount = 0;
 function CustomerInvoiceDetailTable(props) {
@@ -86,6 +87,7 @@ function CustomerInvoiceDetailTable(props) {
             <thead className="">
               <tr className="text-center bg-info-subtle ">
                 <th className="p-2 bg-info text-white">Sr No.</th>
+                <th className="p-2 bg-info text-white">Is Free</th>
                 <th
                   className="p-2 bg-info text-white"
                   style={{ width: "400px" }}
@@ -151,6 +153,22 @@ function CustomerInvoiceDetailTable(props) {
                         })}
                         disabled={!isEnable}
                         value={index + 1}
+                      />
+                    </td>
+                    <td className="text-center" style={{ width: "60px" }}>
+                      <Form.Check
+                        {...register(`detail.${index}.IsFree`)}
+                        style={{ marginTop: "5px" }}
+                        disabled={!isEnable}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setValue(`detail.${index}.CGS`, 0);
+                            setValue(`detail.${index}.Amount`, 0);
+                            setValue(`detail.${index}.Discount`, 0);
+                            setValue(`detail.${index}.NetAmount`, 0);
+                            setValue(`detail.${index}.Rate`, 0);
+                          }
+                        }}
                       />
                     </td>
                     <td style={{ width: "500px" }}>
@@ -285,7 +303,7 @@ function CustomerInvoiceDetailTable(props) {
                       />
                     </td>
 
-                    <td>
+                    <td style={{ width: "200px" }}>
                       <Form.Control
                         type="text"
                         {...register(`detail.${index}.Qty`, {
@@ -295,7 +313,6 @@ function CustomerInvoiceDetailTable(props) {
                         required
                         disabled={!isEnable}
                         pattern="^[0-9]*$"
-                        size="sm"
                         onInput={(e) => {
                           e.target.value = e.target.value.replace(
                             /[^0-9]/g,
@@ -320,7 +337,31 @@ function CustomerInvoiceDetailTable(props) {
                       />
                     </td>
                     <td style={{ width: "200px" }}>
-                      <Form.Control
+                      <NumberInput
+                        id={`detail.${index}.Rate`}
+                        control={control}
+                        onChange={(e) => {
+                          const qty = parseFloat(
+                            0 + getValues([`detail.${index}.Qty`])
+                          );
+                          const disc = parseFloat(
+                            0 + getValues([`detail.${index}.Discount`])
+                          );
+                          setValue(`detail.${index}.Amount`, e.value * qty);
+                          setValue(
+                            `detail.${index}.NetAmount`,
+                            e.value * qty - disc
+                          );
+                          setValue(`detail.${index}.Rate`, e.value);
+                          handleNetAmountTotal();
+                        }}
+                        disabled={!isEnable || watch(`detail.${index}.IsFree`)}
+                        mode="decimal"
+                        maxFractionDigits={2}
+                        inputClassName="form-control"
+                        useGrouping={false}
+                      />
+                      {/* <Form.Control
                         type="text"
                         {...register(`detail.${index}.Rate`, {
                           valueAsNumber: true,
@@ -351,10 +392,23 @@ function CustomerInvoiceDetailTable(props) {
                           setValue(`detail.${index}.Rate`, e.target.value);
                           handleNetAmountTotal();
                         }}
-                      />
+                      /> */}
                     </td>
                     <td style={{ width: "200px" }}>
-                      <Form.Control
+                      <NumberInput
+                        id={`detail.${index}.CGS`}
+                        control={control}
+                        onChange={(e) => {
+                          setValue(`detail.${index}.CGS`, e.value);
+                          handleNetAmountTotal();
+                        }}
+                        disabled={!isEnable || watch(`detail.${index}.IsFree`)}
+                        mode="decimal"
+                        maxFractionDigits={2}
+                        inputClassName="form-control"
+                        useGrouping={false}
+                      />
+                      {/* <Form.Control
                         type="text"
                         {...register(`detail.${index}.CGS`, {
                           valueAsNumber: true,
@@ -369,29 +423,28 @@ function CustomerInvoiceDetailTable(props) {
                           setValue(`detail.${index}.CGS`, e.target.value);
                           handleNetAmountTotal();
                         }}
+                      /> */}
+                    </td>
+                    <td style={{ width: "200px" }}>
+                      <NumberInput
+                        id={`detail.${index}.Amount`}
+                        control={control}
+                        onChange={(e) => {
+                          setValue(`detail.${index}.CGS`, e.value);
+                          handleNetAmountTotal();
+                        }}
+                        disabled={true}
+                        mode="decimal"
+                        maxFractionDigits={2}
+                        inputClassName="form-control"
+                        useGrouping={false}
                       />
                     </td>
                     <td style={{ width: "200px" }}>
-                      <Form.Control
-                        type="text"
-                        disabled
-                        defaultValue={0}
-                        {...register(`detail.${index}.Amount`)}
-                      />
-                    </td>
-                    <td style={{ width: "200px" }}>
-                      <Form.Control
-                        type="text"
-                        {...register(`detail.${index}.Discount`, {
-                          valueAsNumber: true,
-                        })}
-                        disabled={!isEnable}
-                        pattern="^[0-9]*$"
-                        onInput={(e) => {
-                          e.target.value = e.target.value.replace(
-                            /[^0-9]/g,
-                            ""
-                          );
+                      <NumberInput
+                        id={`detail.${index}.Discount`}
+                        control={control}
+                        onChange={(e) => {
                           const amount = parseFloat(
                             0 + getValues([`detail.${index}.Amount`])
                           );
@@ -402,20 +455,30 @@ function CustomerInvoiceDetailTable(props) {
                           setValue(`detail.${index}.Discount`, e.target.value);
                           handleNetAmountTotal();
                         }}
+                        disabled={!isEnable || watch(`detail.${index}.IsFree`)}
+                        mode="decimal"
+                        maxFractionDigits={2}
+                        inputClassName="form-control"
+                        useGrouping={false}
                       />
                     </td>
 
                     <td style={{ width: "200px" }}>
-                      <Form.Control
-                        type="text"
-                        disabled
-                        defaultValue={0}
-                        {...register(`detail.${index}.NetAmount`)}
+                      <NumberInput
+                        id={`detail.${index}.NetAmount`}
+                        control={control}
+                        disabled={true}
+                        mode="decimal"
+                        maxFractionDigits={2}
+                        inputClassName="form-control"
+                        useGrouping={false}
                       />
                     </td>
                     <td style={{ width: "1000px" }}>
                       <Form.Control
                         type="text"
+                        as={"textarea"}
+                        rows={1}
                         disabled={!isEnable}
                         {...register(`detail.${index}.DetailDescription`)}
                       />

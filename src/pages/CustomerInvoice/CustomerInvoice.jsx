@@ -1,5 +1,6 @@
 import { Form, Row, Col, Spinner } from "react-bootstrap";
 import { Button } from "primereact/button";
+import { Accordion, AccordionTab } from "primereact/accordion";
 
 import {
   Controller,
@@ -56,20 +57,36 @@ import {
   useServicesInfoSelectData,
 } from "../../hooks/SelectData/useSelectData";
 import { CustomerInvoiceInstallmentForm } from "../../components/CustomerInoivceInstallmentsComponent";
+import MultipleDemo from "./CustomerInvoiceAccordian";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import BasicDemo from "./CustomerInvoiceToolbar";
+import CustomerInvoiceDock from "./CustomerInvoiceDock";
+import ButtonToolBar from "./CustomerInvoiceToolbar";
+import { Checkbox } from "primereact/checkbox";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 function CustomerInvoice() {
   const { pageTitles } = useContext(AppConfigurationContext);
   document.title = "Customer Invoice";
   return (
-    <CustomerInvoiceDataProivder>
-      <TabHeader
-        Search={<CustomerInvoiceSearch />}
-        Entry={<CustomerInvoiceFormMaster pageTitles={pageTitles} />}
-        SearchTitle={"Customer Invoice Search"}
-        EntryTitle={"Add New Customer Invoice"}
-      />
-    </CustomerInvoiceDataProivder>
+    <>
+      <CustomerInvoiceDataProivder>
+        <div className="bg__image mt-5">
+          <div className=" px-md-5 bg__image">
+            <div className=" px-md-4">
+              <CustomerInvoiceSearch />
+              {/* <TabHeader
+        Search={<GenOldCustomerEntrySearch />}
+        Entry={<GenOldCustomerEntryForm />}
+        SearchTitle={"Old Customers"}
+        EntryTitle={"Old Customer Entry"}
+      /> */}
+              {/* <GenNewCustomerView /> */}
+            </div>
+          </div>
+        </div>
+      </CustomerInvoiceDataProivder>
+    </>
     // </SessionInfoDataProivder>
   );
 }
@@ -78,7 +95,7 @@ function CustomerInvoice() {
   Pending
 
   1) Add validation to each cell in datatable
-  
+
 
 
 
@@ -89,6 +106,7 @@ function CustomerInvoiceSearch() {
 
   const { user } = useContext(AuthContext);
   const { setKey } = useContext(ActiveKeyContext);
+  const navigate = useNavigate();
 
   const [filters, setFilters] = useState({
     InvoiceTitle: {
@@ -153,9 +171,9 @@ function CustomerInvoiceSearch() {
   });
 
   function handleEdit(CustomerInvoiceID) {
-    setCustomerInvoiceID(CustomerInvoiceID);
-    setIsEnable(true);
-    setKey("entry");
+    navigate(
+      "/customers/customerInvoice/" + CustomerInvoiceID + "?viewMode=edit"
+    );
     handleEditClose();
     setIdToEdit(0);
   }
@@ -169,9 +187,9 @@ function CustomerInvoiceSearch() {
     setCustomerInvoiceID(null);
   }
   function handleView(CustomerInvoiceID) {
-    setKey("entry");
-    setCustomerInvoiceID(CustomerInvoiceID);
-    setIsEnable(false);
+    navigate(
+      "/customers/customerInvoice/" + CustomerInvoiceID + "?viewMode=view"
+    );
   }
 
   return (
@@ -189,6 +207,20 @@ function CustomerInvoiceSearch() {
         </>
       ) : (
         <>
+          <div className="d-flex text-dark p-3 mb-4 ">
+            <h2 className="text-center my-auto">Customer Invoice Entry</h2>
+
+            <div className="text-end my-auto" style={{ marginLeft: "10px" }}>
+              <Button
+                label="Add New"
+                icon="pi pi-plus"
+                type="button"
+                className="rounded"
+                onClick={() => navigate(`/customers/customerInvoice/new`)}
+              />
+            </div>
+          </div>
+
           <DataTable
             showGridlines
             value={CustomerInvoices}
@@ -270,7 +302,7 @@ function CustomerInvoiceSearch() {
   );
 }
 
-function CustomerInvoiceFormMaster({ pageTitles }) {
+export function CustomerInvoiceFormMaster({ pageTitles }) {
   return (
     <InvoiceDataProivder>
       <CustomerInvoiceForm pageTitles={pageTitles} />
@@ -283,14 +315,34 @@ function CustomerInvoiceForm({ pageTitles }) {
   const [CustomerID, setCustomerID] = useState(0);
   const [AccountID, setAccountID] = useState(0);
   const [CustomerInvoice, setCustomerInvoice] = useState([]);
+  const [CustomerInvoiceID, setCustomerInvoiceID] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [printLoading, setPrintLoading] = useState(false);
   const { BusinessUnitID } = useContext(InvoiceDataContext);
   const { user } = useContext(AuthContext);
   const { setKey } = useContext(ActiveKeyContext);
+  const [isEnable, setIsEnable] = useState(false);
+  const params = useParams();
+  const location = useLocation();
+  const { search } = location;
+  const url = new URLSearchParams(search);
+  const navigate = useNavigate();
 
-  const { isEnable, setIsEnable, setCustomerInvoiceID, CustomerInvoiceID } =
-    useContext(CustomerInvoiceDataContext);
+  useEffect(() => {
+    function pageSetup() {
+      let viewMode = url.get("viewMode");
+      if (viewMode === "view") {
+        setIsEnable(false);
+      }
+      if (viewMode === "edit") {
+        setIsEnable(true);
+      }
+    }
+    pageSetup();
+  }, []);
+
+  // const { isEnable, setIsEnable, setCustomerInvoiceID, CustomerInvoiceID } =
+  //   useContext(CustomerInvoiceDataContext);
 
   const { data: sessionSelectData } = useQuery({
     queryKey: ["sessionsData"],
@@ -349,6 +401,8 @@ function CustomerInvoiceForm({ pageTitles }) {
       const data = await fetchMaxSessionBasedVoucherNo(user?.userID);
       method.setValue("SessionBasedInvoiceNo", data.data[0]?.Column1);
     }
+
+    setCustomerInvoiceID(params?.CustomerInvoiceID);
     if (CustomerInvoiceID !== 0) {
       fetchCustomerInvoice();
     } else {
@@ -441,6 +495,7 @@ function CustomerInvoiceForm({ pageTitles }) {
             Discount: item.Discount,
             NetAmount: item.NetAmount,
             DetailDescription: item.DetailDescription,
+            IsFree: item.IsFree ? 1 : 0,
           };
         });
 
@@ -478,16 +533,19 @@ function CustomerInvoiceForm({ pageTitles }) {
         );
 
         if (data.success === true) {
-          setCustomerInvoiceID(0);
-          setCustomerInvoice([]);
-          method.reset();
-          invoiceHeaderForm.reset();
-          setKey("search");
+          setCustomerInvoiceID(data?.CustomerInvoiceID);
+          setIsEnable(false);
           queryClient.invalidateQueries({ queryKey: ["customerInvoices"] });
           if (CustomerInvoiceID !== 0) {
             toast.success("Invoice updated successfully!");
+            navigate(
+              `/customers/customerInvoice/${CustomerInvoiceID}?viewMode=view`
+            );
           } else {
             toast.success("Invoice created successfully!");
+            navigate(
+              `/customers/customerInvoice/${data?.CustomerInvoiceID}?viewMode=view`
+            );
           }
         } else {
           toast.error(data.message);
@@ -594,34 +652,48 @@ function CustomerInvoiceForm({ pageTitles }) {
       );
     }
   }, [CustomerInvoiceID, CustomerInvoice]);
+
   async function filteredProductsBasedOnRow(SelectedBusinessUnitID, index) {
     const data = await fetchAllProductsForSelect(SelectedBusinessUnitID);
     method.setValue(`detail.${index}.products`, JSON.stringify(data));
   }
   function handleEdit() {
     setIsEnable(true);
+    navigate(`/customers/customerInvoice/${CustomerInvoiceID}?viewMode=edit`);
   }
 
   function handleAddNew() {
     setCustomerInvoice([]);
     setCustomerInvoiceID(0);
+    console.log("Called!");
     method.reset();
+    console.log("Called After");
     invoiceHeaderForm.reset();
     method.setValue("InvoiceDate", new Date());
     method.setValue("DueDate", new Date());
     method.setValue("Session", sessionSelectData[0]);
     setIsEnable(true);
+    navigate(`/customers/customerInvoice/new`);
   }
 
   function handleCancel() {
-    setCustomerInvoice([]);
-    setCustomerInvoiceID(0);
-    method.reset();
-    invoiceHeaderForm.reset();
-    method.setValue("InvoiceDate", new Date());
-    method.setValue("DueDate", new Date());
-    method.setValue("Session", sessionSelectData[0]);
-    setIsEnable(true);
+    // setCustomerInvoice([]);
+    // setCustomerInvoiceID(0);
+    // method.reset();
+    // invoiceHeaderForm.reset();
+    // method.setValue("InvoiceDate", new Date());
+    // method.setValue("DueDate", new Date());
+    // method.setValue("Session", sessionSelectData[0]);
+    // setIsEnable(true);
+
+    if (url.get("viewMode") === "edit") {
+      setIsEnable(false);
+      navigate(`/customers/customerInvoice/${CustomerInvoiceID}?viewMode=view`);
+    }
+
+    if (location.pathname === "") {
+      navigate(`/customers/customerInvoice/new`);
+    }
   }
 
   function handleDelete() {
@@ -655,37 +727,61 @@ function CustomerInvoiceForm({ pageTitles }) {
   }
 
   return (
-    <>
-      {isLoading ? (
-        <>
-          <CustomSpinner />
-        </>
-      ) : (
-        <>
-          {CustomerInvoiceID > 0 && !isEnable ? (
+    <div>
+      {/* {isLoading ? (
+          <>
+            <CustomSpinner />
+          </>
+        ) : ( */}
+
+      {/* <CustomerInvoiceDock /> */}
+      {/* <div className="mb-2 text-end">
+        <Button
+          label={printLoading ? "Loading..." : "Print"}
+          severity="warning"
+          icon="pi pi-print"
+          className="rounded"
+          type="button"
+          loading={printLoading}
+          loadingIcon="pi pi-spin pi-print"
+          onClick={() => handleOpenPdfInNewTab(CustomerInvoiceID)}
+        ></Button>
+      </div> */}
+      <div className="shadow-sm mb-2">
+        <ButtonToolBar
+          showPrint={true}
+          printLoading={printLoading}
+          handlePrint={() => handleOpenPdfInNewTab(CustomerInvoiceID)}
+          handleGoBack={() => navigate("/customers/customerInvoice")}
+          handleEdit={() => handleEdit()}
+          editDisable={isEnable}
+          handleCancel={() => {
+            handleCancel();
+          }}
+          cancelDisable={!isEnable}
+          handleAddNew={() => {
+            handleAddNew();
+          }}
+          addNewDisable={
+            isEnable &&
+            (CustomerInvoiceID === 0 || CustomerInvoiceID === undefined)
+          }
+          handleSave={() => method.handleSubmit(onSubmit)()}
+        />
+      </div>
+      <Accordion multiple activeIndex={[0]}>
+        {/* {CustomerInvoiceID > 0 && !isEnable ? (
             <>
-              <div className="mb-2 text-end">
-                <Button
-                  label={printLoading ? "Loading..." : "Print"}
-                  severity="warning"
-                  icon="pi pi-print"
-                  className="rounded"
-                  type="button"
-                  loading={printLoading}
-                  loadingIcon="pi pi-spin pi-print"
-                  onClick={() => handleOpenPdfInNewTab(CustomerInvoiceID)}
-                ></Button>
-              </div>
+           
             </>
           ) : (
             <></>
           )}
-          {/* <h4 className="p-3 mb-4 bg-light text-dark text-center  shadow-sm rounded-2">
+          <h4 className="p-3 mb-4 bg-light text-dark text-center  shadow-sm rounded-2">
             Customer Invoice
           </h4> */}
-
-          {/* <CustomerEntryForm /> */}
-
+        {/* <CustomerEntryForm /> */}
+        <AccordionTab header="Master">
           <form onSubmit={method.handleSubmit(onSubmit)} id="parenForm">
             <Row className="p-3" style={{ marginTop: "-25px" }}>
               <Form.Group as={Col} controlId="Session">
@@ -795,36 +891,6 @@ function CustomerInvoiceForm({ pageTitles }) {
                   })}
                 />
               </Form.Group>
-              {/*   <Form.Group as={Col} controlId="InvoiceType">
-                <Form.Label>Invoice Type</Form.Label>
-                <span className="text-danger fw-bold ">*</span>
-                <Controller
-                  control={method.control}
-                  name="InvoiceType"
-                  rules={{ required: "Please select a type!" }}
-                  render={({ field: { onChange, value, ref } }) => (
-                    <ReactSelect
-                      isDisabled={!isEnable}
-                      options={typesOptions}
-                      required
-                      value={value}
-                      ref={ref}
-                      onChange={(selectedOption) => {
-                        onChange(selectedOption);
-                        setInvoiceType(selectedOption);
-                        method.setFocus("Customer");
-                        remove();
-                      }}
-                      placeholder="Select a type"
-                      noOptionsMessage={() => "No types found!"}
-                      openMenuOnFocus
-                    />
-                  )}
-                />
-                <span className="text-danger">
-                  {method?.errors?.Type?.message}
-                </span>
-              </Form.Group> */}
 
               <Form.Group as={Col} controlId="Customer">
                 <Form.Label>
@@ -906,6 +972,8 @@ function CustomerInvoiceForm({ pageTitles }) {
               </Form.Group>
             </Row>
           </form>
+        </AccordionTab>
+        <AccordionTab header="Detail">
           {isEnable && (
             <div
               style={{
@@ -914,9 +982,9 @@ function CustomerInvoiceForm({ pageTitles }) {
               }}
               className="bg-light shadow-sm"
             >
-              <h5 className="p-3 mb-4 bg-light text-dark text-center  ">
+              {/* <h5 className="p-3 mb-4 bg-light text-dark text-center  ">
                 Detail Entry
-              </h5>
+              </h5> */}
               <FormProvider {...invoiceHeaderForm}>
                 <CustomerInvoiceHeader
                   businessSelectData={businessSelectData.data}
@@ -950,26 +1018,26 @@ function CustomerInvoiceForm({ pageTitles }) {
               </FormProvider>
             </Row>
           </>
-
-          <ButtonRow
-            isDirty={method.isDirty}
-            isValid={true}
-            editMode={isEnable}
-            isSubmitting={customerInvoiceMutation.isPending}
-            handleAddNew={handleAddNew}
-            handleCancel={handleCancel}
-            viewRecord={!isEnable}
-            editRecord={isEnable && (CustomerInvoiceID > 0 ? true : false)}
-            newRecord={CustomerInvoiceID === 0 ? true : false}
-            handleEdit={handleEdit}
-            handleDelete={handleDelete}
-            customOnClick={() => {
-              method.handleSubmit(onSubmit)();
-            }}
-          />
-        </>
-      )}
-    </>
+        </AccordionTab>
+      </Accordion>
+      {/* )} */}
+      {/* <ButtonRow
+        isDirty={method.isDirty}
+        isValid={true}
+        editMode={isEnable}
+        isSubmitting={customerInvoiceMutation.isPending}
+        handleAddNew={handleAddNew}
+        handleCancel={handleCancel}
+        viewRecord={!isEnable}
+        editRecord={isEnable && (CustomerInvoiceID > 0 ? true : false)}
+        newRecord={CustomerInvoiceID === 0 ? true : false}
+        handleEdit={handleEdit}
+        handleDelete={handleDelete}
+        customOnClick={() => {
+          method.handleSubmit(onSubmit)();
+        }}
+      /> */}
+    </div>
   );
 }
 
