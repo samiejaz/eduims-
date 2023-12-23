@@ -15,6 +15,10 @@ function CustomerInvoiceIntallmentsModal({
   method,
 }) {
   useEffect(() => {
+    method.setValue("InstallmentTotalRemaining", method.watch(`Total_Amount`));
+  }, [method.watch(`Total_Amount`)]);
+
+  useEffect(() => {
     handleNetAmountTotal();
   }, [
     installmentsFieldArray.fields,

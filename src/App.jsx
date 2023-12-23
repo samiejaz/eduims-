@@ -22,8 +22,12 @@ import {
   CompanyInfo,
   GenCustomerEntry,
 } from "./pages";
+import { CustomerInvoiceFormMaster } from "./pages/CustomerInvoice/CustomerInvoice";
+import { useContext } from "react";
+import { AppConfigurationContext } from "./context/AppConfigurationContext";
 
 const App = () => {
+  const { pageTitles } = useContext(AppConfigurationContext);
   return (
     <>
       <Routes>
@@ -56,6 +60,14 @@ const App = () => {
           <Route
             path="/customers/customerInvoice"
             element={<CustomerInvoice />}
+          />
+          <Route
+            path="/customers/customerInvoice/:CustomerInvoiceID"
+            element={<CustomerInvoiceFormMaster pageTitles={pageTitles} />}
+          />
+          <Route
+            path="/customers/customerInvoice/new"
+            element={<CustomerInvoiceFormMaster pageTitles={pageTitles} />}
           />
           <Route
             path="/general/productCategories"

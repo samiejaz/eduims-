@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchAllSelectDescripitons } from "../../api/SelectData";
 import { useState } from "react";
 import { useEffect } from "react";
+import NumberInput from "../../components/Forms/NumberInput";
 
 function CustomerInvoiceHeader(props) {
   const {
@@ -21,6 +22,7 @@ function CustomerInvoiceHeader(props) {
   } = props;
 
   const [descriptions, setDescripitons] = useState([]);
+  const [isFree, setIsFree] = useState(false);
 
   const {
     control,
@@ -61,6 +63,7 @@ function CustomerInvoiceHeader(props) {
     });
     setDescripitons(_filteredItems);
   };
+
   return (
     <>
       <form
@@ -195,7 +198,7 @@ function CustomerInvoiceHeader(props) {
                   noOptionsMessage={() =>
                     `No ${
                       pageTitles?.product.toLowerCase() || "product"
-                    }s found!`
+                    } found!`
                   }
                   isClearable
                   openMenuOnFocus
@@ -204,7 +207,7 @@ function CustomerInvoiceHeader(props) {
             />
             <span className="text-danger">{errors?.ProductInfo?.message}</span>
           </Form.Group>
-          <Form.Group as={Col} controlId="ServiceInfo">
+          <Form.Group as={Col} controlId="ServiceInfo" className="col-3">
             <Form.Label>Service to Invoice</Form.Label>
             <Controller
               control={control}
@@ -230,104 +233,104 @@ function CustomerInvoiceHeader(props) {
             />
             <span className="text-danger">{errors?.ServiceInfo?.message}</span>
           </Form.Group>
-        </Row>
-        <Row className="py-3" style={{ marginTop: "-25px" }}>
-          <Form.Group as={Col} controlId="Qty">
+          <Form.Group as={Col} controlId="Qty" className="col-1 p-0 ">
             <Form.Label>Qty</Form.Label>
-            <Form.Control
-              type="text"
-              {...register("Qty", {
-                required: true,
-                min: 1,
-              })}
-              pattern="^[0-9]*$"
-              onInput={(e) => {
-                e.target.value = e.target.value.replace(/[^0-9]/g, "");
-              }}
+            <NumberInput
+              id={"Qty"}
+              control={control}
               onChange={(e) => {
                 const rate = getValues(["Rate"]);
-                setValue("Amount", e.target.value * rate);
+                setValue("Amount", e.value * rate);
               }}
-              required
-              isInvalid={!!errors?.Rate}
+              inputClassName="form-control"
+              useGrouping={false}
             />
           </Form.Group>
-          <Form.Group as={Col} controlId="Rate">
+          <Form.Group as={Col} controlId="Rate" className="col-1">
             <Form.Label>Rate</Form.Label>
-            <Form.Control
-              type="text"
-              {...register("Rate", {
-                required: true,
-              })}
-              pattern="^[0-9]*$"
-              onInput={(e) => {
-                e.target.value = e.target.value.replace(/[^0-9]/g, "");
-              }}
+            <NumberInput
+              id={"Rate"}
+              control={control}
               onChange={(e) => {
                 const qty = getValues(["Qty"]);
-                setValue("Amount", e.target.value * qty);
+                setValue("Amount", e.value * qty);
+                const disc = getValues(["Discount"]);
+                setValue("NetAmount", e.value * qty - disc);
               }}
-              required
-              isInvalid={!!errors?.Rate}
+              mode="decimal"
+              maxFractionDigits={2}
+              inputClassName="form-control"
+              useGrouping={false}
+              disabled={isFree}
             />
           </Form.Group>
-          <Form.Group as={Col} controlId="CGS">
+          <Form.Group as={Col} controlId="CGS" className="col-1">
             <Form.Label>CGS</Form.Label>
-            <Form.Control
-              type="text"
-              {...register("CGS")}
-              pattern="^[0-9]*$"
-              onInput={(e) => {
-                e.target.value = e.target.value.replace(/[^0-9]/g, "");
-              }}
-              required
+            <NumberInput
+              id={"CGS"}
+              control={control}
+              mode="decimal"
+              maxFractionDigits={2}
+              inputClassName="form-control"
+              useGrouping={false}
+              disabled={isFree}
             />
           </Form.Group>
-          <Form.Group as={Col} controlId="Amount">
+          <Form.Group as={Col} controlId="Amount" className="col-1">
             <Form.Label>Amount</Form.Label>
-            <Form.Control
-              type="text"
-              onInput={(e) => {
-                e.target.value = e.target.value.replace(/[^0-9]/g, "");
-              }}
-              {...register("Amount")}
-              disabled
-              required
+            <NumberInput
+              id={"Amount"}
+              control={control}
+              mode="decimal"
+              maxFractionDigits={2}
+              inputClassName="form-control"
+              useGrouping={false}
+              disabled={true}
             />
           </Form.Group>
-          <Form.Group as={Col} controlId="Discount">
+          <Form.Group as={Col} controlId="Discount" className="col-1">
             <Form.Label>Discount</Form.Label>
-            <Form.Control
-              type="text"
-              {...register("Discount")}
-              onInput={(e) => {
-                e.target.value = e.target.value.replace(/[^0-9]/g, "");
-              }}
+            <NumberInput
+              id={"Discount"}
+              control={control}
+              disabled={isFree}
               onChange={(e) => {
                 const amount = getValues(["Amount"]);
-                setValue("NetAmount", amount - e.target.value);
+                setValue("NetAmount", amount - e.value);
               }}
-              required
+              mode="decimal"
+              maxFractionDigits={2}
+              inputClassName="form-control"
+              useGrouping={false}
             />
           </Form.Group>
-          <Form.Group as={Col} controlId="NetAmount">
+          <Form.Group as={Col} controlId="NetAmount" className="col-1">
             <Form.Label>Net Amount</Form.Label>
-            <Form.Control
-              type="text"
-              onInput={(e) => {
-                e.target.value = e.target.value.replace(/[^0-9]/g, "");
-              }}
-              {...register("NetAmount")}
-              disabled
-              required
+            <NumberInput
+              id={"NetAmount"}
+              control={control}
+              mode="decimal"
+              maxFractionDigits={2}
+              inputClassName="form-control"
+              useGrouping={false}
+              disabled={true}
             />
           </Form.Group>
         </Row>
+        {/* <Row className="py-3" style={{ marginTop: "-25px" }}>
+        
+        </Row> */}
         <Row className="py-3" style={{ marginTop: "-25px" }}>
-          <Form.Group as={Col} controlId="DetailDescription">
+          <Form.Group as={Col} controlId="DetailDescription" className="col-9">
             <Form.Label>Description</Form.Label>
+            <Form.Control
+              as={"textarea"}
+              rows={1}
+              className="form-control"
+              {...register("DetailDescription")}
+            />
 
-            <Controller
+            {/* <Controller
               name="DetailDescription"
               control={control}
               render={({ field, fieldState }) => (
@@ -345,7 +348,7 @@ function CustomerInvoiceHeader(props) {
                   />
                 </>
               )}
-            />
+            /> */}
           </Form.Group>
 
           <Form.Control
@@ -353,10 +356,29 @@ function CustomerInvoiceHeader(props) {
             {...register("products")}
             style={{ display: "none" }}
           />
-        </Row>
-        <Row className="py-3" style={{ marginTop: "-25px" }}>
+          <Form.Group as={Col} controlId="IsFree">
+            <Form.Label></Form.Label>
+            <Form.Check
+              {...register("IsFree")}
+              label="Is Free"
+              aria-label="Is Free"
+              style={{ marginTop: "15px" }}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setValue("Rate", 0);
+                  setValue("CGS", 0);
+                  setValue("Amount", 0);
+                  setValue("Discount", 0);
+                  setValue("NetAmount", 0);
+                  setIsFree(true);
+                } else {
+                  setIsFree(false);
+                }
+              }}
+            />
+          </Form.Group>
           <Form.Group as={Col}>
-            <Form.Label>Actions</Form.Label>
+            <Form.Label></Form.Label>
             <ButtonGroup className="d-block">
               <button
                 className="showbutton bg-success text-white"
@@ -375,6 +397,9 @@ function CustomerInvoiceHeader(props) {
             </ButtonGroup>
           </Form.Group>
         </Row>
+        {/* <Row className="py-3" style={{ marginTop: "-25px" }}>
+         
+        </Row> */}
       </form>
     </>
   );

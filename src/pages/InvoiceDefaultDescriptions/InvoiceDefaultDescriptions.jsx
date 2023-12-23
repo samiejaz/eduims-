@@ -37,7 +37,7 @@ const defaultValues = {
 
 function InvoiceDefaultDescriptions() {
   const { pageTitles } = useContext(AppConfigurationContext);
-  document.title = `${pageTitles?.product || "Product"} Descriptions`;
+  document.title = `Invoice Descriptions`;
   return (
     <InvoiceDefaultDescriptionsDataProivder>
       <TabHeader
@@ -257,7 +257,7 @@ function InvoiceDefaultDescriptionsEntry({ pageTitles }) {
         EntryUserID: user.userID,
       };
 
-      if (InvoiceDefaultDescription?.data[0]?.DescriptionID !== undefined) {
+      if (InvoiceDefaultDescription?.data && DescriptionID !== 0) {
         dataToSend.DescriptionID =
           InvoiceDefaultDescription?.data[0]?.DescriptionID;
       } else {
@@ -325,14 +325,14 @@ function InvoiceDefaultDescriptionsEntry({ pageTitles }) {
   }
 
   function handleAddNew() {
-    setInvoiceDefaultDescription(undefined);
+    setInvoiceDefaultDescription([]);
     setDescriptionID(0);
     reset(defaultValues);
     setIsEnable(true);
   }
 
   function handleCancel() {
-    setInvoiceDefaultDescription(undefined);
+    setInvoiceDefaultDescription([]);
     setDescriptionID(0);
     reset(defaultValues);
     setIsEnable(true);
@@ -370,7 +370,7 @@ function InvoiceDefaultDescriptionsEntry({ pageTitles }) {
           </h4>
           <form
             onSubmit={handleSubmit(onSubmit)}
-            onKeyDown={preventFormByEnterKeySubmission}
+            onKeyDown={(e) => (e.key === "Enter" ? e.preventDefault() : "")}
           >
             <Row className="p-3">
               <Form.Group as={Col} controlId="InvoiceType">
@@ -399,11 +399,12 @@ function InvoiceDefaultDescriptionsEntry({ pageTitles }) {
                 <span className="text-danger fw-bold ">*</span>
                 <Form.Control
                   as={"textarea"}
-                  required
                   rows={5}
+                  disabled={!isEnable}
+                  required
                   className="form-control"
                   {...register("Description", {
-                    disabled: !isEnable,
+                    required: "Description is required!",
                   })}
                 />
               </Form.Group>
@@ -428,7 +429,7 @@ function InvoiceDefaultDescriptionsEntry({ pageTitles }) {
               handleAddNew={handleAddNew}
               handleCancel={handleCancel}
               viewRecord={!isEnable}
-              editRecord={isEnable && (DescriptionID !== 0 ? true : false)}
+              editRecord={isEnable && (DescriptionID > 0 ? true : false)}
               newRecord={DescriptionID === 0 ? true : false}
               handleEdit={handleEdit}
               handleDelete={handleDelete}

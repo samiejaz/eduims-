@@ -23,6 +23,7 @@ const customerEntryDefaultValues = {
   ContactPerson1No: "",
   Description: "",
   InActive: false,
+  Customers: null,
 };
 
 const customerBranchDefaultValues = {
@@ -51,7 +52,7 @@ const useCustomerEntryHook = () => {
 
   const oldCustomers = useOldCustomerSelectData();
   const customerEntryFrom = useForm({
-    defaultValues: customerAccountDefaultValues,
+    defaultValues: customerEntryDefaultValues,
   });
   const customerAccountsForm = useForm({
     defaultValues: customerAccountDefaultValues,
@@ -134,11 +135,11 @@ const useCustomerEntryHook = () => {
                   optionValue="CustomerID"
                   optionLabel="CustomerName"
                   placeholder="Select a customer"
-                  onFilter={(e) => console.log(e)}
                   options={oldCustomers.data}
                   focusInputRef={field.ref}
                   onChange={(e) => {
                     field.onChange(e.value);
+                    console.log(e.value);
                     if (e.value === undefined) {
                       customerEntryFrom.reset();
                       setCustomerID(0);
