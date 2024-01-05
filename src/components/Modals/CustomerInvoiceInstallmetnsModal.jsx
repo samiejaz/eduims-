@@ -116,6 +116,8 @@ function CustomerInvoiceIntallmentsModal({
                   disabled={true}
                   value={method.watch("Total_Amount")}
                   prefix="Rs "
+                  mode="decimal"
+                  useGrouping={false}
                 />
               </div>
             </div>
@@ -131,6 +133,8 @@ function CustomerInvoiceIntallmentsModal({
                 control={method.control}
                 disabled={true}
                 prefix="Rs "
+                mode="decimal"
+                useGrouping={false}
               />
             </div>
           </div>
@@ -177,6 +181,8 @@ function CustomerInvoiceIntallmentsModal({
                           required: true,
                         }}
                         min={1}
+                        mode="decimal"
+                        useGrouping={false}
                       />
                     </div>
                     <div style={{ display: "flex", gap: 2 }}>

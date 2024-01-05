@@ -42,6 +42,7 @@ function CustomerInvoiceHeader(props) {
   function onSubmit(data) {
     append(data);
     reset();
+    setIsFree(false);
   }
 
   useEffect(() => {

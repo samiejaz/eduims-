@@ -56,7 +56,8 @@ function ButtonRow({
               style={{ marginTop: "30px" }}
               className="btn btn-primary p-2 rounded-sm fw-bold"
               type="submit"
-              onClick={customOnClick}
+              //  type="button"
+              onClick={() => customOnClick()}
             >
               {isSubmitting ? (
                 <>

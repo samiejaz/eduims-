@@ -8,9 +8,7 @@ import {
 } from "../../api/SelectData";
 import NumberInput from "../../components/Forms/NumberInput";
 
-let renderCount = 0;
 function CustomerInvoiceDetailTable(props) {
-  renderCount++;
   const {
     customerBranchSelectData,
     pageTitles,
@@ -34,7 +32,7 @@ function CustomerInvoiceDetailTable(props) {
 
   useEffect(() => {
     handleNetAmountTotal();
-  }, [append, fields]);
+  }, [append, fields, watch(`detail`)]);
   function handleNetAmountTotal() {
     let rateSum = 0;
     let cgsSum = 0;

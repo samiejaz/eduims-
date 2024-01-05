@@ -3,11 +3,14 @@ import {
   fetchAllActivationCustomersForSelect,
   fetchAllBusinessUnitsForSelect,
   fetchAllCustomerAccountsForSelect,
+  fetchAllCustomerInvoices,
   fetchAllCustomersBranch,
+  fetchAllInvoiceInstallmetns,
   fetchAllOldCustomersForSelect,
   fetchAllProductCategoriesForSelect,
   fetchAllProductsForSelect,
   fetchAllServicesForSelect,
+  fetchAllSessionsForSelect,
   fetchAllSoftwareCustomersForSelect,
 } from "../../api/SelectData";
 
@@ -60,6 +63,17 @@ export function useCustomerLedgersSelectData(CustomerID = 0) {
   });
   return CustomerAccounts;
 }
+// All Sessions
+export function useSessionSelectData() {
+  const sessionSelectData = useQuery({
+    queryKey: ["sessionsData"],
+    queryFn: () => fetchAllSessionsForSelect(),
+    initialData: [],
+  });
+
+  return sessionSelectData;
+}
+
 // All Business Units
 export function useBusinessUnitsSelectData() {
   const businessSelectData = useQuery({
@@ -99,4 +113,23 @@ export function useServicesInfoSelectData(BusinessUnitID = 0) {
     initialData: [],
   });
   return servicesInfoSelectData;
+}
+
+// All Invoices
+export function useCustomerInvoicesSelectData(CustomerID = 0) {
+  const customerInvoicesSelectData = useQuery({
+    queryKey: ["customerInvoices", CustomerID],
+    queryFn: () => fetchAllCustomerInvoices(CustomerID),
+    initialData: [],
+  });
+  return customerInvoicesSelectData;
+}
+// All Invoices
+export function useCustomerInvoiceInstallments(CustomerInvoiceID = 0) {
+  const customerInvoiceInstallmentsSelectData = useQuery({
+    queryKey: ["customerInvoices", CustomerInvoiceID],
+    queryFn: () => fetchAllInvoiceInstallmetns(CustomerInvoiceID),
+    initialData: [],
+  });
+  return customerInvoiceInstallmentsSelectData;
 }

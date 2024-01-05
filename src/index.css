@@ -1,6 +1,12 @@
+*, *::after, *::before {
+
+  box-sizing: border-box;
+}
+
 body {
   font-family: var(--font-family);
   font-weight: normal;
+
 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -31,9 +37,17 @@ ul.p-dropdown-items {
 }
 
 .p-inputtext {
-  padding: 0.5rem 0.5rem;
+  padding: 0.3rem 0.4rem;
   margin: 0 auto;
+  font-size: .9em;
 }
+
+.form-label {
+  margin-bottom: 0;
+  font-size: 14px; font-weight: bold;
+}
+
+
 
 td {
   border: solid #e9ecef;
@@ -53,6 +67,10 @@ th.p-filter-column {
 
 .p-datatable-emptymessage td {
   text-align: center;
+}
+
+.p-dropdown-panel .p-dropdown-items {
+   padding: 0 0; 
 }
 
 /* Login Form */
@@ -108,8 +126,8 @@ th.p-filter-column {
 .binput {
   display: block;
   width: 100%;
-  padding: 0.375rem 0.75rem;
-  font-size: 1rem;
+  padding: 0.3rem 0.4rem;
+  font-size: .9em;
   font-weight: 400;
   line-height: 1.5;
   color: var(--bs-body-color);
@@ -305,4 +323,18 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.small-input > input {
+  padding: 0.3rem 0.4rem;
+  font-size: 14px;
+}
+
+.small-textarea > .form-control {
+  padding: 0.3rem 0.4rem;
+  font-size: 14px;
+}
+
+.table>:not(caption)>*>* {
+  padding: 2px 2px;
 }

@@ -238,20 +238,8 @@ function GenOldCustomerEntryForm() {
     }
   }, [OldCustomerID]);
 
-  // Queries
-  // const { data: activationClients } = useQuery({
-  //   queryKey: ["activationClients", OldCustomerID],
-  //   queryFn: () => fetchAllActivationCustomersForSelect(OldCustomerID),
-  //   initialData: [],
-  // });
-  // const { data: softwareClients } = useQuery({
-  //   queryKey: ["softwareClients", OldCustomerID],
-  //   queryFn: () => fetchAllSoftwareCustomersForSelect(OldCustomerID),
-  //   initialData: [],
-  // });
-
-  const activationClients = useActivationClientsSelectData();
-  const softwareClients = useSoftwareClientsSelectData();
+  const activationClients = useActivationClientsSelectData(OldCustomerID);
+  const softwareClients = useSoftwareClientsSelectData(OldCustomerID);
 
   const oldCustomerMutation = useMutation({
     mutationFn: async (formData) => {
@@ -330,6 +318,9 @@ function GenOldCustomerEntryForm() {
       setValue("CustomerName", OldCustomerData?.data[0]?.CustomerName);
       setValue("InActive", OldCustomerData?.data[0]?.InActive);
     }
+    const ids = OldCustomerData?.dataAct?.map((item) => item.ACTCustomerID);
+    console.log(ids);
+    console.log(activationClients.data);
   }, [OldCustomerID, OldCustomerData]);
 
   // Mutations
