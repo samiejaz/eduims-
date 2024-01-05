@@ -79,7 +79,6 @@ export async function fetchAllActivationCustomersForSelect(CustomerID) {
   const { data } = await axios.post(
     apiUrl + "/Select/GetClientDataFromActDb" + whereClause
   );
-
   return data.data;
 }
 export async function fetchAllSoftwareCustomersForSelect(CustomerID) {
@@ -110,5 +109,29 @@ export async function fetchAllSelectDescripitons(InvoiceType = "") {
 }
 export async function fetchAllCustomersBranch() {
   const { data } = await axios.post(apiUrl + "/Branch/SelectBranch");
+  return data.data;
+}
+export async function fetchAllCustomerInvoices(CustomerID) {
+  let whereClause;
+  if (CustomerID === undefined || CustomerID === 0) {
+    whereClause = "";
+  } else {
+    whereClause = "?CustomerID=" + CustomerID;
+  }
+  const { data } = await axios.post(
+    apiUrl + "/data_ReceiptVoucher/SelectCustomerInvoices" + whereClause
+  );
+  return data.data;
+}
+export async function fetchAllInvoiceInstallmetns(CustomerInvoiceID) {
+  let whereClause;
+  if (CustomerInvoiceID === undefined || CustomerInvoiceID === 0) {
+    whereClause = "";
+  } else {
+    whereClause = "?CustomerInvoiceID=" + CustomerInvoiceID;
+  }
+  const { data } = await axios.post(
+    apiUrl + "/data_ReceiptVoucher/SelectCustomerInstallments" + whereClause
+  );
   return data.data;
 }

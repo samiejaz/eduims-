@@ -19,6 +19,11 @@ export default function ButtonToolBar({
   handlePrint = () => {},
   handleSave = () => {},
   handleGoBack = () => {},
+  saveLabel = "Save",
+  viewLabel = "View",
+  editLabel = "Edit",
+  cancelLabel = "Cancel",
+  deleteLabel = "Delete",
 }) {
   const startContent = (
     <Button
@@ -33,7 +38,7 @@ export default function ButtonToolBar({
   const centerContent = (
     <React.Fragment>
       <Button
-        label="Cancel"
+        label={cancelLabel}
         icon="pi pi-times"
         className="rounded"
         type="button"
@@ -52,7 +57,7 @@ export default function ButtonToolBar({
         style={{ marginRight: "2px" }}
       />
       <Button
-        label="Edit"
+        label={editLabel}
         icon="pi pi-pencil"
         type="button"
         severity="warning"
@@ -62,7 +67,7 @@ export default function ButtonToolBar({
         style={{ marginRight: "2px" }}
       />
       <Button
-        label="Delete"
+        label={deleteLabel}
         icon="pi pi-trash"
         type="button"
         severity="danger"
@@ -72,12 +77,12 @@ export default function ButtonToolBar({
         className="p-button-success rounded"
       />
       <Button
-        label="Save"
+        label={saveLabel}
         icon="pi pi-check"
-        type="button"
+        type="submit"
         severity="success"
         disabled={saveDisable}
-        onClick={() => handleSave()}
+        onClick={handleSave}
         className="p-button-success rounded"
       />
       {showPrint ? (

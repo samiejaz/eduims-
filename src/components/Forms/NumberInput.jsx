@@ -1,12 +1,13 @@
 import React from "react";
 import { Controller } from "react-hook-form";
 import { InputNumber } from "primereact/inputnumber";
+import { classNames } from "primereact/utils";
 
 const NumberInput = ({
   label = "",
   id,
   control,
-  disabled = false,
+  enterKeyOptions,
   required = false,
   ...options
 }) => {
@@ -14,20 +15,31 @@ const NumberInput = ({
     <Controller
       name={id}
       control={control}
-      rules={{
-        required: true,
-      }}
-      render={({ field }) => (
+      rules={{ required }}
+      render={({ field, fieldState }) => (
         <>
-          <label htmlFor={field.name}>{label}</label>
           <InputNumber
             id={field.name}
-            disabled={disabled}
             inputRef={field.ref}
             value={field.value}
             onBlur={field.onBlur}
             onValueChange={(e) => {
               field.onChange(e);
+            }}
+            className={classNames({
+              "p-invalid": fieldState.error,
+            })}
+            pt={{
+              root: {
+                className: "small-input",
+              },
+            }}
+            onKeyDown={(e) => {
+              if (enterKeyOptions) {
+                if (e.key === "Enter") {
+                  enterKeyOptions();
+                }
+              }
             }}
             {...options}
           />
