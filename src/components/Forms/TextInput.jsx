@@ -1,4 +1,5 @@
 import { InputText } from "primereact/inputtext";
+import { classNames } from "primereact/utils";
 import { Controller } from "react-hook-form";
 
 function TextInput({
@@ -6,6 +7,7 @@ function TextInput({
   ID,
   control,
   required,
+  focusOptions,
   isEnable = true,
   floatLabel = false,
   ...options
@@ -15,7 +17,7 @@ function TextInput({
       name={ID}
       control={control}
       rules={{ required }}
-      render={({ field }) => (
+      render={({ field, fieldState }) => (
         <>
           <label htmlFor={field.name}>{Label}</label>
           <span className={floatLabel ? "p-float-label" : ""}>
@@ -23,6 +25,7 @@ function TextInput({
               disabled={!isEnable}
               id={field.name}
               value={field.value}
+              ref={field.ref}
               onChange={(e) => field.onChange(e.target.value)}
               style={{
                 width: "100%",
@@ -32,6 +35,16 @@ function TextInput({
               pt={{
                 root: { style: { padding: "0.3rem 0.4rem", fontSize: ".9em" } },
               }}
+              onKeyDown={(e) => {
+                if (focusOptions) {
+                  if (e.key === "Enter") {
+                    focusOptions();
+                  }
+                }
+              }}
+              className={classNames({
+                "p-invalid": fieldState.error,
+              })}
               {...options}
             />
           </span>

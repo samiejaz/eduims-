@@ -13,8 +13,10 @@ const CDropdown = ({
   optionLabel = "label",
   optionValue = "value",
   required = false,
-  showOnFocus = false,
+  showOnFocus = true,
   showClear = false,
+  filter = false,
+  disabled = false,
   ...moreOptions
 }) => {
   return (
@@ -54,11 +56,17 @@ const CDropdown = ({
             }
           }}
           showOnFocus={showOnFocus}
+          disabled={disabled}
           showClear={showClear}
           className={classNames({
             "p-invalid": fieldState.error,
           })}
-          style={{ width: "100%" }}
+          filter={filter}
+          style={{
+            width: "100%",
+            backgroundColor: disabled === true ? "#dee2e6" : "white",
+            color: "black",
+          }}
           pt={{
             input: {
               style: {
@@ -72,6 +80,7 @@ const CDropdown = ({
               },
             },
           }}
+          resetFilterOnHide
           {...moreOptions}
         />
       )}

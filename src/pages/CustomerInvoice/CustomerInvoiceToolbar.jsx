@@ -4,6 +4,7 @@ import { Button } from "primereact/button";
 
 export default function ButtonToolBar({
   printLoading = false,
+  saveLoading = false,
   deleteDisable = false,
   saveDisable = false,
   cancelDisable = false,
@@ -24,11 +25,12 @@ export default function ButtonToolBar({
   editLabel = "Edit",
   cancelLabel = "Cancel",
   deleteLabel = "Delete",
+  GoBackLabel = "",
 }) {
   const startContent = (
     <Button
       icon="pi pi-arrow-left"
-      tooltip="Go Back!"
+      tooltip={GoBackLabel}
       className="p-button-text"
       onClick={() => {
         handleGoBack();
@@ -83,7 +85,9 @@ export default function ButtonToolBar({
         severity="success"
         disabled={saveDisable}
         onClick={handleSave}
+        loading={saveLoading}
         className="p-button-success rounded"
+        loadingIcon="pi pi-spin pi-cog"
       />
       {showPrint ? (
         <>
@@ -108,5 +112,19 @@ export default function ButtonToolBar({
     </React.Fragment>
   );
 
-  return <Toolbar start={startContent} center={centerContent} />;
+  return (
+    <Toolbar
+      start={startContent}
+      center={centerContent}
+      pt={{
+        root: {
+          style: {
+            background: "none",
+            padding: "0",
+            border: "none",
+          },
+        },
+      }}
+    />
+  );
 }

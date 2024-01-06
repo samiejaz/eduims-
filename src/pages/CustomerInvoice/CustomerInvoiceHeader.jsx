@@ -1,28 +1,21 @@
 import { Row, Col, Form, ButtonGroup } from "react-bootstrap";
-import { Controller, useFormContext } from "react-hook-form";
-import ReactSelect from "react-select";
-import { useContext } from "react";
-import { InvoiceDataContext } from "./CustomerInvoiceDataContext";
-import { AutoComplete } from "primereact/autocomplete";
-import { useQuery } from "@tanstack/react-query";
-import { fetchAllSelectDescripitons } from "../../api/SelectData";
+import { useFormContext } from "react-hook-form";
 import { useState } from "react";
 import { useEffect } from "react";
 import NumberInput from "../../components/Forms/NumberInput";
+import CDropdown from "../../components/Forms/CDropdown";
+import {
+  useBusinessUnitsSelectData,
+  useProductsInfoSelectData,
+  useServicesInfoSelectData,
+} from "../../hooks/SelectData/useSelectData";
+import DetailHeaderActionButtons from "../../components/DetailHeaderActionButtons";
 
 function CustomerInvoiceHeader(props) {
-  const {
-    businessSelectData,
-    customerBranchSelectData,
-    productsInfoSelectData,
-    servicesInfoSelectData,
-    typesOption,
-    append,
-    pageTitles,
-  } = props;
-
-  const [descriptions, setDescripitons] = useState([]);
+  const { customerBranchSelectData, typesOption, append, pageTitles } = props;
   const [isFree, setIsFree] = useState(false);
+  const [invoiceType, setInvoiceType] = useState();
+  const [BusinessUnitID, setBusinessUnitID] = useState(0);
 
   const {
     control,
@@ -32,207 +25,149 @@ function CustomerInvoiceHeader(props) {
     getValues,
     setValue,
     setFocus,
-    watch,
-    formState: { errors, isDirty },
+    formState,
   } = useFormContext();
-  const invoiceType = watch("InvoiceType")?.value === "Product" ? true : false;
 
-  const { setBusinessUnitID } = useContext(InvoiceDataContext);
+  const businessSelectData = useBusinessUnitsSelectData();
+  const productsInfoSelectData = useProductsInfoSelectData(BusinessUnitID);
+  const servicesInfoSelectData = useServicesInfoSelectData(BusinessUnitID);
 
   function onSubmit(data) {
-    append(data);
+    append({
+      InvoiceType: data.InvoiceType,
+      BusinessUnit: data.BusinessUnit,
+      CustomerBranch: data.CustomerBranch,
+      ProductInfo: data.ProductInfo,
+      ServiceInfo: data.ServiceInfo,
+      Qty: data.Qty,
+      Rate: data.Rate,
+      CGS: data.CGS,
+      Discount: data.Discount,
+      Amount: data.Amount,
+      NetAmount: data.NetAmount,
+      DetailDescription: data.DetailDescription,
+      products: JSON.stringify(productsInfoSelectData.data),
+      IsFree: data.IsFree,
+      services: JSON.stringify(servicesInfoSelectData.data),
+    });
     reset();
     setIsFree(false);
+    setFocus("InvoiceType");
   }
-
-  useEffect(() => {
-    setValue("products", JSON.stringify(productsInfoSelectData));
-  }, [productsInfoSelectData]);
-
-  const { data: items } = useQuery({
-    queryKey: ["invoiceDescripitons"],
-    queryFn: () => fetchAllSelectDescripitons(invoiceType?.value),
-    enabled: invoiceType !== "",
-    initialData: [],
-  });
-
-  const search = (event) => {
-    let _filteredItems;
-    let query = event.query;
-    _filteredItems = items.filter((item) => {
-      return item.toLowerCase().includes(query.toLowerCase());
-    });
-    setDescripitons(_filteredItems);
-  };
 
   return (
     <>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        // onKeyDown={preventFormByEnterKeySubmission}
-      >
-        <Row className="py-3" style={{ marginTop: "-25px" }}>
+      <form>
+        <Row>
           <Form.Group as={Col} controlId="InvoiceType">
             <Form.Label>Invoice Type</Form.Label>
             <span className="text-danger fw-bold ">*</span>
-            <Controller
-              control={control}
-              name="InvoiceType"
-              rules={{ required: "Please select a type!" }}
-              render={({ field: { onChange, value, ref } }) => (
-                <ReactSelect
-                  options={typesOption}
-                  required
-                  value={value}
-                  ref={ref}
-                  onChange={(selectedOption) => {
-                    onChange(selectedOption);
-                    setFocus("Customer");
-                  }}
-                  placeholder="Select a type"
-                  noOptionsMessage={() => "No types found!"}
-                  openMenuOnFocus
-                />
-              )}
-            />
+
+            <div>
+              <CDropdown
+                control={control}
+                name={`InvoiceType`}
+                placeholder="Select a type"
+                options={typesOption}
+                required={true}
+                focusOptions={() => setFocus("BusinessUnit")}
+                onChange={(e) => {
+                  setInvoiceType(e.value === "Product" ? true : false);
+                }}
+              />
+            </div>
           </Form.Group>
           <Form.Group as={Col} controlId="BusinessUnit">
-            <Form.Label>Business Unit</Form.Label>
-            <span className="text-danger fw-bold ">*</span>
-            <Controller
-              control={control}
-              name="BusinessUnit"
-              rules={{ required: "Please select a business unit" }}
-              render={({ field: { onChange, value, ref } }) => (
-                <ReactSelect
-                  options={businessSelectData}
-                  getOptionValue={(option) => option.BusinessUnitID}
-                  getOptionLabel={(option) => option.BusinessUnitName}
-                  value={value}
-                  ref={ref}
-                  onChange={(selectedOption) => {
-                    onChange(selectedOption);
-                    setValue("ProductInfo", []);
-                    setValue("ServiceInfo", []);
-                    setBusinessUnitID(selectedOption?.BusinessUnitID);
-                    setFocus("CustomerBranch");
-                  }}
-                  noOptionsMessage={() => "No business unit found!"}
-                  isClearable
-                  placeholder="Select a business unit"
-                  openMenuOnFocus
-                />
-              )}
-            />
-            <span className="text-danger">{errors?.BusinessUnit?.message}</span>
+            <Form.Label>
+              Business Unit
+              <span className="text-danger fw-bold ">*</span>
+            </Form.Label>
+
+            <div>
+              <CDropdown
+                control={control}
+                name={`BusinessUnit`}
+                optionLabel="BusinessUnitName"
+                optionValue="BusinessUnitID"
+                placeholder="Select a business unit"
+                options={businessSelectData.data}
+                required={true}
+                onChange={(e) => {
+                  setValue("ProductInfo", []);
+                  setValue("ServiceInfo", []);
+                  setBusinessUnitID(e.value);
+                }}
+                filter={true}
+                focusOptions={() => setFocus("CustomerBranch")}
+              />
+            </div>
           </Form.Group>
           <Form.Group as={Col} controlId="CustomerBranch">
-            <Form.Label>{pageTitles?.branch || "Customer Branch"}</Form.Label>
-            <span className="text-danger fw-bold ">*</span>
-            <Controller
-              control={control}
-              name="CustomerBranch"
-              rules={{
-                required: `Please select a ${
-                  pageTitles?.branch?.toLowerCase() || "customer branch"
-                }`,
-              }}
-              render={({ field: { onChange, value, ref } }) => (
-                <ReactSelect
-                  options={customerBranchSelectData}
-                  getOptionValue={(option) => option.BranchID}
-                  getOptionLabel={(option) => option.BranchTitle}
-                  value={value}
-                  ref={ref}
-                  onChange={(selectedOption) => {
-                    onChange(selectedOption);
-                    setFocus("ProductInfo");
-                  }}
-                  placeholder={`Select a ${
-                    pageTitles?.branch.toLowerCase() || "customer branche"
-                  }s`}
-                  noOptionsMessage={() =>
-                    `No ${
-                      pageTitles?.branch?.toLowerCase() || "customer branche"
-                    }s found!`
-                  }
-                  isClearable
-                  openMenuOnFocus
-                />
-              )}
-            />
-            <span className="text-danger">
-              {errors?.CustomerBranch?.message}
-            </span>
+            <Form.Label>
+              {pageTitles?.branch || "Customer Branch"}
+              <span className="text-danger fw-bold ">*</span>
+            </Form.Label>
+
+            <div>
+              <CDropdown
+                control={control}
+                name={`CustomerBranch`}
+                optionLabel="BranchTitle"
+                optionValue="BranchID"
+                placeholder={`Select a ${
+                  pageTitles?.branch.toLowerCase() || "customer branche"
+                }s`}
+                options={customerBranchSelectData}
+                required={true}
+                focusOptions={() => setFocus("ProductInfo")}
+              />
+            </div>
           </Form.Group>
         </Row>
 
-        <Row className="py-3" style={{ marginTop: "-25px" }}>
+        <Row>
           <Form.Group as={Col} controlId="ProductInfo">
             <Form.Label>
               {pageTitles?.product || "Product"} to{" "}
               {invoiceType ? "Invoice" : "Serve"}
             </Form.Label>
             <span className="text-danger fw-bold ">*</span>
-            <Controller
-              control={control}
-              name="ProductInfo"
-              rules={{
-                required: `Please select a ${
+
+            <div>
+              <CDropdown
+                control={control}
+                name={`ProductInfo`}
+                optionLabel="ProductInfoTitle"
+                optionValue="ProductInfoID"
+                placeholder={`Select a ${
                   pageTitles?.product.toLowerCase() || "product"
-                }`,
-              }}
-              render={({ field: { onChange, value, ref } }) => (
-                <ReactSelect
-                  options={productsInfoSelectData}
-                  getOptionValue={(option) => option.ProductInfoID}
-                  getOptionLabel={(option) => option.ProductInfoTitle}
-                  value={value}
-                  ref={ref}
-                  onChange={(selectedOption) => {
-                    onChange(selectedOption);
-                    invoiceType ? setFocus("Qty") : setFocus("ServiceInfo");
-                  }}
-                  placeholder={`Select a ${
-                    pageTitles?.product.toLowerCase() || "product"
-                  }`}
-                  noOptionsMessage={() =>
-                    `No ${
-                      pageTitles?.product.toLowerCase() || "product"
-                    } found!`
-                  }
-                  isClearable
-                  openMenuOnFocus
-                />
-              )}
-            />
-            <span className="text-danger">{errors?.ProductInfo?.message}</span>
+                }`}
+                options={productsInfoSelectData.data}
+                required={true}
+                filter={true}
+                focusOptions={() =>
+                  setFocus(invoiceType ? "Qty" : "ServiceInfo")
+                }
+              />
+            </div>
           </Form.Group>
           <Form.Group as={Col} controlId="ServiceInfo" className="col-3">
             <Form.Label>Service to Invoice</Form.Label>
-            <Controller
-              control={control}
-              name="ServiceInfo"
-              render={({ field: { onChange, value, ref } }) => (
-                <ReactSelect
-                  options={servicesInfoSelectData}
-                  getOptionValue={(option) => option.ProductInfoID}
-                  getOptionLabel={(option) => option.ProductInfoTitle}
-                  value={value}
-                  ref={ref}
-                  onChange={(selectedOption) => {
-                    onChange(selectedOption);
-                    setFocus("Qty");
-                  }}
-                  placeholder={`Select a service`}
-                  noOptionsMessage={() => `No services found!`}
-                  isClearable
-                  isDisabled={invoiceType}
-                  openMenuOnFocus
-                />
-              )}
-            />
-            <span className="text-danger">{errors?.ServiceInfo?.message}</span>
+
+            <div>
+              <CDropdown
+                control={control}
+                name={`ServiceInfo`}
+                optionLabel="ProductInfoTitle"
+                optionValue="ProductInfoID"
+                placeholder={`Select a service`}
+                options={servicesInfoSelectData.data}
+                disabled={invoiceType}
+                filter={true}
+                focusOptions={() => setFocus("Qty")}
+              />
+            </div>
+            {/* <span className="text-danger">{errors?.ServiceInfo?.message}</span> */}
           </Form.Group>
           <Form.Group as={Col} controlId="Qty" className="col-1 p-0 ">
             <Form.Label>Qty</Form.Label>
@@ -245,6 +180,7 @@ function CustomerInvoiceHeader(props) {
               }}
               inputClassName="form-control"
               useGrouping={false}
+              enterKeyOptions={() => setFocus("Rate")}
             />
           </Form.Group>
           <Form.Group as={Col} controlId="Rate" className="col-1">
@@ -263,6 +199,7 @@ function CustomerInvoiceHeader(props) {
               inputClassName="form-control"
               useGrouping={false}
               disabled={isFree}
+              enterKeyOptions={() => setFocus("CGS")}
             />
           </Form.Group>
           <Form.Group as={Col} controlId="CGS" className="col-1">
@@ -274,7 +211,7 @@ function CustomerInvoiceHeader(props) {
               maxFractionDigits={2}
               inputClassName="form-control"
               useGrouping={false}
-              disabled={isFree}
+              enterKeyOptions={() => setFocus("Discount")}
             />
           </Form.Group>
           <Form.Group as={Col} controlId="Amount" className="col-1">
@@ -303,6 +240,7 @@ function CustomerInvoiceHeader(props) {
               maxFractionDigits={2}
               inputClassName="form-control"
               useGrouping={false}
+              enterKeyOptions={() => setFocus("DetailDescription")}
             />
           </Form.Group>
           <Form.Group as={Col} controlId="NetAmount" className="col-1">
@@ -321,7 +259,7 @@ function CustomerInvoiceHeader(props) {
         {/* <Row className="py-3" style={{ marginTop: "-25px" }}>
         
         </Row> */}
-        <Row className="py-3" style={{ marginTop: "-25px" }}>
+        <Row>
           <Form.Group as={Col} controlId="DetailDescription" className="col-9">
             <Form.Label>Description</Form.Label>
             <Form.Control
@@ -330,26 +268,6 @@ function CustomerInvoiceHeader(props) {
               className="form-control"
               {...register("DetailDescription")}
             />
-
-            {/* <Controller
-              name="DetailDescription"
-              control={control}
-              render={({ field, fieldState }) => (
-                <>
-                  <AutoComplete
-                    className="w-100"
-                    panelStyle={{ left: "103px", width: "1482px" }}
-                    inputClassName="w-100"
-                    inputId={field.name}
-                    value={field.value}
-                    onChange={field.onChange}
-                    inputRef={field.ref}
-                    suggestions={descriptions}
-                    completeMethod={search}
-                  />
-                </>
-              )}
-            /> */}
           </Form.Group>
 
           <Form.Control
@@ -357,13 +275,13 @@ function CustomerInvoiceHeader(props) {
             {...register("products")}
             style={{ display: "none" }}
           />
-          <Form.Group as={Col} controlId="IsFree">
+          <Form.Group as={Col} className="col-1" controlId="IsFree">
             <Form.Label></Form.Label>
             <Form.Check
               {...register("IsFree")}
               label="Is Free"
               aria-label="Is Free"
-              style={{ marginTop: "15px" }}
+              style={{ marginTop: "7px" }}
               onChange={(e) => {
                 if (e.target.checked) {
                   setValue("Rate", 0);
@@ -380,27 +298,12 @@ function CustomerInvoiceHeader(props) {
           </Form.Group>
           <Form.Group as={Col}>
             <Form.Label></Form.Label>
-            <ButtonGroup className="d-block">
-              <button
-                className="showbutton bg-success text-white"
-                type="submit"
-              >
-                Add
-              </button>
-              <button
-                className="showbutton bg-danger text-white"
-                style={{ marginLeft: "2px" }}
-                type="button"
-                onClick={() => reset()}
-              >
-                Clear
-              </button>
-            </ButtonGroup>
+            <DetailHeaderActionButtons
+              handleAdd={() => handleSubmit(onSubmit)()}
+              handleClear={() => reset()}
+            />
           </Form.Group>
         </Row>
-        {/* <Row className="py-3" style={{ marginTop: "-25px" }}>
-         
-        </Row> */}
       </form>
     </>
   );

@@ -319,8 +319,6 @@ function GenOldCustomerEntryForm() {
       setValue("InActive", OldCustomerData?.data[0]?.InActive);
     }
     const ids = OldCustomerData?.dataAct?.map((item) => item.ACTCustomerID);
-    console.log(ids);
-    console.log(activationClients.data);
   }, [OldCustomerID, OldCustomerData]);
 
   // Mutations

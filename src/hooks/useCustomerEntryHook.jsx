@@ -139,7 +139,7 @@ const useCustomerEntryHook = () => {
                   focusInputRef={field.ref}
                   onChange={(e) => {
                     field.onChange(e.value);
-                    console.log(e.value);
+
                     if (e.value === undefined) {
                       customerEntryFrom.reset();
                       setCustomerID(0);

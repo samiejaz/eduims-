@@ -19,9 +19,7 @@ export const ImageActionsButtons = ({ handleImageDelete, handleImageEdit }) => {
       setImgData(base64data);
     };
   };
-  const onUpload = (e) => {
-    console.log(e);
-  };
+  const onUpload = (e) => {};
   const itemTemplate = (file, props) => {
     return (
       <div className="flex align-items-center flex-wrap">

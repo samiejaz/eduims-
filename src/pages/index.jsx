@@ -13,3 +13,4 @@ export { default as ProductInfo } from "./ProductInfo/ProductInfo";
 export { default as ServiceCategory } from "./ServiceCategory/GenServiceCategory";
 export { default as ServiceInfo } from "./ServiceInfo/ServiceInfo";
 export { default as SessionInfo } from "./SessionInfo/GenSessionInfo";
+export { default as ReceiptVoucher } from "./RecieptEntry/RecieptEntry";
