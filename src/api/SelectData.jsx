@@ -109,7 +109,7 @@ export async function fetchAllSelectDescripitons(InvoiceType = "") {
 }
 export async function fetchAllCustomersBranch() {
   const { data } = await axios.post(apiUrl + "/Branch/SelectBranch");
-  return data.data;
+  return data.data || [];
 }
 export async function fetchAllCustomerInvoices(CustomerID) {
   let whereClause;
@@ -121,17 +121,25 @@ export async function fetchAllCustomerInvoices(CustomerID) {
   const { data } = await axios.post(
     apiUrl + "/data_ReceiptVoucher/SelectCustomerInvoices" + whereClause
   );
-  return data.data;
+  return data.data || [];
 }
-export async function fetchAllInvoiceInstallmetns(CustomerInvoiceID) {
+export async function fetchAllInvoiceInstallmetns(CustomerID, AccountID) {
   let whereClause;
-  if (CustomerInvoiceID === undefined || CustomerInvoiceID === 0) {
+  if (
+    (CustomerID === undefined || CustomerID === 0) &&
+    (AccountID === undefined || AccountID === 0)
+  ) {
     whereClause = "";
   } else {
-    whereClause = "?CustomerInvoiceID=" + CustomerInvoiceID;
+    whereClause = `?CustomerID=${CustomerID}&AccountID=${AccountID}`;
   }
   const { data } = await axios.post(
     apiUrl + "/data_ReceiptVoucher/SelectCustomerInstallments" + whereClause
   );
-  return data.data;
+  return data.data || [];
+}
+
+export async function fetchAllBankAccountsForSelect() {
+  const { data } = await axios.post(apiUrl + "/Select/SelectBankAccounts");
+  return data.data || [];
 }

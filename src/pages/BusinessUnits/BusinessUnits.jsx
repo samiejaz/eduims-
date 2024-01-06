@@ -1,6 +1,6 @@
-import { Row, Form, Col, Button, Spinner, ButtonGroup } from "react-bootstrap";
-import TabHeader from "../../components/TabHeader";
+import { Row, Form, Col, Spinner, ButtonGroup } from "react-bootstrap";
 import { DataTable } from "primereact/datatable";
+import { Button } from "primereact/button";
 import { Column } from "primereact/column";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
@@ -10,15 +10,9 @@ import { FilterMatchMode } from "primereact/api";
 import { useContext, useEffect, useState } from "react";
 import useEditModal from "../../hooks/useEditModalHook";
 import useDeleteModal from "../../hooks/useDeleteModalHook";
-import { ActiveKeyContext } from "../../context/ActiveKeyContext";
 import { Image } from "primereact/image";
-import {
-  BusinessUnitDataContext,
-  BusinessUnitDataProivder,
-} from "./BusinessUnitContext";
 import { AuthContext } from "../../context/AuthContext";
 import axios from "axios";
-import ButtonRow from "../../components/ButtonRow";
 import {
   fetchAllBusinessUnits,
   fetchBusinessUnitById,
@@ -27,23 +21,28 @@ import {
   convertBase64StringToFile,
   preventFormByEnterKeySubmission,
 } from "../../utils/CommonFunctions";
+import ButtonToolBar from "../CustomerInvoice/CustomerInvoiceToolbar";
+import { useNavigate, useParams } from "react-router-dom";
+import { ImageActionsButtons } from "../../components/ImageActionsButtons";
+import { FileUpload } from "primereact/fileupload";
+import ImageContainer from "../../components/ImageContainer";
 
 function BusinessUnits() {
   document.title = "Business Units";
   return (
-    <BusinessUnitDataProivder>
-      <TabHeader
-        Search={<BusinessUnitsSearch />}
-        Entry={<BusinessUnitsForm />}
-        SearchTitle={"Users"}
-        EntryTitle={"Add New User"}
-      />
-    </BusinessUnitDataProivder>
+    <div className="bg__image mt-5">
+      <div className=" px-md-5 bg__image">
+        <div className=" px-md-4">
+          <BusinessUnitsSearch />
+        </div>
+      </div>
+    </div>
   );
 }
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 function BusinessUnitsSearch() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const {
     render: EditModal,
     handleShow: handleEditShow,
@@ -57,10 +56,10 @@ function BusinessUnitsSearch() {
     handleClose: handleDeleteClose,
     setIdToDelete,
   } = useDeleteModal(handleDelete);
-  const { setKey } = useContext(ActiveKeyContext);
-  const { setBusinessUnitID, setIsEnable } = useContext(
-    BusinessUnitDataContext
-  );
+  // const { setKey } = useContext(ActiveKeyContext);
+  // const { setBusinessUnitID, setIsEnable } = useContext(
+  //   BusinessUnitDataContext
+  // );
 
   const [filters, setFilters] = useState({
     BusinessUnitName: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -103,24 +102,16 @@ function BusinessUnitsSearch() {
     deleteMutation.mutate({ BusinessUnitID: id, LoginUserID: user.userID });
     handleDeleteClose();
     setIdToDelete(0);
-    setBusinessUnitID(0);
   }
 
   function handleEdit(id) {
-    setBusinessUnitID(id);
-    setIsEnable(true);
-    // setTimeout(() => {
-    setKey("entry");
-    //   }, 1000);
+    navigate("/customers/businessUnits/" + id);
     handleEditClose();
     setIdToEdit(0);
   }
 
   function handleView(id) {
-    setKey("entry");
-
-    setBusinessUnitID(id);
-    setIsEnable(false);
+    navigate("/customers/businessUnits/" + id);
   }
   return (
     <>
@@ -139,6 +130,18 @@ function BusinessUnitsSearch() {
         </>
       ) : (
         <>
+          <div className="d-flex text-dark p-3 mb-4 ">
+            <h2 className="text-center my-auto">Business Units</h2>
+            <div className="text-end my-auto" style={{ marginLeft: "10px" }}>
+              <Button
+                label="Add New"
+                icon="pi pi-plus"
+                type="button"
+                className="rounded"
+                onClick={() => navigate(`/customers/businessUnits/new`)}
+              />
+            </div>
+          </div>
           <DataTable
             showGridlines
             value={data}
@@ -231,24 +234,45 @@ const defaultValues = {
   InActive: false,
 };
 
-function BusinessUnitsForm() {
+export function BusinessUnitsForm({ pagesTitle, mode }) {
   const queryClient = useQueryClient();
   const [BusinessUnit, setBusinessUnit] = useState({ data: [] });
+  const [BusinessUnitID, setBusinessUnitID] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [imgData, setImgData] = useState();
   const [editImage, setEditImage] = useState(false);
+  const [isEnable, setIsEnable] = useState(false);
+  const params = useParams();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     reset,
     setValue,
-    formState: { isDirty, isValid, errors },
+    formState: { errors },
   } = useForm(defaultValues);
-
-  const { BusinessUnitID, setBusinessUnitID, isEnable, setIsEnable } =
-    useContext(BusinessUnitDataContext);
   const { user } = useContext(AuthContext);
-  const { setKey } = useContext(ActiveKeyContext);
+
+  useEffect(() => {
+    function pageSetup() {
+      if (mode === "view") {
+        setIsEnable(false);
+        setBusinessUnitID(params?.BusinessUnitID);
+      }
+      if (mode === "edit") {
+        setIsEnable(true);
+        setBusinessUnitID(params?.BusinessUnitID);
+      }
+      if (mode === "new") {
+        setBusinessUnit([]);
+        setBusinessUnitID(0);
+        reset();
+        setIsEnable(true);
+        setEditImage(true);
+      }
+    }
+    pageSetup();
+  }, [mode]);
 
   useEffect(() => {
     async function fetchBusinessUnit() {
@@ -260,7 +284,6 @@ function BusinessUnitsForm() {
         setIsLoading(true);
         const data = await fetchBusinessUnitById(BusinessUnitID, user.userID);
         if (!data) {
-          setKey("search");
           toast.error("Network Error Occured!", {
             position: "bottom-left",
           });
@@ -327,17 +350,16 @@ function BusinessUnitsForm() {
       );
 
       if (data.success === true) {
+        queryClient.invalidateQueries({ queryKey: ["businessUnits"] });
         if (BusinessUnitID !== 0) {
           toast.success("Business Unit updated successfully!");
+          navigate(`/customers/customerInvoice/${BusinessUnitID}`);
         } else {
-          toast.success("Business Unit saved successfully!");
+          toast.success("Business Unit created successfully!");
+          // navigate(`/customers/customerInvoice/${data?.BusinessUnitID}`);
         }
-        setBusinessUnitID(0);
-        setIsEnable(true);
+
         setEditImage(false);
-        reset();
-        setKey("search");
-        queryClient.invalidateQueries({ queryKey: ["businessUnits"] });
         setImgData("");
       } else {
         toast.error(data.message, {
@@ -380,26 +402,42 @@ function BusinessUnitsForm() {
     companyMutation.mutate(data);
   }
 
+  // function handleEdit() {
+  //   setIsEnable(true);
+  // }
+
+  // function handleAddNew() {
+  //   setBusinessUnit({ data: [] });
+  //   setBusinessUnitID(0);
+  //   reset();
+  //   setIsEnable(true);
+  //   setEditImage(false);
+  //   setImgData("");
+  // }
+
+  // function handleCancel() {
+  //   setBusinessUnit({ data: [] });
+  //   setBusinessUnitID(0);
+  //   reset();
+  //   setIsEnable(true);
+  //   setEditImage(false);
+  //   setImgData();
+  // }
+
   function handleEdit() {
-    setIsEnable(true);
+    navigate(`/customers/businessUnits/edit/${BusinessUnitID}`);
   }
 
   function handleAddNew() {
-    setBusinessUnit({ data: [] });
-    setBusinessUnitID(0);
-    reset();
-    setIsEnable(true);
-    setEditImage(false);
-    setImgData("");
+    navigate(`/customers/businessUnits/new`);
   }
 
   function handleCancel() {
-    setBusinessUnit({ data: [] });
-    setBusinessUnitID(0);
-    reset();
-    setIsEnable(true);
-    setEditImage(false);
-    setImgData();
+    if (mode === "new") {
+      navigate(`/customers/businessUnits`);
+    } else if (mode === "edit") {
+      navigate(`/customers/businessUnits/${BusinessUnitID}`);
+    }
   }
 
   useEffect(() => {
@@ -426,11 +464,13 @@ function BusinessUnitsForm() {
       setImgData(BusinessUnit?.data[0]?.Logo);
     }
   }, [BusinessUnit, BusinessUnitID]);
+
   function handleDelete() {
     deleteMutation.mutate({
       BusinessUnitID: BusinessUnitID,
       LoginUserID: user.userID,
     });
+    navigate(`/customers/businessUnits`);
   }
 
   function onImageChange(e) {
@@ -471,58 +511,87 @@ function BusinessUnitsForm() {
         </>
       ) : (
         <>
-          <h4 className="p-3 mb-2 bg-light text-dark text-center  ">
-            Business Units
-          </h4>
+          <div className="shadow-sm mb-2">
+            <ButtonToolBar
+              editDisable={mode !== "view"}
+              cancelDisable={mode === "view"}
+              addNewDisable={mode === "edit" || mode === "new"}
+              deleteDisable={mode === "edit" || mode === "new"}
+              saveLabel={mode === "edit" ? "Update" : "Save"}
+              handleGoBack={() => navigate("/customers/businessUnits")}
+              handleEdit={() => handleEdit()}
+              handleCancel={() => {
+                handleCancel();
+              }}
+              handleAddNew={() => {
+                handleAddNew();
+              }}
+              handleSave={() => handleSubmit(onSubmit)()}
+              handleDelete={() => handleDelete()}
+            />
+          </div>
           <form
             id="BusinessUnits"
-            onSubmit={handleSubmit(onSubmit)}
+            // onSubmit={handleSubmit(onSubmit)}
             onKeyDown={preventFormByEnterKeySubmission}
           >
-            <Row className="p-3">
-              <Form.Group as={Col} controlId="BusinessUnitName">
-                <Form.Label>Business Unit Name</Form.Label>
-                <span className="text-danger fw-bold ">*</span>
-                <Form.Control
-                  type="text"
-                  required
-                  className="form-control"
-                  {...register("BusinessUnitName", {
-                    disabled: !isEnable,
-                  })}
-                />
-                <p className="text-danger">
-                  {errors.BusinessUnitName?.message}
-                </p>
-              </Form.Group>
-              <Form.Group as={Col} controlId="Address">
-                <Form.Label>Address</Form.Label>
+            <Row className="mb-3">
+              <Form.Group as={Col}>
+                <Form.Group controlId="BusinessUnitName">
+                  <Form.Label>Business Unit Name</Form.Label>
+                  <span className="text-danger fw-bold ">*</span>
+                  <Form.Control
+                    type="text"
+                    required
+                    className="form-control"
+                    {...register("BusinessUnitName", {
+                      disabled: !isEnable,
+                    })}
+                  />
+                  <p className="text-danger">
+                    {errors.BusinessUnitName?.message}
+                  </p>
+                </Form.Group>
+                <Form.Group controlId="Address">
+                  <Form.Label>Address</Form.Label>
+                  <Form.Control
+                    type="text"
+                    className="form-control"
+                    {...register("Address", {
+                      disabled: !isEnable,
+                    })}
+                  />
+                </Form.Group>
+                <Form.Group controlId="LandlineNo">
+                  <Form.Label>Landline No</Form.Label>
 
-                <Form.Control
-                  type="text"
-                  className="form-control"
-                  {...register("Address", {
-                    disabled: !isEnable,
-                  })}
-                />
+                  <Form.Control
+                    type="text"
+                    className="form-control"
+                    {...register("LandlineNo", {
+                      disabled: !isEnable,
+                    })}
+                  />
+                </Form.Group>
+              </Form.Group>
+              <Form.Group as={Col}>
+                <Form.Label></Form.Label>
+                {isEnable && (
+                  <>
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                      <ImageActionsButtons
+                        handleImageDelete={() => handleImageDelete()}
+                        handleImageEdit={() => handleImageEdit()}
+                      />
+                    </div>
+                  </>
+                )}
+                {/* <ImageContainer /> */}
               </Form.Group>
             </Row>
-            <Row className="p-3" style={{ marginTop: "-25px" }}>
-              <Form.Group as={Col} controlId="LandlineNo">
-                <Form.Label>Landline No</Form.Label>
-
-                <Form.Control
-                  type="text"
-                  className="form-control"
-                  {...register("LandlineNo", {
-                    disabled: !isEnable,
-                  })}
-                />
-              </Form.Group>
-
+            <Row className="mb-3">
               <Form.Group as={Col} controlId="MobileNo">
                 <Form.Label>Mobile No</Form.Label>
-
                 <Form.Control
                   type="text"
                   className="form-control"
@@ -554,7 +623,7 @@ function BusinessUnitsForm() {
                 />
               </Form.Group>
             </Row>
-            <Row className="p-3" style={{ marginTop: "-25px" }}>
+            <Row className="mb-3" style={{ marginTop: "-25px" }}>
               <Form.Group as={Col} controlId="AuthorityPersonName">
                 <Form.Label>Authority Person / CEO Name</Form.Label>
 
@@ -590,7 +659,7 @@ function BusinessUnitsForm() {
                 />
               </Form.Group>
             </Row>
-            <Row className="p-3" style={{ marginTop: "-25px" }}>
+            <Row className="mb-3" style={{ marginTop: "-25px" }}>
               <Form.Group as={Col} controlId="NTNno">
                 <Form.Label>NTN-No</Form.Label>
 
@@ -614,7 +683,7 @@ function BusinessUnitsForm() {
                 />
               </Form.Group>
             </Row>
-            <Row className="p-3" style={{ marginTop: "-25px" }}>
+            <Row className="mb-3" style={{ marginTop: "-25px" }}>
               <Form.Group as={Col} controlId="Description">
                 <Form.Label>Description</Form.Label>
 
@@ -628,7 +697,8 @@ function BusinessUnitsForm() {
               </Form.Group>
             </Row>
 
-            {(editImage || !BusinessUnit?.data[0]?.Logo) && (
+            {/* {(editImage ||
+              (BusinessUnit?.data && !BusinessUnit?.data[0]?.Logo)) && (
               <>
                 <Row className="p-3" style={{ marginTop: "-25px" }}>
                   <Form.Group controlId="BusinessImage" className="mb-3">
@@ -644,53 +714,17 @@ function BusinessUnitsForm() {
                   </Form.Group>
                 </Row>
               </>
-            )}
+            )} */}
 
-            {imgData && (
+            {/* {imgData && (
               <Row className="p-3" style={{ marginTop: "-25px" }}>
                 {isEnable && (
                   <>
                     <div className="text-end mb-1">
-                      <ButtonGroup className="gap-1">
-                        <Button
-                          onClick={() => handleImageDelete()}
-                          size="sm"
-                          variant="danger"
-                          className="rounded"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="14"
-                            height="14"
-                            fill="currentColor"
-                            className="bi bi-trash3"
-                            viewBox="0 0 16 16"
-                          >
-                            <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z" />
-                          </svg>
-                        </Button>
-                        <Button
-                          onClick={() => handleImageEdit()}
-                          size="sm"
-                          variant="success"
-                          className="rounded"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="14"
-                            height="14"
-                            fill="currentColor"
-                            className="bi bi-pencil-square"
-                            viewBox="0 0 16 16"
-                          >
-                            <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
-                            <path
-                              fillRule="evenodd"
-                              d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"
-                            />
-                          </svg>
-                        </Button>
-                      </ButtonGroup>
+                      <ImageActionsButtons
+                        handleImageDelete={() => handleImageDelete()}
+                        handleImageEdit={() => handleImageEdit()}
+                      />
                     </div>
                   </>
                 )}
@@ -712,8 +746,8 @@ function BusinessUnitsForm() {
                   </div>
                 </Form.Group>
               </Row>
-            )}
-            <Row className="p-3" style={{ marginTop: "-25px" }}>
+            )} */}
+            <Row className="mb-3" style={{ marginTop: "-25px" }}>
               <Form.Group as={Col} controlId="InActive">
                 <Form.Check
                   aria-label="Inactive"
@@ -724,7 +758,7 @@ function BusinessUnitsForm() {
                 />
               </Form.Group>
             </Row>
-            <ButtonRow
+            {/* <ButtonRow
               isDirty={isDirty}
               isValid={isValid}
               editMode={isEnable}
@@ -736,7 +770,7 @@ function BusinessUnitsForm() {
               newRecord={BusinessUnitID === 0 ? true : false}
               handleEdit={handleEdit}
               handleDelete={handleDelete}
-            />
+            /> */}
           </form>
         </>
       )}

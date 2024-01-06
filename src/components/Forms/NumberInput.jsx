@@ -9,6 +9,7 @@ const NumberInput = ({
   control,
   enterKeyOptions,
   required = false,
+  disabled = false,
   ...options
 }) => {
   return (
@@ -33,6 +34,18 @@ const NumberInput = ({
               root: {
                 className: "small-input",
               },
+              input: {
+                root: {
+                  style: {
+                    width: "100%",
+                  },
+                },
+              },
+            }}
+            style={{
+              width: "100%",
+              backgroundColor: disabled ? "#dee2e6" : "white",
+              color: "black",
             }}
             onKeyDown={(e) => {
               if (enterKeyOptions) {
@@ -41,6 +54,7 @@ const NumberInput = ({
                 }
               }
             }}
+            disabled={disabled}
             {...options}
           />
         </>

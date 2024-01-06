@@ -241,14 +241,9 @@ function Sidebar({ logoImage, userImage }) {
 
                 <NavDropdown.Divider />
 
-                <LinkContainer to="/general/serviceCategories">
+                <LinkContainer to="/customers/receiptVoucher">
                   <NavDropdown.Item className="scale-up-center">
-                    Service Categories
-                  </NavDropdown.Item>
-                </LinkContainer>
-                <LinkContainer to="/general/servicesInfo">
-                  <NavDropdown.Item className="scale-up-center">
-                    Service Info
+                    Receipt Voucher
                   </NavDropdown.Item>
                 </LinkContainer>
 

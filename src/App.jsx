@@ -22,6 +22,7 @@ import {
   InvoiceDefaultDescriptions,
   CompanyInfo,
   GenCustomerEntry,
+  ReceiptVoucher,
 } from "./pages";
 import { CustomerInvoiceFormMaster } from "./pages/CustomerInvoice/CustomerInvoice";
 import { useContext } from "react";
@@ -166,7 +167,7 @@ const App = () => {
             {/* Receipt Routes */}
             <Route
               path="/customers/receiptVoucher"
-              element={<BusinessUnits />}
+              element={<ReceiptVoucher />}
             />
             <Route
               path="/customers/receiptVoucher/:ReceiptVoucherID"

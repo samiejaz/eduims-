@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   fetchAllActivationCustomersForSelect,
+  fetchAllBankAccountsForSelect,
   fetchAllBusinessUnitsForSelect,
   fetchAllCustomerAccountsForSelect,
   fetchAllCustomerInvoices,
@@ -117,19 +118,29 @@ export function useServicesInfoSelectData(BusinessUnitID = 0) {
 
 // All Invoices
 export function useCustomerInvoicesSelectData(CustomerID = 0) {
-  const customerInvoicesSelectData = useQuery({
-    queryKey: ["customerInvoices", CustomerID],
-    queryFn: () => fetchAllCustomerInvoices(CustomerID),
-    initialData: [],
-  });
-  return customerInvoicesSelectData;
+  // const customerInvoicesSelectData = useQuery({
+  //   queryKey: ["customerInvoices", CustomerID],
+  //   queryFn: () => fetchAllCustomerInvoices(CustomerID),
+  //   initialData: [],
+  // });
+  return [];
 }
 // All Invoices
-export function useCustomerInvoiceInstallments(CustomerInvoiceID = 0) {
+export function useCustomerInvoiceInstallments(CustomerID = 0, AccountID = 0) {
   const customerInvoiceInstallmentsSelectData = useQuery({
-    queryKey: ["customerInvoices", CustomerInvoiceID],
-    queryFn: () => fetchAllInvoiceInstallmetns(CustomerInvoiceID),
+    queryKey: ["customerLedgers", CustomerID, AccountID],
+    queryFn: () => fetchAllInvoiceInstallmetns(CustomerID, AccountID),
     initialData: [],
   });
   return customerInvoiceInstallmentsSelectData;
+}
+
+//Bank Accounts
+export function useBankAccountsSelectData() {
+  const bankAccountsSelectData = useQuery({
+    queryKey: ["bankAccounts"],
+    queryFn: () => fetchAllBankAccountsForSelect(),
+    initialData: [],
+  });
+  return bankAccountsSelectData;
 }
