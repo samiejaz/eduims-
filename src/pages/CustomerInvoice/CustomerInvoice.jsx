@@ -534,9 +534,7 @@ function CustomerInvoiceForm({ pageTitles, mode }) {
         }
       }
     },
-    onError: (err) => {
-      console.log(err);
-    },
+    onError: (err) => {},
   });
 
   useEffect(() => {
@@ -730,7 +728,7 @@ function CustomerInvoiceForm({ pageTitles, mode }) {
                         onChange={(date) => field.onChange(date)}
                         selected={field.value || new Date()}
                         dateFormat={"dd-MMM-yyyy"}
-                        className="binput"
+                        className={!isEnable ? "disabled-field" : "binput"}
                       />
                     )}
                   />
@@ -743,6 +741,7 @@ function CustomerInvoiceForm({ pageTitles, mode }) {
                   <CustomerInvoiceInstallmentForm
                     method={method}
                     installmentsFieldArray={installmentsFieldArray}
+                    isEnable={isEnable}
                   />
                 </Form.Label>
 
@@ -757,7 +756,7 @@ function CustomerInvoiceForm({ pageTitles, mode }) {
                         onChange={(date) => field.onChange(date)}
                         selected={field.value || new Date()}
                         dateFormat={"dd-MMM-yyyy"}
-                        className="binput"
+                        className={!isEnable ? "disabled-field" : "binput"}
                       />
                     )}
                   />

@@ -36,6 +36,7 @@ import {
   KBarSearch,
 } from "kbar";
 import { ReceiptEntryForm } from "./pages/RecieptEntry/RecieptEntry";
+import DP, { DPForm } from "./pages/dp/DP";
 
 const App = () => {
   const { pageTitles } = useContext(AppConfigurationContext);
@@ -62,7 +63,14 @@ const App = () => {
       name: "Receipt Voucher",
       shortcut: ["r"],
       keywords: "receiptvoucher",
-      perform: () => navigate("/customers/receiptVoucher/new", {}),
+      perform: () => navigate("/customers/receiptVoucher", {}),
+    },
+    {
+      id: "dp",
+      name: "Receipt Voucher",
+      shortcut: ["d"],
+      keywords: "dp",
+      perform: () => navigate("/customers/dp", {}),
     },
   ];
   // const onKeyDown = (e) => {
@@ -186,6 +194,20 @@ const App = () => {
               element={
                 <ReceiptEntryForm pageTitles={pageTitles} mode={"new"} />
               }
+            />
+            {/* DP */}
+            <Route path="/customers/dp" element={<DP />} />
+            <Route
+              path="/customers/dp/:ReceiptVoucherID"
+              element={<DPForm pageTitles={pageTitles} mode={"view"} />}
+            />
+            <Route
+              path="/customers/dp/edit/:ReceiptVoucherID"
+              element={<DPForm pageTitles={pageTitles} mode={"edit"} />}
+            />
+            <Route
+              path="/customers/dp/new"
+              element={<DPForm pageTitles={pageTitles} mode={"new"} />}
             />
             <Route
               path="/customers/customerInvoice/:CustomerInvoiceID"

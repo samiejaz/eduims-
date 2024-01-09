@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import CustomerInvoiceIntallmentsModal from "../components/Modals/CustomerInvoiceInstallmetnsModal";
 
-const useCustomerInvoiceInstallmentHook = (installmentsFieldArray, method) => {
+const useCustomerInvoiceInstallmentHook = (
+  installmentsFieldArray,
+  method,
+  isEnable
+) => {
   const [visible, setVisible] = useState(false);
   const handleClose = () => {
     setVisible(false);
@@ -19,6 +23,7 @@ const useCustomerInvoiceInstallmentHook = (installmentsFieldArray, method) => {
           handleClose={handleClose}
           installmentsFieldArray={installmentsFieldArray}
           method={method}
+          isEnable={isEnable}
         />
       </>
     ),

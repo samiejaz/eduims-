@@ -4,10 +4,12 @@ import useCustomerInvoiceInstallmentHook from "../hooks/useCustomerInvoiceInstal
 export function CustomerInvoiceInstallmentForm({
   method,
   installmentsFieldArray,
+  isEnable,
 }) {
   const { render, handleOpen } = useCustomerInvoiceInstallmentHook(
     installmentsFieldArray,
-    method
+    method,
+    isEnable
   );
 
   return (

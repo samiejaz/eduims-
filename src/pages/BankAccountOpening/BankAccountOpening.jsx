@@ -195,8 +195,9 @@ const defaultValues = {
   AccountNo: "",
   IbanNo: "",
 };
-
+let renderCount = 0;
 function BankAccountOpeningEntry() {
+  renderCount++;
   const queryClient = useQueryClient();
   const [BankAccount, setBankAccount] = useState();
   const [isLoading, setIsLoading] = useState(false);
@@ -365,7 +366,7 @@ function BankAccountOpeningEntry() {
   function resetSelectValues() {
     setValue("BusinessUnit", []);
   }
-
+  const [g, setG] = useState(0);
   return (
     <>
       {isLoading ? (
@@ -418,7 +419,10 @@ function BankAccountOpeningEntry() {
                       getOptionValue={(option) => option.BusinessUnitID}
                       getOptionLabel={(option) => option.BusinessUnitName}
                       value={value}
-                      onChange={(selectedOption) => onChange(selectedOption)}
+                      onChange={(selectedOption) => {
+                        onChange(selectedOption);
+                        setG(selectedOption);
+                      }}
                       placeholder="Select a business unit"
                       noOptionsMessage={() => "No business units found!"}
                       isClearable
@@ -427,6 +431,7 @@ function BankAccountOpeningEntry() {
                 />
               </Form.Group>
             </Row>
+            <p>{renderCount}</p>
             <Row className="p-3" style={{ marginTop: "-25px" }}>
               <Form.Group as={Col} controlId="BranchName">
                 <Form.Label>Branch Name</Form.Label>

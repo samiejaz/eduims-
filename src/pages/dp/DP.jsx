@@ -14,7 +14,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import ActionButtons from "../../components/ActionButtons";
 import { FilterMatchMode } from "primereact/api";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import useEditModal from "../../hooks/useEditModalHook";
 import useDeleteModal from "../../hooks/useDeleteModalHook";
 import { AuthContext } from "../../context/AuthContext";
@@ -43,6 +43,7 @@ import {
 import ButtonToolBar from "../CustomerInvoice/CustomerInvoiceToolbar";
 import { parseISO } from "date-fns";
 import { Tag } from "primereact/tag";
+import React from "react";
 const receiptModeOptions = [
   { value: "Cash", label: "Cash" },
   { value: "Online", label: "Online Transfer" },
@@ -67,20 +68,20 @@ let onlineDetailColor = "#F59E0B";
 let chequeDetailColor = "#3B82F6";
 let ddDetailColor = "#8f48d2";
 
-function ReceiptEntry() {
+function DP() {
   document.title = "Reciept Vouchers";
   return (
     <div className="bg__image mt-3">
       <div className=" px-md-5 bg__image">
         <div className=" px-md-4">
-          <ReceiptEntrySearch />
+          <DPSearch />
         </div>
       </div>
     </div>
   );
 }
 const apiUrl = import.meta.env.VITE_APP_API_URL;
-function ReceiptEntrySearch() {
+function DPSearch() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const {
@@ -117,10 +118,10 @@ function ReceiptEntrySearch() {
     mutationFn: async (business) => {
       const { data } = await axios.post(
         apiUrl +
-          `/EduIMS/ReceiptEntryDelete?ReceiptVoucherID=${business.ReceiptVoucherID}&LoginUserID=${user.userID}`
+          `/EduIMS/DPDelete?ReceiptVoucherID=${business.ReceiptVoucherID}&LoginUserID=${user.userID}`
       );
       if (data.success === true) {
-        queryClient.invalidateQueries({ queryKey: ["ReceiptEntry"] });
+        queryClient.invalidateQueries({ queryKey: ["DP"] });
         toast.success("Business successfully deleted!");
       } else {
         toast.error(data.message, {
@@ -163,8 +164,10 @@ function ReceiptEntrySearch() {
     switch (status) {
       case "Online":
         return "warning";
+
       case "Cash":
         return "success";
+
       case "Instument":
         return "help";
       case "DD":
@@ -298,7 +301,7 @@ const defaultValues = {
 };
 
 let renderCount = 0;
-export function ReceiptEntryForm({ pagesTitle, mode }) {
+export function DPFormO({ pagesTitle, mode }) {
   document.title = "Receipt Voucher Entry";
   renderCount++;
   const queryClient = useQueryClient();
@@ -384,18 +387,6 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
     appendSingleRow: appendSingleChequeRow,
     appendAllRows: appendAllChequeRows,
   } = useChequeModeDetail(
-    method.control,
-    isEnable,
-    customerInvoiceInsallments.data,
-    bankAccountsSelectData.data,
-    method.setValue
-  );
-  const {
-    removeAllRows: removeAllDDRows,
-    render: DDModeDetail,
-    appendSingleRow: appendSingleDdRow,
-    appendAllRows: appendAllDDRows,
-  } = useDDModeDetail(
     method.control,
     isEnable,
     customerInvoiceInsallments.data,
@@ -541,29 +532,6 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
               DetailDescription: item.DetailDescription,
             };
           });
-        } else if (formData?.dDDetail?.length > 0) {
-          ReceiptVoucherDetail = formData?.dDDetail?.map((item, index) => {
-            return {
-              RowID: index + 1,
-              RecoveryType: item.ReceiptType,
-              CustomerInvoiceID:
-                customerInvoiceInsallments.data.filter(
-                  (value) =>
-                    value.InvoiceInstallmentID === item?.InvoiceInstallmentID
-                )[0]?.CustomerInvoiceID ?? null,
-              InvoiceInstallmentID:
-                item.InvoiceInstallmentID?.length === 0
-                  ? null
-                  : item.InvoiceInstallmentID,
-              FromBank: item.FromBank,
-              ReceivedInBankID: item.ReceivedInBankID,
-              TransactionID: null,
-              InstrumentNo: item.TransactionID,
-              InstrumentDate: item.InstrumentDate,
-              Amount: item.Amount,
-              DetailDescription: item.DetailDescription,
-            };
-          });
         }
         let DataToSend = {
           SessionID: formData?.Session || sessionSelectData[0]?.SessionID,
@@ -622,10 +590,10 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
     // mutationFn: async () => {
     //   const { data } = await axios.post(
     //     apiUrl +
-    //       `/EduIMS/ReceiptEntryDelete?ReceiptVoucherID=${ReceiptVoucherID}&LoginUserID=${user.userID}`
+    //       `/EduIMS/DPDelete?ReceiptVoucherID=${ReceiptVoucherID}&LoginUserID=${user.userID}`
     //   );
     //   if (data.success === true) {
-    //     queryClient.invalidateQueries({ queryKey: ["ReceiptEntry"] });
+    //     queryClient.invalidateQueries({ queryKey: ["DP"] });
     //     toast.success("Business successfully deleted!");
     //     setReceiptVoucher(undefined);
     //     setReceiptVoucherID(0);
@@ -684,16 +652,8 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
         appendAllOnlineRows(ReceiptVoucher?.Detail);
       } else if (ReceiptVoucher?.Master[0]?.ReceiptMode === "Cash") {
         appendAllRows(ReceiptVoucher?.Detail);
-      } else if (
-        ReceiptVoucher?.Master[0]?.ReceiptMode === "Instrument" &&
-        ReceiptVoucher?.Master[0]?.InstrumentType === "Cheque"
-      ) {
+      } else if (ReceiptVoucher?.Master[0]?.ReceiptMode === "Instrument") {
         appendAllChequeRows(ReceiptVoucher?.Detail);
-      } else if (
-        ReceiptVoucher?.Master[0]?.ReceiptMode === "Instrument" &&
-        ReceiptVoucher?.Master[0]?.InstrumentType === "DD"
-      ) {
-        appendAllDDRows(ReceiptVoucher?.Detail);
       }
     }
   }, [ReceiptVoucher, ReceiptVoucherID]);
@@ -770,8 +730,8 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
           {isEnable && (
             <>
               <div className="card p-2 bg-light mt-2">
-                <DDFields
-                  appendSingleRow={appendSingleDdRow}
+                <ChequeFields
+                  appendSingleRow={appendSingleChequeRow}
                   customerInvoiceInsallments={customerInvoiceInsallments.data}
                   bankAccountsSelectData={bankAccountsSelectData.data}
                   unregister={method.unregister}
@@ -779,7 +739,7 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
               </div>
             </>
           )}
-          <FormProvider {...method}>{DDModeDetail}</FormProvider>
+          <FormProvider {...method}>{ChequeModeDetail}</FormProvider>
         </>
       );
     }
@@ -787,7 +747,8 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
 
   /*
     Master: Pass AccountID to header
-    DetailHeader: Fetch Data for dropdown & when user enters the data in
+    DetailHeader: Fetch Data for dropdown & when user enters the data in this form and add or append the data should be entered in detail
+    Detail: is a table and the user can remove or update row
   */
 
   return (
@@ -872,7 +833,6 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
                       removeAllRows();
                       removeAllOnlineRows();
                       removeAllChequeRows();
-                      removeAllDDRows();
                       //removeAllDDRows();
                     }}
                     disabled={!isEnable}
@@ -905,7 +865,7 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
                       removeAllRows();
                       removeAllOnlineRows();
                       removeAllChequeRows();
-                      removeAllDDRows();
+                      //removeAllDDRows();
                     }}
                     disabled={!isEnable}
                     focusOptions={() => method.setFocus("ReceiptMode")}
@@ -935,7 +895,7 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
                       removeAllRows();
                       removeAllOnlineRows();
                       removeAllChequeRows();
-                      removeAllDDRows();
+                      //removeAllDDRows();
                     }}
                     showOnFocus={true}
                     disabled={!isEnable}
@@ -970,7 +930,7 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
                       removeAllRows();
                       removeAllOnlineRows();
                       removeAllChequeRows();
-                      removeAllDDRows();
+                      //removeAllDDRows();
                     }}
                   />
                 </div>
@@ -1027,7 +987,6 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
 
             <ShowSection />
           </form>
-
           <DevTool control={method.control} />
         </>
       )}
@@ -1035,7 +994,7 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
   );
 }
 
-export default ReceiptEntry;
+export default DP;
 
 function CashModeFields({
   appendSingleRow,
@@ -2122,12 +2081,11 @@ function ChequeFieldsDetailRow({
     </>
   );
 }
-
-// Updated DD Fields
+// DD Fields
 function DDFields({
   appendSingleRow,
   customerInvoiceInsallments,
-  bankAccountsSelectData,
+
   unregister,
 }) {
   const [receiptType, setReceiptType] = useState(false);
@@ -2143,13 +2101,14 @@ function DDFields({
 
   useEffect(() => {
     unregister("cashDetail");
-    unregister("onlineDetail");
     unregister("chequeDetail");
+    unregister("onlineDetail");
   }, [unregister]);
 
   function onAdd(data) {
     appendSingleRow(data);
-    method.setFocus("ReceiptType");
+    method.setFocus("Customer");
+    unregister("cashDetail");
     method.reset();
   }
   return (
@@ -2209,70 +2168,13 @@ function DDFields({
             <NumberInput
               control={method.control}
               id={`Amount`}
-              //   required={true}
+              required={true}
               enterKeyOptions={() => method.setFocus("FromBank")}
             />
           </div>
         </Form.Group>
       </Row>
-      <Row>
-        <Form.Group className="col-xl-3 " as={Col} controlId="FromBank">
-          <Form.Label>Instrument Of</Form.Label>
-          <div>
-            <TextInput
-              ID={"FromBank"}
-              control={method.control}
-              required={true}
-              focusOptions={() => method.setFocus("ReceivedInBankID")}
-            />
-          </div>
-        </Form.Group>
-        <Form.Group className="col-xl-3 " as={Col} controlId="ReceivedInBankID">
-          <Form.Label>To Bank</Form.Label>
-          <div>
-            <CDropdown
-              control={method.control}
-              options={bankAccountsSelectData}
-              optionValue="BankAccountID"
-              optionLabel="BankAccountTitle"
-              name="ReceivedInBankID"
-              placeholder="Select a bank"
-              required={true}
-              focusOptions={() => method.setFocus("TransactionID")}
-            />
-          </div>
-        </Form.Group>
 
-        <Form.Group className="col-xl-3 " as={Col} controlId="TransactionID">
-          <Form.Label>Instrument No</Form.Label>
-          <div>
-            <TextInput
-              ID={"TransactionID"}
-              control={method.control}
-              focusOptions={() => method.setFocus("DetailDescription")}
-              required={true}
-            />
-          </div>
-        </Form.Group>
-        <Form.Group className="col-xl-3 " as={Col} controlId="InstrumentDate">
-          <Form.Label>Instrument Date</Form.Label>
-          <div>
-            <Controller
-              control={method.control}
-              name="InstrumentDate"
-              render={({ field }) => (
-                <ReactDatePicker
-                  placeholderText="Select date"
-                  onChange={(date) => field.onChange(date)}
-                  selected={field.value || new Date()}
-                  dateFormat={"dd-MMM-yyyy"}
-                  className="binput"
-                />
-              )}
-            />
-          </div>
-        </Form.Group>
-      </Row>
       <Row>
         <Form.Group as={Col} controlId="DetailDescription">
           <Form.Label>Description</Form.Label>
@@ -2302,7 +2204,6 @@ function DDFieldsDetail({
   ddFieldArray,
   isEnable,
   customerInvoiceInsallments,
-  banksSelectData,
   removeSingleRow,
 }) {
   return (
@@ -2312,61 +2213,37 @@ function DDFieldsDetail({
           <tr>
             <th
               className="p-2 text-white text-center "
-              style={{ width: "2%", background: chequeDetailColor }}
+              style={{ width: "2%", background: ddDetailColor }}
             >
               Sr No.
             </th>
             <th
               className="p-2 text-white text-center "
-              style={{ width: "5%", background: chequeDetailColor }}
+              style={{ width: "10%", background: ddDetailColor }}
             >
               Receipt Type
             </th>
             <th
               className="p-2 text-white text-center "
-              style={{ width: "15%", background: chequeDetailColor }}
+              style={{ width: "15%", background: ddDetailColor }}
             >
               Customer Installment
             </th>
             <th
               className="p-2 text-white text-center "
-              style={{ width: "4%", background: chequeDetailColor }}
+              style={{ width: "4%", background: ddDetailColor }}
             >
               Amount
             </th>
             <th
               className="p-2 text-white text-center "
-              style={{ width: "7%", background: chequeDetailColor }}
-            >
-              Instrument Of
-            </th>
-            <th
-              className="p-2 text-white text-center "
-              style={{ width: "20%", background: chequeDetailColor }}
-            >
-              To Bank
-            </th>
-            <th
-              className="p-2 text-white text-center "
-              style={{ width: "10%", background: chequeDetailColor }}
-            >
-              Instrument No
-            </th>
-            <th
-              className="p-2 text-white text-center "
-              style={{ width: "7%", background: chequeDetailColor }}
-            >
-              Instrument Date
-            </th>
-            <th
-              className="p-2 text-white text-center "
-              style={{ width: "10%", background: chequeDetailColor }}
+              style={{ width: "10%", background: ddDetailColor }}
             >
               Description
             </th>
             <th
               className="p-2 text-white text-center "
-              style={{ width: "4%", background: chequeDetailColor }}
+              style={{ width: "4%", background: ddDetailColor }}
             >
               Actions
             </th>
@@ -2380,7 +2257,6 @@ function DDFieldsDetail({
                 item={item}
                 index={index}
                 customerInvoiceInsallments={customerInvoiceInsallments}
-                banksSelectData={banksSelectData}
                 removeSingleRow={removeSingleRow}
                 isEnable={isEnable}
               />
@@ -2395,7 +2271,6 @@ function DDFieldsDetailRow({
   item,
   index,
   customerInvoiceInsallments,
-  banksSelectData,
   removeSingleRow,
   isEnable,
 }) {
@@ -2466,59 +2341,7 @@ function DDFieldsDetailRow({
             disabled={!isEnable}
           />
         </td>
-        <td>
-          <TextInput
-            ID={`dDDetail.${index}.FromBank`}
-            control={method.control}
-            required={true}
-            focusOptions={() =>
-              method.setFocus(`dDDetail.${index}.ReceivedInBankID`)
-            }
-            isEnable={isEnable}
-          />
-        </td>
-        <td>
-          <CDropdown
-            control={method.control}
-            options={banksSelectData}
-            optionValue="BankAccountID"
-            optionLabel="BankAccountTitle"
-            name={`dDDetail.${index}.ReceivedInBankID`}
-            placeholder="Select a bank"
-            required={true}
-            focusOptions={() =>
-              method.setFocus(`dDDetail.${index}.TransactionID`)
-            }
-            disabled={!isEnable}
-          />
-        </td>
-        <td>
-          <TextInput
-            ID={`dDDetail.${index}.TransactionID`}
-            control={method.control}
-            focusOptions={() =>
-              method.setFocus(`dDDetail.${index}.DetailDescription`)
-            }
-            required={true}
-            isEnable={isEnable}
-          />
-        </td>
-        <td>
-          <Controller
-            control={method.control}
-            name={`dDDetail.${index}.InstrumentDate`}
-            render={({ field }) => (
-              <ReactDatePicker
-                disabled={!isEnable}
-                placeholderText="Select date"
-                onChange={(date) => field.onChange(date)}
-                selected={field.value}
-                dateFormat={"dd-MMM-yyyy"}
-                className={!isEnable ? "disabled-field" : "binput"}
-              />
-            )}
-          />
-        </td>
+
         <td>
           <Form.Control
             as={"textarea"}
@@ -2543,304 +2366,12 @@ function DDFieldsDetailRow({
               fontSize: "0.9em",
             }}
             onClick={() => removeSingleRow(index)}
-            disabled={!isEnable}
           />
         </td>
       </tr>
     </>
   );
 }
-// DD Fields
-// function DDFields({
-//   appendSingleRow,
-//   customerInvoiceInsallments,
-
-//   unregister,
-// }) {
-//   const [receiptType, setReceiptType] = useState(false);
-//   const method = useForm({
-//     ReceiptType: [],
-//     FromBank: "",
-//     ReceivedInBankID: [],
-//     TransactionID: "",
-//     InvoiceInstallmentID: [],
-//     Amount: 0,
-//     DetailDescription: "",
-//   });
-
-//   useEffect(() => {
-//     unregister("cashDetail");
-//     unregister("chequeDetail");
-//     unregister("onlineDetail");
-//   }, [unregister]);
-
-//   function onAdd(data) {
-//     appendSingleRow(data);
-//     method.setFocus("Customer");
-//     unregister("cashDetail");
-//     method.reset();
-//   }
-//   return (
-//     <>
-//       <Row className="mb-1">
-//         <Form.Group as={Col} controlId="ReceiptType" className="col-xl-3">
-//           <Form.Label>Receipt Type</Form.Label>
-//           <div>
-//             <CDropdown
-//               control={method.control}
-//               options={receiptTypeOptions}
-//               name="ReceiptType"
-//               placeholder="Select a type"
-//               required={true}
-//               showOnFocus={true}
-//               onChange={(e) => {
-//                 setReceiptType(e.value === "Advance");
-//                 if (e.value === "Advance") {
-//                   method.setValue("InvoiceInstallmentID", []);
-//                 }
-//               }}
-//               focusOptions={() => {
-//                 method.setFocus(
-//                   method.watch("ReceiptType") === "Advance"
-//                     ? "Amount"
-//                     : "InvoiceInstallmentID"
-//                 );
-//               }}
-//             />
-//           </div>
-//         </Form.Group>
-//         <Form.Group
-//           className="col-xl-3"
-//           as={Col}
-//           controlId="InvoiceInstallmentID"
-//         >
-//           <Form.Label>Customer Installments</Form.Label>
-//           <div>
-//             <CDropdown
-//               control={method.control}
-//               options={customerInvoiceInsallments}
-//               optionLabel="InstallmentTitle"
-//               optionValue="InvoiceInstallmentID"
-//               name="InvoiceInstallmentID"
-//               placeholder="Select an insallment"
-//               showOnFocus={true}
-//               disabled={receiptType}
-//               required={method.watch("ReceiptType") !== "Advance"}
-//               focusOptions={() => method.setFocus("Amount")}
-//             />
-//           </div>
-//         </Form.Group>
-
-//         <Form.Group className="col-xl-3" as={Col} controlId="Amount">
-//           <Form.Label>Amount</Form.Label>
-//           <div>
-//             <NumberInput
-//               control={method.control}
-//               id={`Amount`}
-//               required={true}
-//               enterKeyOptions={() => method.setFocus("FromBank")}
-//             />
-//           </div>
-//         </Form.Group>
-//       </Row>
-
-//       <Row>
-//         <Form.Group as={Col} controlId="DetailDescription">
-//           <Form.Label>Description</Form.Label>
-//           <Form.Control
-//             as={"textarea"}
-//             rows={1}
-//             className="small-textarea"
-//             style={{
-//               padding: "0.2rem 0.4rem",
-//               fontSize: "0.9em",
-//             }}
-//             {...method.register("DetailDescription")}
-//           />
-//         </Form.Group>
-//         <Form.Group className="col-xl-3" as={Col} controlId="Actions">
-//           <Form.Label></Form.Label>
-//           <DetailHeaderActionButtons
-//             handleAdd={() => method.handleSubmit(onAdd)()}
-//             handleClear={() => method.reset()}
-//           />
-//         </Form.Group>
-//       </Row>
-//     </>
-//   );
-// }
-// function DDFieldsDetail({
-//   ddFieldArray,
-//   isEnable,
-//   customerInvoiceInsallments,
-//   removeSingleRow,
-// }) {
-//   return (
-//     <>
-//       <table className="table table-responsive mt-2">
-//         <thead>
-//           <tr>
-//             <th
-//               className="p-2 text-white text-center "
-//               style={{ width: "2%", background: ddDetailColor }}
-//             >
-//               Sr No.
-//             </th>
-//             <th
-//               className="p-2 text-white text-center "
-//               style={{ width: "10%", background: ddDetailColor }}
-//             >
-//               Receipt Type
-//             </th>
-//             <th
-//               className="p-2 text-white text-center "
-//               style={{ width: "15%", background: ddDetailColor }}
-//             >
-//               Customer Installment
-//             </th>
-//             <th
-//               className="p-2 text-white text-center "
-//               style={{ width: "4%", background: ddDetailColor }}
-//             >
-//               Amount
-//             </th>
-//             <th
-//               className="p-2 text-white text-center "
-//               style={{ width: "10%", background: ddDetailColor }}
-//             >
-//               Description
-//             </th>
-//             <th
-//               className="p-2 text-white text-center "
-//               style={{ width: "4%", background: ddDetailColor }}
-//             >
-//               Actions
-//             </th>
-//           </tr>
-//         </thead>
-//         <tbody>
-//           {ddFieldArray.fields.map((item, index) => {
-//             return (
-//               <DDFieldsDetailRow
-//                 key={item.id}
-//                 item={item}
-//                 index={index}
-//                 customerInvoiceInsallments={customerInvoiceInsallments}
-//                 removeSingleRow={removeSingleRow}
-//                 isEnable={isEnable}
-//               />
-//             );
-//           })}
-//         </tbody>
-//       </table>
-//     </>
-//   );
-// }
-// function DDFieldsDetailRow({
-//   item,
-//   index,
-//   customerInvoiceInsallments,
-//   removeSingleRow,
-//   isEnable,
-// }) {
-//   const method = useFormContext();
-
-//   return (
-//     <>
-//       <tr key={item.id}>
-//         <td>
-//           <input
-//             id="RowID"
-//             readOnly
-//             className="form-control"
-//             style={{ padding: "0.25rem 0.4rem", fontSize: "0.9em" }}
-//             value={index + 1}
-//             disabled={!isEnable}
-//           />
-//         </td>
-//         <td>
-//           <CDropdown
-//             control={method.control}
-//             options={receiptTypeOptions}
-//             name={`dDDetail.${index}.ReceiptType`}
-//             placeholder="Select a type"
-//             required={true}
-//             showOnFocus={true}
-//             onChange={(e) => {
-//               if (e.value === "Advance") {
-//                 method.setValue(`dDDetail.${index}.CustomerInstallments`, []);
-//               }
-//             }}
-//             focusOptions={() => {
-//               method.setFocus(
-//                 method.watch(`dDDetail.${index}.ReceiptType`) === "Advance"
-//                   ? `dDDetail.${index}.CashAmount`
-//                   : `dDDetail.${index}.CustomerInstallments`
-//               );
-//             }}
-//             disabled={!isEnable}
-//           />
-//         </td>
-//         <td>
-//           <CDropdown
-//             control={method.control}
-//             name={`dDDetail.${index}.InvoiceInstallmentID`}
-//             options={customerInvoiceInsallments}
-//             optionValue="InvoiceInstallmentID"
-//             optionLabel="InstallmentTitle"
-//             placeholder="Select an installment"
-//             required={
-//               method.watch(`dDDetail.${index}.ReceiptType`) !== "Advance"
-//             }
-//             disabled={
-//               !isEnable ||
-//               method.watch(`dDDetail.${index}.ReceiptType`) === "Advance"
-//             }
-//             focusOptions={() => method.setFocus(`dDDetail.${index}.Amount`)}
-//           />
-//         </td>
-//         <td>
-//           <NumberInput
-//             control={method.control}
-//             id={`dDDetail.${index}.Amount`}
-//             enterKeyOptions={() =>
-//               method.setFocus(`dDDetail.${index}.FromBank`)
-//             }
-//             required={true}
-//             disabled={!isEnable}
-//           />
-//         </td>
-
-//         <td>
-//           <Form.Control
-//             as={"textarea"}
-//             rows={1}
-//             disabled={!isEnable}
-//             className="form-control"
-//             {...method.register(`dDDetail.${index}.DetailDescription`)}
-//             style={{
-//               fontSize: "0.8em",
-//             }}
-//           />
-//         </td>
-//         <td>
-//           <Button
-//             icon="pi pi-minus"
-//             severity="danger"
-//             size="sm"
-//             type="button"
-//             style={{
-//               padding: "0.25rem .7rem",
-//               borderRadius: "16px",
-//               fontSize: "0.9em",
-//             }}
-//             onClick={() => removeSingleRow(index)}
-//           />
-//         </td>
-//       </tr>
-//     </>
-//   );
-// }
 // Detail Hooks
 function useCashModeDetail(
   control,
@@ -3052,7 +2583,6 @@ function useDDModeDetail(
   control,
   isEnable,
   customerInvoiceInsallments,
-  banksSelectData,
   setValue
 ) {
   const useDDFieldDetailArray = useFieldArray({
@@ -3070,25 +2600,15 @@ function useDDModeDetail(
         return {
           ReceiptType: item.RecoveryType,
           InvoiceInstallmentID: item.InvoiceInstallmentID,
-          FromBank: item.FromBank,
-          ReceivedInBankID: item.ReceivedInBankID,
-          TransactionID: item.InstrumentNo,
           Amount: item.Amount,
           DetailDescription: item.DetailDescription,
-          InstrumentDate: parseISO(item.InstrumentDate),
         };
       })
     );
   }
 
   function appendSingleRow(data) {
-    console.log(setValue);
-    console.log(data);
-    let date = data.InstrumentDate || new Date();
-    delete data.InstrumentDate;
     useDDFieldDetailArray.append(data);
-    let newIndex = useDDFieldDetailArray.fields.length;
-    setValue(`dDDetail.${newIndex}.InstrumentDate`, date);
   }
 
   function removeAllRows() {
@@ -3112,7 +2632,6 @@ function useDDModeDetail(
           ddFieldArray={useDDFieldDetailArray}
           isEnable={isEnable}
           customerInvoiceInsallments={customerInvoiceInsallments}
-          banksSelectData={banksSelectData}
           removeSingleRow={removeSingleRow}
         />
         <GetdDDetailTotal control={control} />
@@ -3223,6 +2742,7 @@ function GetdDDetailTotal({ control }) {
             <NumberInput
               control={control}
               id={`TotalNetAmount`}
+              required={true}
               disabled
               value={total}
             />
@@ -3257,4 +2777,521 @@ function getTotal(from = "Cash", detail) {
     }
   }
   return total;
+}
+
+// DP
+let renderCountDP = 0;
+export function DPForm() {
+  renderCountDP++;
+
+  const user = useContext(AuthContext);
+
+  return (
+    <>
+      <p>{renderCountDP}</p>
+      <Master userID={user.userID} />
+      <DetailHeader />
+    </>
+  );
+}
+let renderCountDPMaster = 0;
+function Master({ userID }) {
+  renderCountDPMaster++;
+  // States
+  //   const [CustomerID, setCustomerID] = useState(0);
+  //   const [AccountID, setAccountID] = useState(0);
+  const { setCustomerID, setAccountID, CustomerID } =
+    useReceiptEntryStateProvider();
+  const [isEnable, setIsEnable] = useState(true);
+  const [receiptMode, setReceiptMode] = useState("");
+
+  // Select Data
+  const sessionSelectData = useSessionSelectData();
+  const customerSelectData = useOldCustomerSelectData();
+  const customerLedgersData = useCustomerLedgersSelectData(CustomerID);
+  //
+  useEffect(() => {
+    function pageSetup() {
+      async function fetchReceiptNo() {
+        const data = await fetchMaxReceiptNo(userID);
+        method.setValue("ReceiptNo", data.data[0]?.VoucherNo);
+      }
+      fetchReceiptNo();
+    }
+    pageSetup();
+  }, []);
+
+  // Form
+  const {
+    method,
+    removeAllCashRows,
+    removeAllOnlineRows,
+    removeAllChequeRows,
+  } = useReceiptEntryForm();
+  return (
+    <>
+      <p>{renderCountDPMaster}</p>
+      <Row>
+        <Form.Group className="col-xl-2" as={Col} controlId="Session">
+          <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
+            Session
+            <span className="text-danger fw-bold ">*</span>
+          </Form.Label>
+          <div>
+            <CDropdown
+              control={method.control}
+              name={`Session`}
+              optionLabel="SessionTitle"
+              optionValue="SessionID"
+              placeholder="Select a session"
+              options={sessionSelectData.data}
+              required={true}
+              disabled={!isEnable}
+              focusOptions={() => method.setFocus("Customer")}
+            />
+          </div>
+        </Form.Group>
+        <Form.Group className="col-xl-3" as={Col} controlId="Customer">
+          <Form.Label>
+            Customer
+            <span className="text-danger fw-bold ">*</span>
+          </Form.Label>
+          <div>
+            <CDropdown
+              control={method.control}
+              name={"Customer"}
+              options={customerSelectData.data}
+              optionLabel="CustomerName"
+              optionValue="CustomerID"
+              placeholder="Select a customer"
+              showOnFocus={true}
+              required={true}
+              filter={true}
+              onChange={(e) => {
+                setCustomerID(e.value);
+                removeAllCashRows();
+                removeAllOnlineRows();
+                removeAllChequeRows();
+              }}
+              onSelect={(e) => {}}
+              disabled={!isEnable}
+              focusOptions={() => method.setFocus("CustomerLedger")}
+            />
+          </div>
+        </Form.Group>
+        <Form.Group className="col-xl-3" as={Col} controlId="CustomerLedger">
+          <Form.Label>
+            Customer Ledger
+            <span className="text-danger fw-bold ">*</span>
+          </Form.Label>
+          <div>
+            <CDropdown
+              control={method.control}
+              name={"CustomerLedger"}
+              options={customerLedgersData.data}
+              optionLabel="AccountTitle"
+              optionValue="AccountID"
+              placeholder="Select a ledger"
+              showOnFocus={true}
+              required={true}
+              filter={true}
+              onChange={(e) => {
+                setAccountID(e.value);
+                removeAllCashRows();
+                removeAllOnlineRows();
+                removeAllChequeRows();
+                //removeAllDDRows();
+              }}
+              disabled={!isEnable}
+              focusOptions={() => method.setFocus("ReceiptMode")}
+            />
+          </div>
+        </Form.Group>
+        <Form.Group className="col-xl-2 " as={Col} controlId="ReceiptMode">
+          <Form.Label>
+            Receipt Mode
+            <span className="text-danger fw-bold ">*</span>
+          </Form.Label>
+          <div>
+            <CDropdown
+              control={method.control}
+              options={receiptModeOptions}
+              optionValue="value"
+              optionLabel="label"
+              name={`ReceiptMode`}
+              placeholder="Select receipt mode"
+              onChange={(e) => {
+                setReceiptMode(e.value);
+                method.setValue("InstrumentType", []);
+                removeAllCashRows();
+                removeAllOnlineRows();
+                removeAllChequeRows();
+                //removeAllDDRows();
+              }}
+              showOnFocus={true}
+              disabled={!isEnable}
+              focusOptions={() =>
+                method.setFocus(
+                  receiptMode === "Instrument"
+                    ? "InstrumentType"
+                    : "Description"
+                )
+              }
+            />
+          </div>
+        </Form.Group>
+        <Form.Group className="col-xl-2 " as={Col} controlId="Session">
+          <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
+            Instrument Type
+          </Form.Label>
+          <div>
+            <CDropdown
+              control={method.control}
+              name={`InstrumentType`}
+              placeholder="Select a type"
+              options={instrumentTypeOptions}
+              required={receiptMode === "Instrument"}
+              disabled={
+                !isEnable || !(method.watch("ReceiptMode") === "Instrument")
+              }
+              focusOptions={() => method.setFocus("Description")}
+              onChange={(e) => {
+                setReceiptMode(e.value);
+                removeAllCashRows();
+                removeAllOnlineRows();
+                removeAllChequeRows();
+                //removeAllDDRows();
+              }}
+            />
+          </div>
+        </Form.Group>
+      </Row>
+      <Row>
+        <Form.Group as={Col} controlId="ReceiptNo">
+          <Form.Label>Receipt No</Form.Label>
+
+          <div>
+            <TextInput
+              control={method.control}
+              ID={"ReceiptNo"}
+              isEnable={false}
+            />
+          </div>
+        </Form.Group>
+        <Form.Group as={Col} controlId="ReceiptDate">
+          <Form.Label>Date</Form.Label>
+          <div>
+            <Controller
+              disabled={!isEnable}
+              control={method.control}
+              name="ReceiptDate"
+              render={({ field }) => (
+                <ReactDatePicker
+                  disabled={!isEnable}
+                  placeholderText="Select date"
+                  onChange={(date) => field.onChange(date)}
+                  selected={field.value || new Date()}
+                  dateFormat={"dd-MMM-yyyy"}
+                  className={!isEnable ? "disabled-field" : "binput"}
+                />
+              )}
+            />
+          </div>
+        </Form.Group>
+
+        <Form.Group as={Col} controlId="Description" className="col-9">
+          <Form.Label>Description</Form.Label>
+          <Form.Control
+            as={"textarea"}
+            rows={1}
+            disabled={!isEnable}
+            className="form-control"
+            style={{
+              padding: "0.3rem 0.4rem",
+              fontSize: "0.8em",
+            }}
+            {...method.register("Description")}
+          />
+        </Form.Group>
+      </Row>
+    </>
+  );
+}
+
+let renderCountDH = 0;
+function DetailHeader() {
+  renderCountDH++;
+  const { CustomerID, AccountID } = useReceiptEntryStateProvider();
+  const { appendSingleCashRow, method: mainMethod } = useReceiptEntryForm();
+
+  const [receiptType, setReceiptType] = useState(false);
+
+  useEffect(() => {
+    mainMethod.unregister("onlineDetail");
+    mainMethod.unregister("chequeDetail");
+    mainMethod.unregister("dDDetail");
+  }, [mainMethod.unregister]);
+
+  const customerInvoiceInsallments = useCustomerInvoiceInstallments(
+    CustomerID,
+    AccountID
+  );
+
+  const method = useForm({
+    defaultValues: {
+      ReceiptType: [],
+      CustomerInstallments: [],
+      CashAmount: 0,
+      CashDescription: "",
+    },
+  });
+
+  function onAdd(data) {
+    // appendSingleCashRow({
+    //   ReceiptType: data.ReceiptType,
+    //   CustomerInstallments: data.CustomerInstallments,
+    //   CashAmount: data.CashAmount,
+    //   CashDescription: data.CashDescription,
+    // });
+    console.log(data);
+    method.reset();
+  }
+
+  return (
+    <>
+      {renderCountDH}
+      <Row className="mb-1">
+        <Form.Group as={Col} controlId="ReceiptType" className="col-xl-3">
+          <Form.Label>Receipt Type</Form.Label>
+          <div>
+            <CDropdown
+              control={method.control}
+              options={receiptTypeOptions}
+              name="ReceiptType"
+              placeholder="Select a type"
+              required={true}
+              showOnFocus={true}
+              onChange={(e) => {
+                setReceiptType(e.value === "Advance");
+                if (e.value === "Advance") {
+                  method.setValue("CustomerInstallments", []);
+                }
+              }}
+              focusOptions={() => {
+                method.setFocus(
+                  method.watch("ReceiptType") === "Advance"
+                    ? "CashAmount"
+                    : "CustomerInstallments"
+                );
+              }}
+            />
+          </div>
+        </Form.Group>
+        <Form.Group
+          className="col-xl-3"
+          as={Col}
+          controlId="CustomerInstallments"
+        >
+          <Form.Label>Customer Installments</Form.Label>
+          <div>
+            <CDropdown
+              control={method.control}
+              options={customerInvoiceInsallments.data}
+              optionLabel="InstallmentTitle"
+              optionValue="InvoiceInstallmentID"
+              name="CustomerInstallments"
+              placeholder="Select an insallment"
+              showOnFocus={true}
+              disabled={receiptType}
+              focusOptions={() => method.setFocus("CashAmount")}
+            />
+          </div>
+        </Form.Group>
+
+        <Form.Group className="col-xl-3" as={Col} controlId="CashAmount">
+          <Form.Label>Amount</Form.Label>
+          <div>
+            <NumberInput
+              control={method.control}
+              id={`CashAmount`}
+              required={true}
+              focusOptions={() => method.setFocus("CashDescription")}
+            />
+          </div>
+        </Form.Group>
+      </Row>
+      <Row>
+        <Form.Group as={Col} controlId="CashDescription">
+          <Form.Label>Description</Form.Label>
+
+          <div>
+            <CTextArea name={`CashDescription`} control={method.control} />
+          </div>
+        </Form.Group>
+        <Form.Group className="col-xl-3" as={Col} controlId="Actions">
+          <Form.Label></Form.Label>
+          <DetailHeaderActionButtons
+            handleAdd={() => method.handleSubmit(onAdd)()}
+            handleClear={() => method.reset()}
+          />
+        </Form.Group>
+      </Row>
+    </>
+  );
+}
+
+function useReceiptEntryForm() {
+  const method = useForm();
+
+  const useCashFieldDetailArray = useFieldArray({
+    control: method.control,
+    name: "cashDetail",
+    rules: {
+      required: true,
+    },
+  });
+
+  const useOnlineFieldDetailArray = useFieldArray({
+    control: method.control,
+    name: "onlineDetail",
+    rules: {
+      required: true,
+    },
+  });
+
+  const useChequeFieldDetailArray = useFieldArray({
+    control: method.control,
+    name: "chequeDetail",
+    rules: {
+      required: true,
+    },
+  });
+
+  function appendAllCashRows(data) {
+    method.setValue(
+      "cashDetail",
+      data?.map((item, index) => {
+        return {
+          ReceiptType: item.RecoveryType,
+          CustomerInstallments: item.InvoiceInstallmentID,
+          FromBank: item.FromBank,
+          ReceivedInBankID: item.ReceivedInBankID,
+          TransactionID: item.TransactionID,
+          CashAmount: item.Amount,
+          CashDescription: item.DetailDescription,
+        };
+      })
+    );
+  }
+
+  function appendSingleCashRow(data) {
+    useCashFieldDetailArray.append({
+      ReceiptType: data.ReceiptType,
+      CustomerInstallments: data.CustomerInstallments,
+      CashAmount: data.CashAmount,
+      CashDescription: data.CashDescription,
+    });
+  }
+
+  function removeAllCashRows() {
+    useCashFieldDetailArray.remove();
+  }
+
+  function removeSingleCashRow(index) {
+    useCashFieldDetailArray.remove(index);
+  }
+
+  function appendAllOnlineRows(data) {
+    method.setValue(
+      "onlineDetail",
+      data?.map((item, index) => {
+        return {
+          ReceiptType: item.RecoveryType,
+          InvoiceInstallmentID: item.InvoiceInstallmentID,
+          FromBank: item.FromBank,
+          ReceivedInBankID: item.ReceivedInBankID,
+          TransactionID: item.TransactionID,
+          Amount: item.Amount,
+          DetailDescription: item.DetailDescription,
+        };
+      })
+    );
+  }
+
+  function appendSingleOnlineRow(data) {
+    useOnlineFieldDetailArray.append(data);
+  }
+
+  function removeAllOnlineRows() {
+    useOnlineFieldDetailArray.remove();
+  }
+
+  function removeSingleOnlineRow(index) {
+    useOnlineFieldDetailArray.remove(index);
+  }
+
+  function appendAllChequeRows(data) {
+    method.setValue(
+      "chequeDetail",
+      data?.map((item, index) => {
+        return {
+          ReceiptType: item.RecoveryType,
+          InvoiceInstallmentID: item.InvoiceInstallmentID,
+          FromBank: item.FromBank,
+          ReceivedInBankID: item.ReceivedInBankID,
+          TransactionID: item.InstrumentNo,
+          Amount: item.Amount,
+          DetailDescription: item.DetailDescription,
+          InstrumentDate: parseISO(item.InstrumentDate),
+        };
+      })
+    );
+  }
+
+  function appendSingleChequeRow(data) {
+    let date = data.InstrumentDate || new Date();
+    delete data.InstrumentDate;
+    useChequeFieldDetailArray.append(data);
+    let newIndex = useChequeFieldDetailArray.fields.length;
+    setValue(`chequeDetail.${newIndex}.InstrumentDate`, date);
+  }
+
+  function removeAllChequeRows() {
+    useChequeFieldDetailArray.remove();
+  }
+
+  function removeSingleChequeRow(index) {
+    useChequeFieldDetailArray.remove(index);
+  }
+
+  return {
+    method,
+    cashFieldsArray: useCashFieldDetailArray.fields,
+    onlineFieldsArray: useOnlineFieldDetailArray.fields,
+    chequeFieldsArray: useChequeFieldDetailArray.fields,
+    appendAllCashRows,
+    appendAllChequeRows,
+    appendAllOnlineRows,
+    appendSingleCashRow,
+    appendSingleOnlineRow,
+    appendSingleChequeRow,
+    removeAllCashRows,
+    removeAllOnlineRows,
+    removeAllChequeRows,
+    removeSingleCashRow,
+    removeSingleOnlineRow,
+    removeSingleChequeRow,
+  };
+}
+
+function useReceiptEntryStateProvider() {
+  const [CustomerID, setCustomerID] = useState(0);
+  const [AccountID, setAccountID] = useState(0);
+
+  return {
+    CustomerID,
+    setCustomerID,
+    AccountID,
+    setAccountID,
+  };
 }

@@ -13,6 +13,7 @@ function CustomerInvoiceIntallmentsModal({
   handleClose,
   installmentsFieldArray,
   method,
+  isEnable,
 }) {
   useEffect(() => {
     method.setValue("InstallmentTotalRemaining", method.watch(`Total_Amount`));
@@ -91,7 +92,9 @@ function CustomerInvoiceIntallmentsModal({
             label="Add Installment"
             type="button"
             onClick={() => installmentsFieldArray.append({ Amount: 0 })}
-            disabled={method.watch("InstallmentTotalRemaining") === 0}
+            disabled={
+              !isEnable || method.watch("InstallmentTotalRemaining") === 0
+            }
           />
           <div
             style={{
@@ -159,6 +162,7 @@ function CustomerInvoiceIntallmentsModal({
                             selected={field.value || new Date()}
                             dateFormat={"dd-MMM-yyyy"}
                             className="binput"
+                            disabled={!isEnable}
                           />
                         )}
                       />
@@ -183,6 +187,7 @@ function CustomerInvoiceIntallmentsModal({
                         min={1}
                         mode="decimal"
                         useGrouping={false}
+                        disabled={!isEnable}
                       />
                     </div>
                     <div style={{ display: "flex", gap: 2 }}>
@@ -192,6 +197,7 @@ function CustomerInvoiceIntallmentsModal({
                         style={{ borderRadius: "10px" }}
                         type="button"
                         disabled={
+                          !isEnable ||
                           method.watch("InstallmentTotalRemaining") === 0
                         }
                         onClick={() =>
@@ -205,6 +211,7 @@ function CustomerInvoiceIntallmentsModal({
                         severity="danger"
                         style={{ borderRadius: "10px" }}
                         type="button"
+                        disabled={!isEnable}
                         onClick={() => installmentsFieldArray.remove(index)}
                       />
                     </div>
