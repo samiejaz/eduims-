@@ -3053,7 +3053,7 @@ function DetailHeader() {
     //   CashAmount: data.CashAmount,
     //   CashDescription: data.CashDescription,
     // });
-    console.log(data);
+
     method.reset();
   }
 

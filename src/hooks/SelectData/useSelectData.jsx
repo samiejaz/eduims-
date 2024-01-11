@@ -2,18 +2,25 @@ import { useQuery } from "@tanstack/react-query";
 import {
   fetchAllActivationCustomersForSelect,
   fetchAllBankAccountsForSelect,
+  fetchAllBusinessNatureForSelect,
+  fetchAllBusinessSegmentsForSelect,
+  fetchAllBusinessTypesForSelect,
   fetchAllBusinessUnitsForSelect,
+  fetchAllCountriesForSelect,
   fetchAllCustomerAccountsForSelect,
   fetchAllCustomerInvoices,
   fetchAllCustomersBranch,
   fetchAllInvoiceInstallmetns,
+  fetchAllLeadSourcesForSelect,
   fetchAllOldCustomersForSelect,
   fetchAllProductCategoriesForSelect,
   fetchAllProductsForSelect,
   fetchAllServicesForSelect,
   fetchAllSessionsForSelect,
   fetchAllSoftwareCustomersForSelect,
+  fetchAllTehsilsForSelect,
 } from "../../api/SelectData";
+import { SELECT_QUERY_KEYS } from "../../utils/enums";
 
 // Activation Customers
 export function useActivationClientsSelectData(OldCustomerID = 0) {
@@ -135,12 +142,73 @@ export function useCustomerInvoiceInstallments(CustomerID = 0, AccountID = 0) {
   return customerInvoiceInstallmentsSelectData;
 }
 
-//Bank Accounts
+// Bank Accounts
 export function useBankAccountsSelectData() {
-  const bankAccountsSelectData = useQuery({
+  const data = useQuery({
     queryKey: ["bankAccounts"],
     queryFn: () => fetchAllBankAccountsForSelect(),
     initialData: [],
   });
+  return data;
+}
+
+// Countries
+export function useAllCountiesSelectData() {
+  const data = useQuery({
+    queryKey: [SELECT_QUERY_KEYS.COUNTRIES_SELECT_QUERY_KEY],
+    queryFn: () => fetchAllCountriesForSelect(),
+    initialData: [],
+  });
+  return data;
+}
+
+// Tehsils
+export function useAllTehsilsSelectData(CountryID = 0) {
+  const bankAccountsSelectData = useQuery({
+    queryKey: [SELECT_QUERY_KEYS.TEHSIL_SELECT_QUERY_KEY, CountryID],
+    queryFn: () => fetchAllTehsilsForSelect(CountryID),
+    enabled: CountryID !== 0,
+    initialData: [],
+  });
   return bankAccountsSelectData;
+}
+
+// Business Types
+export function useAllBusinessTypesSelectData() {
+  const data = useQuery({
+    queryKey: [SELECT_QUERY_KEYS.BUSINESS_TYPES_SELECT_QUERY_KEY],
+    queryFn: () => fetchAllBusinessTypesForSelect(),
+    initialData: [],
+  });
+  return data;
+}
+
+// Business Natures
+export function useAllBusinessNatureSelectData() {
+  const data = useQuery({
+    queryKey: [SELECT_QUERY_KEYS.BUSINESS_NATURE_SELECT_QUERY_KEY],
+    queryFn: () => fetchAllBusinessNatureForSelect(),
+    initialData: [],
+  });
+  return data;
+}
+
+// Business Segments
+export function useAllBusinessSegmentsSelectData() {
+  const data = useQuery({
+    queryKey: [SELECT_QUERY_KEYS.BUSINESS_SEGMENTS_SELECT_QUERY_KEY],
+    queryFn: () => fetchAllBusinessSegmentsForSelect(),
+    initialData: [],
+  });
+  return data;
+}
+
+// Lead Sources
+export function useAllLeadsSouceSelectData() {
+  const data = useQuery({
+    queryKey: [SELECT_QUERY_KEYS.LEAD_SOURCE_SELECT_QUERY_KEY],
+    queryFn: () => fetchAllLeadSourcesForSelect(),
+    initialData: [],
+  });
+  return data;
 }

@@ -23,6 +23,7 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { AppConfigurationContext } from "../../../context/AppConfigurationContext";
 import useUserProfile from "../../../hooks/useUserProfile";
+import { ROUTE_URLS } from "../../../utils/enums";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
@@ -102,11 +103,6 @@ function Sidebar({ logoImage, userImage }) {
                 title="Customers"
                 className="scale-up-center"
               >
-                {/* <LinkContainer to={"/customers/customerEntry"}>
-                  <NavDropdown.Item className="scale-up-center">
-                    Customer Entry
-                  </NavDropdown.Item>
-                </LinkContainer> */}
                 <LinkContainer to={"/customers/customerEntry"}>
                   <NavDropdown.Item className="scale-up-center">
                     Customer Entry
@@ -118,56 +114,42 @@ function Sidebar({ logoImage, userImage }) {
                     Old Customer Entry
                   </NavDropdown.Item>
                 </LinkContainer>
-
-                <LinkContainer to={"/customers/customerBranch"}>
-                  <NavDropdown.Item className="scale-up-center">
-                    {pageTitles?.branch || "Customer Branch"}
-                  </NavDropdown.Item>
-                </LinkContainer>
-
                 <NavDropdown.Divider />
-                <LinkContainer to={"/customers/segmentsEntry"}>
-                  <NavDropdown.Item className="scale-up-center">
-                    Business Segments
-                  </NavDropdown.Item>
-                </LinkContainer>
-
-                <LinkContainer to={"/customers/businessNature"}>
-                  <NavDropdown.Item className="scale-up-center">
-                    Business Nature
-                  </NavDropdown.Item>
-                </LinkContainer>
-
-                <LinkContainer to={"/customers/businessType"}>
-                  <NavDropdown.Item className="scale-up-center">
-                    Business Type
-                  </NavDropdown.Item>
-                </LinkContainer>
-
-                <NavDropdown.Divider />
-
-                <LinkContainer to={"/customers/countryEntry"}>
+                <LinkContainer to={"/general/country"}>
                   <NavDropdown.Item className="scale-up-center">
                     Country
                   </NavDropdown.Item>
                 </LinkContainer>
-
-                <LinkContainer to={"/customers/provinceEntry"}>
+                <LinkContainer to={"/general/tehsil"}>
                   <NavDropdown.Item className="scale-up-center">
-                    Province
-                  </NavDropdown.Item>
-                </LinkContainer>
-
-                <LinkContainer to={"/customers/cityEntry"}>
-                  <NavDropdown.Item className="scale-up-center">
-                    City
+                    Tehsil
                   </NavDropdown.Item>
                 </LinkContainer>
                 <NavDropdown.Divider />
-
-                <LinkContainer to={"/customers/softwareEntry"}>
+                <LinkContainer to={"/general/businessnature"}>
                   <NavDropdown.Item className="scale-up-center">
-                    Softwares / Products
+                    Business Nature
+                  </NavDropdown.Item>
+                </LinkContainer>
+                <LinkContainer to={"/general/businesssegment"}>
+                  <NavDropdown.Item className="scale-up-center">
+                    Business Segment
+                  </NavDropdown.Item>
+                </LinkContainer>
+                <LinkContainer to={ROUTE_URLS.BUSINESS_TYPE}>
+                  <NavDropdown.Item className="scale-up-center">
+                    Business Type
+                  </NavDropdown.Item>
+                </LinkContainer>
+                <NavDropdown.Divider />
+                <LinkContainer to={ROUTE_URLS.LEED_SOURCE_ROUTE}>
+                  <NavDropdown.Item className="scale-up-center">
+                    Leed Source
+                  </NavDropdown.Item>
+                </LinkContainer>
+                <LinkContainer to={ROUTE_URLS.LEAD_INTRODUCTION_ROUTE}>
+                  <NavDropdown.Item className="scale-up-center">
+                    Leed Introduction
                   </NavDropdown.Item>
                 </LinkContainer>
               </NavDropdown>
@@ -182,10 +164,9 @@ function Sidebar({ logoImage, userImage }) {
                     Users Entry
                   </NavDropdown.Item>
                 </LinkContainer>
-
-                <LinkContainer to={"/users/departmententry"}>
+                <LinkContainer to={ROUTE_URLS.DEPARTMENT}>
                   <NavDropdown.Item className="scale-up-center">
-                    Departments
+                    Department
                   </NavDropdown.Item>
                 </LinkContainer>
               </NavDropdown>

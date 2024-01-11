@@ -223,7 +223,7 @@ function ReceiptEntrySearch() {
               body={(rowData) =>
                 ActionButtons(
                   rowData.ReceiptVoucherID,
-                  handleDeleteShow,
+                  () => handleDeleteShow(),
                   handleEditShow,
                   handleView
                 )
@@ -466,149 +466,146 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
 
   const receiptVoucherMutation = useMutation({
     mutationFn: async (formData) => {
-      if (1 === 0) {
-        toast.error("Please add atleast 1 item!", {
-          position: "top-left",
+      let ReceiptVoucherDetail = [];
+      if (formData?.cashDetail?.length > 0) {
+        ReceiptVoucherDetail = formData?.cashDetail?.map((item, index) => {
+          return {
+            RowID: index + 1,
+            RecoveryType: item.ReceiptType,
+            CustomerInvoiceID:
+              customerInvoiceInsallments.data.filter(
+                (value) =>
+                  value.InvoiceInstallmentID === item?.CustomerInstallments
+              )[0]?.CustomerInvoiceID ?? null,
+            InvoiceInstallmentID:
+              item.CustomerInstallments?.length === 0
+                ? null
+                : item.CustomerInstallments,
+            FromBank: null,
+            ReceivedInBankID: null,
+            TransactionID: null,
+            InstrumentNo: null,
+            InstrumentDate: null,
+            Amount: item.CashAmount,
+            DetailDescription: item.CashDescription,
+          };
+        });
+      } else if (formData?.onlineDetail?.length > 0) {
+        ReceiptVoucherDetail = formData?.onlineDetail?.map((item, index) => {
+          return {
+            RowID: index + 1,
+            RecoveryType: item.ReceiptType,
+            CustomerInvoiceID:
+              customerInvoiceInsallments.data.filter(
+                (value) =>
+                  value.InvoiceInstallmentID === item?.InvoiceInstallmentID
+              )[0]?.CustomerInvoiceID ?? null,
+            InvoiceInstallmentID:
+              item.InvoiceInstallmentID?.length === 0
+                ? null
+                : item.InvoiceInstallmentID,
+            FromBank: item.FromBank,
+            ReceivedInBankID: item.ReceivedInBankID,
+            TransactionID: item.TransactionID,
+            InstrumentNo: null,
+            InstrumentDate: null,
+            Amount: item.Amount,
+            DetailDescription: item.DetailDescription,
+          };
+        });
+      } else if (formData?.chequeDetail?.length > 0) {
+        ReceiptVoucherDetail = formData?.chequeDetail?.map((item, index) => {
+          return {
+            RowID: index + 1,
+            RecoveryType: item.ReceiptType,
+            CustomerInvoiceID:
+              customerInvoiceInsallments.data.filter(
+                (value) =>
+                  value.InvoiceInstallmentID === item?.InvoiceInstallmentID
+              )[0]?.CustomerInvoiceID ?? null,
+            InvoiceInstallmentID:
+              item.InvoiceInstallmentID?.length === 0
+                ? null
+                : item.InvoiceInstallmentID,
+            FromBank: item.FromBank,
+            ReceivedInBankID: item.ReceivedInBankID,
+            TransactionID: null,
+            InstrumentNo: item.TransactionID,
+            InstrumentDate: item.InstrumentDate,
+            Amount: item.Amount,
+            DetailDescription: item.DetailDescription,
+          };
+        });
+      } else if (formData?.dDDetail?.length > 0) {
+        ReceiptVoucherDetail = formData?.dDDetail?.map((item, index) => {
+          return {
+            RowID: index + 1,
+            RecoveryType: item.ReceiptType,
+            CustomerInvoiceID:
+              customerInvoiceInsallments.data.filter(
+                (value) =>
+                  value.InvoiceInstallmentID === item?.InvoiceInstallmentID
+              )[0]?.CustomerInvoiceID ?? null,
+            InvoiceInstallmentID:
+              item.InvoiceInstallmentID?.length === 0
+                ? null
+                : item.InvoiceInstallmentID,
+            FromBank: item.FromBank,
+            ReceivedInBankID: item.ReceivedInBankID,
+            TransactionID: null,
+            InstrumentNo: item.TransactionID,
+            InstrumentDate: item.InstrumentDate,
+            Amount: item.Amount,
+            DetailDescription: item.DetailDescription,
+          };
         });
       } else {
-        let ReceiptVoucherDetail = [];
-        if (formData?.cashDetail?.length > 0) {
-          ReceiptVoucherDetail = formData?.cashDetail?.map((item, index) => {
-            return {
-              RowID: index + 1,
-              RecoveryType: item.ReceiptType,
-              CustomerInvoiceID:
-                customerInvoiceInsallments.data.filter(
-                  (value) =>
-                    value.InvoiceInstallmentID === item?.CustomerInstallments
-                )[0]?.CustomerInvoiceID ?? null,
-              InvoiceInstallmentID:
-                item.CustomerInstallments?.length === 0
-                  ? null
-                  : item.CustomerInstallments,
-              FromBank: null,
-              ReceivedInBankID: null,
-              TransactionID: null,
-              InstrumentNo: null,
-              InstrumentDate: null,
-              Amount: item.CashAmount,
-              DetailDescription: item.CashDescription,
-            };
-          });
-        } else if (formData?.onlineDetail?.length > 0) {
-          ReceiptVoucherDetail = formData?.onlineDetail?.map((item, index) => {
-            return {
-              RowID: index + 1,
-              RecoveryType: item.ReceiptType,
-              CustomerInvoiceID:
-                customerInvoiceInsallments.data.filter(
-                  (value) =>
-                    value.InvoiceInstallmentID === item?.InvoiceInstallmentID
-                )[0]?.CustomerInvoiceID ?? null,
-              InvoiceInstallmentID:
-                item.InvoiceInstallmentID?.length === 0
-                  ? null
-                  : item.InvoiceInstallmentID,
-              FromBank: item.FromBank,
-              ReceivedInBankID: item.ReceivedInBankID,
-              TransactionID: item.TransactionID,
-              InstrumentNo: null,
-              InstrumentDate: null,
-              Amount: item.Amount,
-              DetailDescription: item.DetailDescription,
-            };
-          });
-        } else if (formData?.chequeDetail?.length > 0) {
-          ReceiptVoucherDetail = formData?.chequeDetail?.map((item, index) => {
-            return {
-              RowID: index + 1,
-              RecoveryType: item.ReceiptType,
-              CustomerInvoiceID:
-                customerInvoiceInsallments.data.filter(
-                  (value) =>
-                    value.InvoiceInstallmentID === item?.InvoiceInstallmentID
-                )[0]?.CustomerInvoiceID ?? null,
-              InvoiceInstallmentID:
-                item.InvoiceInstallmentID?.length === 0
-                  ? null
-                  : item.InvoiceInstallmentID,
-              FromBank: item.FromBank,
-              ReceivedInBankID: item.ReceivedInBankID,
-              TransactionID: null,
-              InstrumentNo: item.TransactionID,
-              InstrumentDate: item.InstrumentDate,
-              Amount: item.Amount,
-              DetailDescription: item.DetailDescription,
-            };
-          });
-        } else if (formData?.dDDetail?.length > 0) {
-          ReceiptVoucherDetail = formData?.dDDetail?.map((item, index) => {
-            return {
-              RowID: index + 1,
-              RecoveryType: item.ReceiptType,
-              CustomerInvoiceID:
-                customerInvoiceInsallments.data.filter(
-                  (value) =>
-                    value.InvoiceInstallmentID === item?.InvoiceInstallmentID
-                )[0]?.CustomerInvoiceID ?? null,
-              InvoiceInstallmentID:
-                item.InvoiceInstallmentID?.length === 0
-                  ? null
-                  : item.InvoiceInstallmentID,
-              FromBank: item.FromBank,
-              ReceivedInBankID: item.ReceivedInBankID,
-              TransactionID: null,
-              InstrumentNo: item.TransactionID,
-              InstrumentDate: item.InstrumentDate,
-              Amount: item.Amount,
-              DetailDescription: item.DetailDescription,
-            };
-          });
-        }
-        let DataToSend = {
-          SessionID: formData?.Session || sessionSelectData[0]?.SessionID,
-          VoucherNo: formData?.ReceiptNo,
-          VoucherDate: formData?.ReceiptDate || new Date(),
-          CustomerID: formData?.Customer,
-          AccountID: formData?.CustomerLedger,
-          ReceiptMode: formData?.ReceiptMode,
-          InstrumentType:
-            formData?.InstrumentType?.length === 0
-              ? null
-              : formData?.InstrumentType,
-          TotalNetAmount: formData?.Total_Amount,
-          Description: formData?.Description,
-          EntryUserID: user?.userID,
-          ReceiptVoucherDetail: JSON.stringify(ReceiptVoucherDetail),
-        };
+        toast.error("Please add atleast one row!");
+        return;
+      }
+      let DataToSend = {
+        SessionID: formData?.Session || sessionSelectData[0]?.SessionID,
+        VoucherNo: formData?.ReceiptNo,
+        VoucherDate: formData?.ReceiptDate || new Date(),
+        CustomerID: formData?.Customer,
+        AccountID: formData?.CustomerLedger,
+        ReceiptMode: formData?.ReceiptMode,
+        InstrumentType:
+          formData?.InstrumentType?.length === 0
+            ? null
+            : formData?.InstrumentType,
+        TotalNetAmount: formData?.Total_Amount,
+        Description: formData?.Description,
+        EntryUserID: user?.userID,
+        ReceiptVoucherDetail: JSON.stringify(ReceiptVoucherDetail),
+      };
 
-        if (
-          ReceiptVoucher?.length !== 0 &&
-          ReceiptVoucher?.Master[0]?.ReceiptVoucherID !== undefined
-        ) {
-          DataToSend.ReceiptVoucherID =
-            ReceiptVoucher?.Master[0]?.ReceiptVoucherID;
+      if (
+        ReceiptVoucher?.length !== 0 &&
+        ReceiptVoucher?.Master[0]?.ReceiptVoucherID !== undefined
+      ) {
+        DataToSend.ReceiptVoucherID =
+          ReceiptVoucher?.Master[0]?.ReceiptVoucherID;
+      } else {
+        DataToSend.ReceiptVoucherID = 0;
+      }
+
+      const { data } = await axios.post(
+        apiUrl + `/data_ReceiptVoucher/ReceiptVoucherInsertUpdate`,
+        DataToSend
+      );
+
+      if (data.success === true) {
+        queryClient.invalidateQueries({ queryKey: ["customerInvoices"] });
+        if (ReceiptVoucherID !== 0) {
+          toast.success("Receipt updated successfully!");
+          navigate(`${parentRoute}/${ReceiptVoucherID}`);
         } else {
-          DataToSend.ReceiptVoucherID = 0;
+          toast.success("Receipt created successfully!");
+          navigate(`${parentRoute}/${data?.ReceiptVoucherID}`);
         }
-
-        const { data } = await axios.post(
-          apiUrl + `/data_ReceiptVoucher/ReceiptVoucherInsertUpdate`,
-          DataToSend
-        );
-
-        if (data.success === true) {
-          queryClient.invalidateQueries({ queryKey: ["customerInvoices"] });
-          if (ReceiptVoucherID !== 0) {
-            toast.success("Receipt updated successfully!");
-            navigate(`${parentRoute}/${ReceiptVoucherID}`);
-          } else {
-            toast.success("Receipt created successfully!");
-            navigate(`${parentRoute}/${data?.ReceiptVoucherID}`);
-          }
-        } else {
-          toast.error(data.message);
-        }
+      } else {
+        toast.error(data.message);
       }
     },
     onError: (err) => {
@@ -823,11 +820,6 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
               }}
               handleSave={() => method.handleSubmit(onSubmit)()}
               GoBackLabel="Receipts"
-              utilityContent={
-                <>
-                  <p>{renderCount}</p>
-                </>
-              }
             />
           </div>
           <form id="receiptVoucher" className="mt-4">
@@ -3082,8 +3074,6 @@ function useDDModeDetail(
   }
 
   function appendSingleRow(data) {
-    console.log(setValue);
-    console.log(data);
     let date = data.InstrumentDate || new Date();
     delete data.InstrumentDate;
     useDDFieldDetailArray.append(data);

@@ -374,7 +374,7 @@ function InvoiceDefaultDescriptionsEntry({ pageTitles }) {
           >
             <Row className="p-3">
               <Form.Group as={Col} controlId="InvoiceType">
-                <Form.Label>Invoice InvoiceType</Form.Label>
+                <Form.Label>Invoice Type</Form.Label>
                 <span className="text-danger fw-bold ">*</span>
                 <Controller
                   control={control}
