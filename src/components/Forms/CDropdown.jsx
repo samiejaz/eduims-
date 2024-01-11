@@ -33,11 +33,9 @@ const CDropdown = ({
           placeholder={placeholder}
           options={options}
           focusInputRef={field.ref}
+          ref={field.ref}
           onChange={(e) => {
             field.onChange(e.value);
-            if (onChange) {
-              onChange(e);
-            }
             if (focusOptions) {
               if (
                 e.originalEvent.key === "ArrowDown" ||
@@ -45,6 +43,13 @@ const CDropdown = ({
               ) {
               } else {
                 focusOptions();
+                let obj = {
+                  value: e.value,
+                  ref: field.ref,
+                };
+                if (onChange) {
+                  onChange(obj);
+                }
               }
             }
           }}
@@ -52,6 +57,12 @@ const CDropdown = ({
             if (focusOptions) {
               if (e.key === "Enter") {
                 focusOptions();
+                let obj = {
+                  value: field.value,
+                };
+                if (onChange) {
+                  onChange(obj);
+                }
               }
             }
           }}

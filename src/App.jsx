@@ -36,12 +36,42 @@ import {
   KBarSearch,
 } from "kbar";
 import { ReceiptEntryForm } from "./pages/RecieptEntry/RecieptEntry";
+import DP, { DPForm } from "./pages/dp/DP";
+import { CountryDetail, CountryForm } from "./pages/Country/Country";
+import { useUserData } from "./context/AuthContext";
+import { TehsilDetail, TehsilForm } from "./pages/Tehsil/Tehsil";
+import {
+  BusinessNatureDetail,
+  BusinessNatureForm,
+} from "./pages/BusinessNature/BusinessNature";
+import {
+  BusinessSegmentDetail,
+  BusinessSegmentForm,
+} from "./pages/BusinessSegment/BusinessSegment";
+import { ROUTE_URLS } from "./utils/enums";
+import {
+  BusinessTypeDetail,
+  BusinessTypeForm,
+} from "./pages/BusinessType/BusinessType";
+import {
+  DepartmentDetail,
+  DepartmentForm,
+} from "./pages/Departments/Department";
+import {
+  LeadSourceDetail,
+  LeadSourceForm,
+} from "./pages/LeadSource/LeadSource";
+import {
+  LeadIntroductionDetail,
+  LeadIntroductionForm,
+} from "./pages/LeadsIntroduction/LeadsIntroduction";
 
 const App = () => {
   const { pageTitles } = useContext(AppConfigurationContext);
   const [pressed, setPressed] = useState(false);
   const [value, setValue] = useState("");
   const navigate = useNavigate();
+  const user = useUserData();
   const actions = [
     {
       id: "businessUnit",
@@ -62,44 +92,16 @@ const App = () => {
       name: "Receipt Voucher",
       shortcut: ["r"],
       keywords: "receiptvoucher",
-      perform: () => navigate("/customers/receiptVoucher/new", {}),
+      perform: () => navigate("/customers/receiptVoucher", {}),
+    },
+    {
+      id: "dp",
+      name: "Receipt Voucher",
+      shortcut: ["d"],
+      keywords: "dp",
+      perform: () => navigate("/customers/dp", {}),
     },
   ];
-  // const onKeyDown = (e) => {
-  //   setPressed(true);
-
-  //   if (e.code === "Space") {
-  //     setValue("space");
-
-  //     return;
-  //   }
-
-  //   setValue(e.key);
-  // };
-
-  // const [bindKeyDown, unbindKeyDown] = useEventListener({
-  //   type: "keydown",
-  //   listener: (e) => {
-  //     onKeyDown(e);
-  //   },
-  // });
-
-  // const [bindKeyUp, unbindKeyUp] = useEventListener({
-  //   type: "keyup",
-  //   listener: (e) => {
-  //     setPressed(false);
-  //   },
-  // });
-
-  // useEffect(() => {
-  //   bindKeyDown();
-  //   bindKeyUp();
-
-  //   return () => {
-  //     unbindKeyDown();
-  //     unbindKeyUp();
-  //   };
-  // }, [bindKeyDown, bindKeyUp, unbindKeyDown, unbindKeyUp]);
 
   return (
     <>
@@ -187,6 +189,20 @@ const App = () => {
                 <ReceiptEntryForm pageTitles={pageTitles} mode={"new"} />
               }
             />
+            {/* DP */}
+            <Route path="/customers/dp" element={<DP />} />
+            <Route
+              path="/customers/dp/:ReceiptVoucherID"
+              element={<DPForm pageTitles={pageTitles} mode={"view"} />}
+            />
+            <Route
+              path="/customers/dp/edit/:ReceiptVoucherID"
+              element={<DPForm pageTitles={pageTitles} mode={"edit"} />}
+            />
+            <Route
+              path="/customers/dp/new"
+              element={<DPForm pageTitles={pageTitles} mode={"new"} />}
+            />
             <Route
               path="/customers/customerInvoice/:CustomerInvoiceID"
               element={
@@ -234,17 +250,272 @@ const App = () => {
               element={<AppConfiguration />}
             />
 
-            {/* <Route path="/users/departmententry" element={<Department />} /> */}
-            {/* <Route path="/customers/segmentsEntry" element={<Segments />} />
-          <Route
-            path="/customers/businessNature"
-            element={<BusinessNature />}
-          />
-          <Route path="/customers/businessType" element={<BusinessType />} />
-          <Route path="/customers/provinceEntry" element={<Province />} />
-          <Route path="/customers/cityEntry" element={<City />} />
-          <Route path="/customers/countryEntry" element={<Country />} />
-  <Route path="/customers/softwareEntry" element={<Softwares />} /> */}
+            {/* Country */}
+            <Route path="/general/country" element={<CountryDetail />} />
+            <Route
+              path="/general/country/:CountryID"
+              element={
+                <CountryForm
+                  pageTitles={pageTitles}
+                  mode={"view"}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path="/general/country/edit/:CountryID"
+              element={
+                <CountryForm
+                  pageTitles={pageTitles}
+                  mode={"edit"}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path="/general/country/new"
+              element={
+                <CountryForm pageTitles={pageTitles} mode={"new"} user={user} />
+              }
+            />
+            {/* Country END */}
+            {/* Tehsil */}
+            <Route path="/general/tehsil" element={<TehsilDetail />} />
+            <Route
+              path="/general/tehsil/:TehsilID"
+              element={
+                <TehsilForm pageTitles={pageTitles} mode={"view"} user={user} />
+              }
+            />
+            <Route
+              path="/general/tehsil/edit/:TehsilID"
+              element={
+                <TehsilForm pageTitles={pageTitles} mode={"edit"} user={user} />
+              }
+            />
+            <Route
+              path="/general/tehsil/new"
+              element={
+                <TehsilForm pageTitles={pageTitles} mode={"new"} user={user} />
+              }
+            />
+            {/* Tehsil END */}
+            {/* Business Nature */}
+            <Route
+              path="/general/businessnature"
+              element={<BusinessNatureDetail />}
+            />
+            <Route
+              path="/general/businessnature/:BusinessNatureID"
+              element={
+                <BusinessNatureForm
+                  pageTitles={pageTitles}
+                  mode={"view"}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path="/general/businessnature/edit/:BusinessNatureID"
+              element={
+                <BusinessNatureForm
+                  pageTitles={pageTitles}
+                  mode={"edit"}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path="/general/businessnature/new"
+              element={
+                <BusinessNatureForm
+                  pageTitles={pageTitles}
+                  mode={"new"}
+                  user={user}
+                />
+              }
+            />
+            {/* Business Nature END */}
+            {/* Business Nature */}
+            <Route
+              path="/general/businesssegment"
+              element={<BusinessSegmentDetail />}
+            />
+            <Route
+              path="/general/businesssegment/:BusinessSegmentID"
+              element={
+                <BusinessSegmentForm
+                  pageTitles={pageTitles}
+                  mode={"view"}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path="/general/businesssegment/edit/:BusinessSegmentID"
+              element={
+                <BusinessSegmentForm
+                  pageTitles={pageTitles}
+                  mode={"edit"}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path="/general/businesssegment/new"
+              element={
+                <BusinessSegmentForm
+                  pageTitles={pageTitles}
+                  mode={"new"}
+                  user={user}
+                />
+              }
+            />
+            {/* Business Nature END */}
+            {/* Business Type */}
+            <Route
+              path={ROUTE_URLS.BUSINESS_TYPE}
+              element={<BusinessTypeDetail />}
+            />
+            <Route
+              path={`${ROUTE_URLS.BUSINESS_TYPE}/:BusinessTypeID`}
+              element={
+                <BusinessTypeForm
+                  pageTitles={pageTitles}
+                  mode={"view"}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.BUSINESS_TYPE}/edit/:BusinessTypeID`}
+              element={
+                <BusinessTypeForm
+                  pageTitles={pageTitles}
+                  mode={"edit"}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.BUSINESS_TYPE}/new`}
+              element={
+                <BusinessTypeForm
+                  pageTitles={pageTitles}
+                  mode={"new"}
+                  user={user}
+                />
+              }
+            />
+            {/* Business Type END */}
+            {/* Department */}
+            <Route
+              path={ROUTE_URLS.DEPARTMENT}
+              element={<DepartmentDetail />}
+            />
+            <Route
+              path={`${ROUTE_URLS.DEPARTMENT}/:DepartmentID`}
+              element={
+                <DepartmentForm
+                  pageTitles={pageTitles}
+                  mode={"view"}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.DEPARTMENT}/edit/:DepartmentID`}
+              element={
+                <DepartmentForm
+                  pageTitles={pageTitles}
+                  mode={"edit"}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.DEPARTMENT}/new`}
+              element={
+                <DepartmentForm
+                  pageTitles={pageTitles}
+                  mode={"new"}
+                  user={user}
+                />
+              }
+            />
+            {/* Department END */}
+            {/* Department */}
+            <Route
+              path={ROUTE_URLS.LEED_SOURCE_ROUTE}
+              element={<LeadSourceDetail />}
+            />
+            <Route
+              path={`${ROUTE_URLS.LEED_SOURCE_ROUTE}/:LeadSourceID`}
+              element={
+                <LeadSourceForm
+                  pageTitles={pageTitles}
+                  mode={"view"}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.LEED_SOURCE_ROUTE}/edit/:LeadSourceID`}
+              element={
+                <LeadSourceForm
+                  pageTitles={pageTitles}
+                  mode={"edit"}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.LEED_SOURCE_ROUTE}/new`}
+              element={
+                <LeadSourceForm
+                  pageTitles={pageTitles}
+                  mode={"new"}
+                  user={user}
+                />
+              }
+            />
+            {/* Department END */}
+            {/* Leads Introduction */}
+            <Route
+              path={ROUTE_URLS.LEAD_INTRODUCTION_ROUTE}
+              element={<LeadIntroductionDetail />}
+            />
+            <Route
+              path={`${ROUTE_URLS.LEAD_INTRODUCTION_ROUTE}/:LeadIntroductionID`}
+              element={
+                <LeadIntroductionForm
+                  pageTitles={pageTitles}
+                  mode={"view"}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.LEAD_INTRODUCTION_ROUTE}/edit/:LeadIntroductionID`}
+              element={
+                <LeadIntroductionForm
+                  pageTitles={pageTitles}
+                  mode={"edit"}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.LEAD_INTRODUCTION_ROUTE}/new`}
+              element={
+                <LeadIntroductionForm
+                  pageTitles={pageTitles}
+                  mode={"new"}
+                  user={user}
+                />
+              }
+            />
+            {/* Leads Introduction END */}
           </Route>
         </Routes>
         <ToastContainer

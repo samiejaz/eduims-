@@ -338,3 +338,33 @@ a {
 .table>:not(caption)>*>* {
   padding: 2px 2px;
 }
+
+.react-datepicker-popper {
+  z-index: 10 !important;
+}
+
+.disabled-field {
+  background: #dee2e6;
+  color: black;
+  display: block;
+  width: 100%;
+  padding: 0.3rem 0.4rem;
+  font-size: .9em;
+  font-weight: 400;
+  line-height: 1.5;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-clip: padding-box;
+  border: var(--bs-border-width) solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.p-datatable.p-datatable-sm .p-datatable-tbody > tr > td {
+  padding: 0.2rem 0.2rem;
+}
+
+.p-paginator {
+  padding: 0;
+}

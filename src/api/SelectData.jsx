@@ -143,3 +143,37 @@ export async function fetchAllBankAccountsForSelect() {
   const { data } = await axios.post(apiUrl + "/Select/SelectBankAccounts");
   return data.data || [];
 }
+
+export async function fetchAllCountriesForSelect() {
+  const { data } = await axios.post(apiUrl + "/Select/SelectCountry");
+  return data.data || [];
+}
+
+export async function fetchAllTehsilsForSelect(CountryID = 0) {
+  if (CountryID === 0 || CountryID === undefined) {
+    return [];
+  } else {
+    const { data } = await axios.post(
+      apiUrl + "/Select/SelectTehsil?CountryID=" + CountryID
+    );
+    return data.data || [];
+  }
+}
+
+export async function fetchAllBusinessTypesForSelect() {
+  const { data } = await axios.post(apiUrl + "/Select/SelectBusinessType");
+  return data.data || [];
+}
+export async function fetchAllBusinessNatureForSelect() {
+  const { data } = await axios.post(apiUrl + "/Select/SelectBusinessNature");
+  return data.data || [];
+}
+
+export async function fetchAllLeadSourcesForSelect() {
+  const { data } = await axios.post(apiUrl + "/Select/SelectLeadSource");
+  return data.data || [];
+}
+export async function fetchAllBusinessSegmentsForSelect() {
+  const { data } = await axios.post(apiUrl + "/Select/SelectBusinessSegment");
+  return data.data || [];
+}

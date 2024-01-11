@@ -2,7 +2,7 @@ import { Checkbox } from "primereact/checkbox";
 import React from "react";
 import { Controller } from "react-hook-form";
 
-const CheckBox = ({ ID, Label, isEnable, control }) => {
+const CheckBox = ({ ID, Label, isEnable, control, onChange }) => {
   return (
     <Controller
       name={ID}
@@ -15,7 +15,12 @@ const CheckBox = ({ ID, Label, isEnable, control }) => {
               inputId={field.name}
               checked={field.value}
               inputRef={field.ref}
-              onChange={(e) => field.onChange(e.checked)}
+              onChange={(e) => {
+                field.onChange(e.checked);
+                if (onChange) {
+                  onChange(e);
+                }
+              }}
             />
             <label htmlFor={field.name} style={{ marginLeft: "5px" }}>
               {Label}

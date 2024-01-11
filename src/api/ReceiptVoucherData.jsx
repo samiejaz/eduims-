@@ -12,6 +12,7 @@ export async function fetchAllReceiptVoucheres(LoginUserID) {
   const { data } = await axios.post(
     `${apiUrl}/${CONTROLLER}/${WHEREMETHOD}?LoginUserID=${LoginUserID}`
   );
+
   return data.data ?? [];
 }
 
@@ -20,7 +21,6 @@ export async function fetchReceiptVoucherById(ReceiptVoucherID, LoginUserID) {
   const { data } = await axios.post(
     `${apiUrl}/${CONTROLLER}/GetReceiptVoucherWhere?ReceiptVoucherID=${ReceiptVoucherID}&LoginUserID=${LoginUserID}`
   );
-
   return data ?? [];
 }
 // URL: /data_ReceiptVoucher/ReceiptVoucherDelete?ReceiptVoucherID=??&LoginUserID=??
@@ -35,5 +35,16 @@ export async function deleteReceiptVoucherByID(serviceInfo) {
   } else {
     toast.error(data.message);
     return false;
+  }
+}
+//
+export async function fetchMaxReceiptNo(LoginUserID) {
+  try {
+    const { data } = await axios.post(
+      `${apiUrl}/${CONTROLLER}/GetReceiptNo?LoginUserID=${LoginUserID}`
+    );
+    return data;
+  } catch (error) {
+    toast.error(error);
   }
 }
