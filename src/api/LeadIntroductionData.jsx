@@ -53,6 +53,9 @@ export async function addNewLeadIntroduction({
   userID,
   LeadIntroductionID = 0,
 }) {
+  /*
+    Replace - from mask inputs
+  */
   let DataToSend = {
     LeadIntroductionTitle: formData.LeadIntroductionTitle,
     InActive: formData.InActive === true ? 1 : 0,

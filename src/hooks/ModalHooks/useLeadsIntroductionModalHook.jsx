@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useForm, useFormContext } from "react-hook-form";
+import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import {
   useAllBusinessNatureSelectData,
   useAllBusinessTypesSelectData,
@@ -11,23 +11,14 @@ import CDropdown from "../../components/Forms/CDropdown";
 import { Col, Form, Row } from "react-bootstrap";
 import CheckBox from "../../components/Forms/CheckBox";
 import TextInput from "../../components/Forms/TextInput";
+import CMaskInput from "../../components/Forms/CMaskInput";
+import { Dialog } from "primereact/dialog";
+import { Button } from "primereact/button";
 
 const useLeadsIntroductionModalHook = () => {
-  return <div>useLeadsIntroductionModalHook</div>;
-};
+  const [visible, setVisible] = useState(false);
 
-export default useLeadsIntroductionModalHook;
-
-export function LeadsIntroductionFormComponent({ isEnable = true }) {
-  const [CountryID, setCountryID] = useState(0);
-
-  const countriesSelectData = useAllCountiesSelectData();
-  const tehsilsSelectData = useAllTehsilsSelectData(CountryID);
-  const businessTypesSelectData = useAllBusinessTypesSelectData();
-  const businessNatureSelectData = useAllBusinessNatureSelectData();
-  const leadSourcesSelectData = useAllLeadsSouceSelectData();
-
-  const method = useFormContext({
+  const method = useForm({
     defaultValues: {
       CompanyName: "",
       CountryID: [],
@@ -45,6 +36,90 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
       IsWANumberSameAsMobile: false,
     },
   });
+  const dialogContent = (
+    <>
+      <FormProvider {...method}>
+        <LeadsIntroductionFormComponent />
+      </FormProvider>
+    </>
+  );
+
+  const footerContent = (
+    <>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "end",
+          gap: "5px",
+        }}
+      >
+        <Button
+          label="Cancel"
+          severity="danger"
+          type="button"
+          onClick={() => method.reset()}
+          pt={{
+            root: {
+              style: {
+                borderRadius: "16px",
+              },
+            },
+          }}
+        />
+        <Button
+          label="Save"
+          severity="success"
+          type="button"
+          onClick={() => method.handleSubmit(onSubmit)()}
+          pt={{
+            root: {
+              style: {
+                borderRadius: "16px",
+              },
+            },
+          }}
+        />
+      </div>
+    </>
+  );
+
+  function onSubmit(data) {
+    console.log(data);
+  }
+
+  return {
+    setVisible,
+    render: (
+      <>
+        <Dialog
+          draggable={false}
+          visible={visible}
+          footer={footerContent}
+          header="Leads Introduction"
+          maximizable
+          style={{ width: "80vw", height: "80vh" }}
+          onHide={() => {
+            setVisible(false);
+            //TODO: Invalidate the query
+          }}
+        >
+          {dialogContent}
+        </Dialog>
+      </>
+    ),
+  };
+};
+export function LeadsIntroductionFormComponent({ isEnable = true }) {
+  const [CountryID, setCountryID] = useState(0);
+
+  const countriesSelectData = useAllCountiesSelectData();
+  const tehsilsSelectData = useAllTehsilsSelectData(CountryID);
+  const businessTypesSelectData = useAllBusinessTypesSelectData();
+  const businessNatureSelectData = useAllBusinessNatureSelectData();
+  const leadSourcesSelectData = useAllLeadsSouceSelectData();
+
+  const method = useFormContext();
 
   return (
     <>
@@ -122,7 +197,7 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
                 options={businessTypesSelectData.data}
                 required={true}
                 //   disabled={mode === "view"}
-                focusOptions={() => method.setFocus("CompanyAddress")}
+                focusOptions={() => method.setFocus("BusinessNatureID")}
               />
             </div>
           </Form.Group>
@@ -143,7 +218,7 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
                 options={businessNatureSelectData.data}
                 required={true}
                 //   disabled={mode === "view"}
-                focusOptions={() => method.setFocus("ContactPersonName")}
+                focusOptions={() => method.setFocus("CompanyWebsite")}
               />
             </div>
           </Form.Group>
@@ -155,7 +230,7 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
                 control={method.control}
                 ID={"CompanyWebsite"}
                 required={true}
-                focusOptions={() => method.setFocus("BusinessNatureID")}
+                focusOptions={() => method.setFocus("ContactPersonName")}
                 //isEnable={mode !== "view"}
               />
             </div>
@@ -175,12 +250,17 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
           <Form.Group as={Col} controlId="ContactPersonMobileNo">
             <Form.Label>Contact Person Mobile No</Form.Label>
             <div>
-              <TextInput
+              <CMaskInput
                 control={method.control}
-                ID={"ContactPersonMobileNo"}
+                name={"ContactPersonMobileNo"}
                 required={true}
-                focusOptions={() => method.setFocus("ContactPersonWhatsAppNo")}
-                //isEnable={mode !== "view"}
+                focusOptions={() => method.setFocus("ContactPersonEmail")}
+                mask="9999-9999999"
+                onChange={(e) => {
+                  if (method.watch("IsWANumberSameAsMobile")) {
+                    method.setValue("ContactPersonWhatsAppNo", e.value);
+                  }
+                }}
               />
             </div>
           </Form.Group>
@@ -193,7 +273,7 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
                 control={method.control}
                 ID={"ContactPersonEmail"}
                 required={true}
-                focusOptions={() => method.setFocus("RequirementDetails")}
+                focusOptions={() => method.setFocus("CompanyAddress")}
                 //isEnable={mode !== "view"}
               />
             </div>
@@ -208,7 +288,7 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
                 control={method.control}
                 ID={"CompanyAddress"}
                 required={true}
-                focusOptions={() => method.setFocus("CompanyWebsite")}
+                focusOptions={() => method.setFocus("ContactPersonWhatsAppNo")}
                 //isEnable={mode !== "view"}
               />
             </div>
@@ -217,13 +297,13 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
           <Form.Group as={Col} controlId="ContactPersonWhatsAppNo">
             <Form.Label>Contact Person Whatsapp No</Form.Label>
             <div>
-              <TextInput
+              <CMaskInput
                 control={method.control}
-                ID={"ContactPersonWhatsAppNo"}
+                name={"ContactPersonWhatsAppNo"}
                 required={true}
-                isEnable={!method.watch("IsWANumberSameAsMobile")}
+                disabled={method.watch("IsWANumberSameAsMobile")}
                 focusOptions={() => method.setFocus("IsWANumberSameAsMobile")}
-                //isEnable={mode !== "view"}
+                mask="9999-9999999"
               />
             </div>
           </Form.Group>
@@ -285,6 +365,50 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
           </Form.Group>
         </Row>
       </form>
+    </>
+  );
+}
+export function LeadsIntroductionFormModal({ IconButton = false }) {
+  const { setVisible, render } = useLeadsIntroductionModalHook();
+
+  return (
+    <>
+      {IconButton ? (
+        <>
+          <Button
+            tooltip="Add new customer"
+            icon="pi pi-plus"
+            severity="success"
+            size="small"
+            className="rounded-2"
+            type="button"
+            onClick={() => setVisible(true)}
+            style={{
+              padding: "1px 0px",
+              fontSize: "small",
+              width: "30px",
+              marginLeft: "10px",
+            }}
+          />
+        </>
+      ) : (
+        <>
+          <Button
+            onClick={() => setVisible(true)}
+            severity="info"
+            icon="pi pi-plus"
+            label="Add New"
+            className="rounded-5"
+            type="button"
+            style={{
+              padding: "0.3rem 1.25rem",
+              marginLeft: "25px",
+              fontSize: ".8em",
+            }}
+          />
+        </>
+      )}
+      {render}
     </>
   );
 }

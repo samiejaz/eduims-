@@ -23,7 +23,10 @@ import {
   fetchLeadIntroductionById,
 } from "../../api/LeadIntroductionData";
 import { ROUTE_URLS, QUERY_KEYS } from "../../utils/enums";
-import { LeadsIntroductionFormComponent } from "../../hooks/ModalHooks/useLeadsIntroductionModalHook";
+import {
+  LeadsIntroductionFormComponent,
+  LeadsIntroductionFormModal,
+} from "../../hooks/ModalHooks/useLeadsIntroductionModalHook";
 
 let parentRoute = ROUTE_URLS.LEAD_INTRODUCTION_ROUTE;
 let editRoute = `${parentRoute}/edit/`;
@@ -114,6 +117,7 @@ export function LeadIntroductionDetail() {
                 className="rounded"
                 onClick={() => navigate(newRoute)}
               />
+              {/* <LeadsIntroductionFormModal /> */}
             </div>
           </div>
           <DataTable
@@ -162,17 +166,34 @@ export function LeadIntroductionDetail() {
     </div>
   );
 }
+
 export function LeadIntroductionForm({ pagesTitle, user, mode }) {
   document.title = "LeadIntroduction Entry";
+
   const queryClient = useQueryClient();
+
   const navigate = useNavigate();
   const { LeadIntroductionID } = useParams();
+
   const method = useForm({
     defaultValues: {
-      LeadIntroductionName: "",
-      InActive: false,
+      CompanyName: "",
+      CountryID: [],
+      TehsilID: [],
+      BusinessTypeID: [],
+      CompanyAddress: "",
+      CompanyWebsite: "",
+      BusinessNature: "",
+      ContactPersonName: "",
+      ContactPersonMobileNo: "",
+      ContactPersonWhatsAppNo: "",
+      ContactPersonEmail: "",
+      RequirementDetails: "",
+      LeadSourceID: [],
+      IsWANumberSameAsMobile: false,
     },
   });
+
   const LeadIntroductionData = useQuery({
     queryKey: [queryKey, LeadIntroductionID],
     queryFn: () => fetchLeadIntroductionById(LeadIntroductionID, user.userID),

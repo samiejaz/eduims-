@@ -9,6 +9,7 @@ const CMaskInput = ({
   mask = "",
   placeholder = "",
   focusOptions,
+  onChange,
   disabled = false,
   ...options
 }) => {
@@ -23,13 +24,19 @@ const CMaskInput = ({
             id={field.name}
             value={field.value}
             className={classNames({ "p-invalid": fieldState.error })}
-            onChange={(e) => field.onChange(e.target.value)}
+            onChange={(e) => {
+              field.onChange(e.target.value);
+
+              if (onChange) {
+                onChange(e);
+              }
+            }}
             mask={mask}
             disabled={disabled}
             placeholder={placeholder}
             style={{
               width: "100%",
-              backgroundColor: isEnable === false ? "#dee2e6" : "white",
+              backgroundColor: disabled ? "#dee2e6" : "white",
               color: "black",
             }}
             pt={{
