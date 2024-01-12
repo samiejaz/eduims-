@@ -10,6 +10,7 @@ import {
   fetchAllCustomerAccountsForSelect,
   fetchAllCustomerInvoices,
   fetchAllCustomersBranch,
+  fetchAllDepartmentsForSelect,
   fetchAllInvoiceInstallmetns,
   fetchAllLeadSourcesForSelect,
   fetchAllOldCustomersForSelect,
@@ -208,6 +209,16 @@ export function useAllLeadsSouceSelectData() {
   const data = useQuery({
     queryKey: [SELECT_QUERY_KEYS.LEAD_SOURCE_SELECT_QUERY_KEY],
     queryFn: () => fetchAllLeadSourcesForSelect(),
+    initialData: [],
+  });
+  return data;
+}
+
+// Departments
+export function useAllDepartmentsSelectData() {
+  const data = useQuery({
+    queryKey: [SELECT_QUERY_KEYS.DEPARTMENT_SELECT_QUERY_KEY],
+    queryFn: () => fetchAllDepartmentsForSelect(),
     initialData: [],
   });
   return data;

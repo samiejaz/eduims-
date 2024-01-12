@@ -65,6 +65,8 @@ import {
   LeadIntroductionDetail,
   LeadIntroductionForm,
 } from "./pages/LeadsIntroduction/LeadsIntroduction";
+import ChatRoom from "./test/Chat";
+import { UserDetail, UserForm } from "./pages/GenUsers/Users";
 
 const App = () => {
   const { pageTitles } = useContext(AppConfigurationContext);
@@ -516,6 +518,28 @@ const App = () => {
               }
             />
             {/* Leads Introduction END */}
+            {/* Users */}
+            <Route path={ROUTE_URLS.USER_ROUTE} element={<UserDetail />} />
+            <Route
+              path={`${ROUTE_URLS.USER_ROUTE}/:UserID`}
+              element={
+                <UserForm pageTitles={pageTitles} mode={"view"} user={user} />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.USER_ROUTE}/edit/:UserID`}
+              element={
+                <UserForm pageTitles={pageTitles} mode={"edit"} user={user} />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.USER_ROUTE}/new`}
+              element={
+                <UserForm pageTitles={pageTitles} mode={"new"} user={user} />
+              }
+            />
+            {/* User END */}
+            <Route path={`/chat`} element={<ChatRoom />} />
           </Route>
         </Routes>
         <ToastContainer

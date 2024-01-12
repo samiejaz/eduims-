@@ -7,6 +7,7 @@ export const ROUTE_URLS = {
   BUSINESS_SEGMENT_ROUTE: "/general/businesssegment",
   LEED_SOURCE_ROUTE: "/general/leadsource",
   LEAD_INTRODUCTION_ROUTE: "/general/leadintroduction",
+  USER_ROUTE: "/general/users",
 };
 
 export const QUERY_KEYS = {
@@ -17,7 +18,7 @@ export const QUERY_KEYS = {
   BUSINESS_NATURE_QUERY_KEY: "businessNature",
   BUSINESS_SEGMENT_QUERY_KEY: "businessSegments",
   LEED_SOURCE_QUERY_KEY: "leadSources",
-  LEAD_INTRODUCTION_QUERY_KEY: "leadIntroduction",
+  USER_QUERY_KEY: "leadIntroduction",
 };
 
 export const SELECT_QUERY_KEYS = {
@@ -27,4 +28,5 @@ export const SELECT_QUERY_KEYS = {
   BUSINESS_SEGMENTS_SELECT_QUERY_KEY: "businessSegmentSelect",
   TEHSIL_SELECT_QUERY_KEY: "tehsilsSelect",
   LEAD_SOURCE_SELECT_QUERY_KEY: "leadSourcesSelect",
+  DEPARTMENT_SELECT_QUERY_KEY: "departmentsSelect",
 };

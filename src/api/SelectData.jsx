@@ -177,3 +177,7 @@ export async function fetchAllBusinessSegmentsForSelect() {
   const { data } = await axios.post(apiUrl + "/Select/SelectBusinessSegment");
   return data.data || [];
 }
+export async function fetchAllDepartmentsForSelect() {
+  const { data } = await axios.post(apiUrl + "/Select/SelectDepartment");
+  return data.data || [];
+}

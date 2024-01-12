@@ -17,10 +17,14 @@ export async function fetchAllCountries(LoginUserID) {
 
 // URL: /gen_Country/GetCountryWhere?CountryID=??&LoginUserID=??
 export async function fetchCountryById(CountryID, LoginUserID) {
-  const { data } = await axios.post(
-    `${apiUrl}/${CONTROLLER}/${WHEREMETHOD}?CountryID=${CountryID}&LoginUserID=${LoginUserID}`
-  );
-  return data.data ?? [];
+  if (CountryID === undefined || CountryID === 0) {
+    return [];
+  } else {
+    const { data } = await axios.post(
+      `${apiUrl}/${CONTROLLER}/${WHEREMETHOD}?CountryID=${CountryID}&LoginUserID=${LoginUserID}`
+    );
+    return data.data ?? [];
+  }
 }
 // URL: /gen_Country/CountryDelete?CountryID=??&LoginUserID=??
 export async function deleteCountryByID(serviceInfo) {
