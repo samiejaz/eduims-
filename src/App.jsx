@@ -67,6 +67,7 @@ import {
 } from "./pages/LeadsIntroduction/LeadsIntroduction";
 import ChatRoom from "./test/Chat";
 import { UserDetail, UserForm } from "./pages/GenUsers/Users";
+import signalRConnectionManager from "./services/SignalRService";
 
 const App = () => {
   const { pageTitles } = useContext(AppConfigurationContext);
@@ -104,6 +105,10 @@ const App = () => {
       perform: () => navigate("/customers/dp", {}),
     },
   ];
+
+  useEffect(() => {
+    signalRConnectionManager.startConnection();
+  }, []);
 
   return (
     <>

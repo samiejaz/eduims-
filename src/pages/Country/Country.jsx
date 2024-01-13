@@ -28,6 +28,7 @@ import {
   LogLevel,
 } from "@microsoft/signalr";
 import { toast } from "react-toastify";
+import signalRConnectionManager from "../../services/SignalRService";
 
 let parentRoute = ROUTE_URLS.COUNTRY_ROUTE;
 let editRoute = `${parentRoute}/edit/`;
@@ -161,8 +162,8 @@ export function CountryForm({ pagesTitle, user, mode }) {
   document.title = "Country Entry";
 
   const queryClient = useQueryClient();
+  const connection = signalRConnectionManager.getConnection();
 
-  const [connection, setConnection] = useState();
   const navigate = useNavigate();
   const { CountryID } = useParams();
   const { control, handleSubmit, setFocus, setValue, reset } = useForm({
@@ -171,27 +172,6 @@ export function CountryForm({ pagesTitle, user, mode }) {
       InActive: false,
     },
   });
-
-  useEffect(() => {
-    async function ConnectToWs() {
-      const conn = new HubConnectionBuilder()
-        .withUrl("http://192.168.9.110:90/Notification", {
-          skipNegotiation: true,
-          transport: HttpTransportType.WebSockets,
-        })
-        .configureLogging(LogLevel.Information)
-        .build();
-
-      await conn.start();
-      setConnection(conn);
-    }
-
-    ConnectToWs();
-
-    return async () => {
-      await connection.stop();
-    };
-  }, [mode]);
 
   const CountryData = useQuery({
     queryKey: [queryKey, CountryID],
@@ -212,12 +192,7 @@ export function CountryForm({ pagesTitle, user, mode }) {
       if (success) {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
         navigate(`${parentRoute}/${CountryID}`);
-
-        connection.on("ReceiveNotification", (message) => {
-          toast.success(message);
-        });
         await connection.invoke("SendNotification");
-        await connection.stop();
       }
     },
   });
