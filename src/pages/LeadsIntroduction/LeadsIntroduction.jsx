@@ -23,7 +23,10 @@ import {
   fetchLeadIntroductionById,
 } from "../../api/LeadIntroductionData";
 import { ROUTE_URLS, QUERY_KEYS } from "../../utils/enums";
-import { LeadsIntroductionFormComponent } from "../../hooks/ModalHooks/useLeadsIntroductionModalHook";
+import {
+  LeadsIntroductionFormComponent,
+  LeadsIntroductionFormModal,
+} from "../../hooks/ModalHooks/useLeadsIntroductionModalHook";
 
 let parentRoute = ROUTE_URLS.LEAD_INTRODUCTION_ROUTE;
 let editRoute = `${parentRoute}/edit/`;
@@ -114,6 +117,7 @@ export function LeadIntroductionDetail() {
                 className="rounded"
                 onClick={() => navigate(newRoute)}
               />
+              {/* <LeadsIntroductionFormModal /> */}
             </div>
           </div>
           <DataTable
@@ -148,11 +152,18 @@ export function LeadIntroductionDetail() {
               style={{ minWidth: "7rem", maxWidth: "10rem", width: "7rem" }}
             ></Column>
             <Column
-              field="LeadIntroductionName"
+              field="CompanyName"
               filter
-              filterPlaceholder="Search by LeadIntroduction"
+              filterPlaceholder="Search by company"
               sortable
-              header="LeadIntroduction"
+              header="Company Name"
+            ></Column>
+            <Column
+              field="LeadSourceTitle"
+              filter
+              filterPlaceholder="Search by lead source"
+              sortable
+              header="Lead Source"
             ></Column>
           </DataTable>
           {EditModal}
@@ -162,17 +173,34 @@ export function LeadIntroductionDetail() {
     </div>
   );
 }
+
 export function LeadIntroductionForm({ pagesTitle, user, mode }) {
   document.title = "LeadIntroduction Entry";
+
   const queryClient = useQueryClient();
+
   const navigate = useNavigate();
   const { LeadIntroductionID } = useParams();
+
   const method = useForm({
     defaultValues: {
-      LeadIntroductionName: "",
-      InActive: false,
+      CompanyName: "",
+      CountryID: [],
+      TehsilID: [],
+      BusinessTypeID: [],
+      CompanyAddress: "",
+      CompanyWebsite: "",
+      BusinessNature: "",
+      ContactPersonName: "",
+      ContactPersonMobileNo: "",
+      ContactPersonWhatsAppNo: "",
+      ContactPersonEmail: "",
+      RequirementDetails: "",
+      LeadSourceID: [],
+      IsWANumberSameAsMobile: false,
     },
   });
+
   const LeadIntroductionData = useQuery({
     queryKey: [queryKey, LeadIntroductionID],
     queryFn: () => fetchLeadIntroductionById(LeadIntroductionID, user.userID),
@@ -185,13 +213,47 @@ export function LeadIntroductionForm({ pagesTitle, user, mode }) {
       LeadIntroductionID !== undefined &&
       LeadIntroductionData?.data?.length > 0
     ) {
-      setValue(
-        "LeadIntroductionName",
-        LeadIntroductionData.data[0].LeadIntroductionName
+      method.setValue("CompanyName", LeadIntroductionData.data[0].CompanyName);
+      method.setValue("CountryID", LeadIntroductionData.data[0].CountryID);
+      method.setValue("TehsilID", LeadIntroductionData.data[0].TehsilID);
+      method.setValue(
+        "BusinessTypeID",
+        LeadIntroductionData.data[0].BusinessTypeID
       );
-      setValue("InActive", LeadIntroductionData.data[0].InActive);
+      method.setValue(
+        "CompanyAddress",
+        LeadIntroductionData.data[0].CompanyAddress
+      );
+      method.setValue(
+        "CompanyWebsite",
+        LeadIntroductionData.data[0].CompanyWebsite
+      );
+      method.setValue(
+        "BusinessNature",
+        +LeadIntroductionData.data[0].BusinessNature
+      );
+      method.setValue(
+        "ContactPersonName",
+        LeadIntroductionData.data[0].ContactPersonName
+      );
+      method.setValue(
+        "ContactPersonMobileNo",
+        LeadIntroductionData.data[0].ContactPersonMobileNo
+      );
+      method.setValue(
+        "ContactPersonWhatsAppNo",
+        LeadIntroductionData.data[0].ContactPersonWhatsAppNo
+      );
+      method.setValue(
+        "RequirementDetails",
+        LeadIntroductionData.data[0].RequirementDetails
+      );
+      method.setValue(
+        "LeadSourceID",
+        LeadIntroductionData.data[0].LeadSourceID
+      );
     }
-  }, [LeadIntroductionID, LeadIntroductionData]);
+  }, [LeadIntroductionID, LeadIntroductionData.data]);
 
   const mutation = useMutation({
     mutationFn: addNewLeadIntroduction,
@@ -226,6 +288,7 @@ export function LeadIntroductionForm({ pagesTitle, user, mode }) {
     if (mode === "new") {
       navigate(parentRoute);
     } else if (mode === "edit") {
+      method.clearErrors();
       navigate(viewRoute + LeadIntroductionID);
     }
   }

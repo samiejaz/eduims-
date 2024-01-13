@@ -164,6 +164,11 @@ function Sidebar({ logoImage, userImage }) {
                     Users Entry
                   </NavDropdown.Item>
                 </LinkContainer>
+                <LinkContainer to={ROUTE_URLS.USER_ROUTE}>
+                  <NavDropdown.Item className="scale-up-center">
+                    Users
+                  </NavDropdown.Item>
+                </LinkContainer>
                 <LinkContainer to={ROUTE_URLS.DEPARTMENT}>
                   <NavDropdown.Item className="scale-up-center">
                     Department
