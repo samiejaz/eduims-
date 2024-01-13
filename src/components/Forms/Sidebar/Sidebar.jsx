@@ -24,10 +24,23 @@ import axios from "axios";
 import { AppConfigurationContext } from "../../../context/AppConfigurationContext";
 import useUserProfile from "../../../hooks/useUserProfile";
 import { ROUTE_URLS } from "../../../utils/enums";
+import signalRConnectionManager from "../../../services/SignalRService";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 function Sidebar({ logoImage, userImage }) {
+  const connection = signalRConnectionManager.getConnection();
+
+  useEffect(() => {
+    connection.on("ReceiveNotification", (message) => {
+      toast.success(message);
+    });
+
+    return () => {
+      connection.off("ReceiveNotification");
+    };
+  }, [connection]);
+
   const { logoutUser, user } = useContext(AuthContext);
   const { pageTitles } = useContext(AppConfigurationContext);
   const {
