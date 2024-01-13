@@ -7,7 +7,7 @@ body {
   font-family: var(--font-family);
   font-weight: normal;
 
-
+background-color: #f8f9fa;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -368,3 +368,26 @@ a {
 .p-paginator {
   padding: 0;
 }
+
+.menuBtn {
+  background-color: transparent;
+  color: #495057;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  width: 100%;
+  text-align: start;
+}
+.menuBtn:hover {
+  background-color: #E9ECEF;;
+}
+
+.actionsBtnLinks {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8em;
+  width: 30px;
+  background-color: #16A34A;  
+  
+  border-radius: 7px;
+}
+
+

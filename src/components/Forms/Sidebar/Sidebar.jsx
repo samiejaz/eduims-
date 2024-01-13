@@ -35,9 +35,13 @@ function Sidebar({ logoImage, userImage }) {
     connection.on("ReceiveNotification", (message) => {
       toast.success(message);
     });
+    connection.on("ReceiveAllNotification", (message) => {
+      toast.success(message);
+    });
 
     return () => {
       connection.off("ReceiveNotification");
+      connection.off("ReceiveAllNotification");
     };
   }, [connection]);
 

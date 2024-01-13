@@ -240,9 +240,7 @@ export function UserForm({ pagesTitle, user, mode }) {
           setValue("UserName", UserData?.data[0]?.UserName);
           setValue("Password", UserData?.data[0]?.Password);
           setValue("InActive", UserData?.data[0]?.InActive);
-        } catch (error) {
-          console.log(error);
-        }
+        } catch (error) {}
       }
     }
   }, [UserID, UserData]);
@@ -288,13 +286,12 @@ export function UserForm({ pagesTitle, user, mode }) {
   }
 
   function onSubmit(data) {
-    // mutation.mutate({
-    //   formData: data,
-    //   userID: user.userID,
-    //   UserID: parseInt(0 + UserID),
-    //   UserImage: UserImage,
-    // });
-    console.log(data);
+    mutation.mutate({
+      formData: data,
+      userID: user.userID,
+      UserID: parseInt(0 + UserID),
+      UserImage: UserImage,
+    });
   }
 
   async function previewImage(e) {
@@ -304,10 +301,9 @@ export function UserForm({ pagesTitle, user, mode }) {
     let blob = await fetch(file.objectURL).then((r) => r.blob()); //blob:url
 
     reader.readAsDataURL(blob);
-    console.log(blob);
+
     reader.onloadend = function () {
       const base64data = reader.result;
-      console.log(base64data);
     };
   }
 

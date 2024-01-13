@@ -164,9 +164,14 @@ export async function fetchAllBusinessTypesForSelect() {
   const { data } = await axios.post(apiUrl + "/Select/SelectBusinessType");
   return data.data || [];
 }
-export async function fetchAllBusinessNatureForSelect() {
+export async function fetchAllBusinessNatureForSelect(forAutoComplete = false) {
   const { data } = await axios.post(apiUrl + "/Select/SelectBusinessNature");
-  return data.data || [];
+  if (forAutoComplete) {
+    let newArr = data.data.map((item) => item.BusinessNatureTitle);
+    return newArr || [];
+  } else {
+    return data.data || [];
+  }
 }
 
 export async function fetchAllLeadSourcesForSelect() {
@@ -179,5 +184,9 @@ export async function fetchAllBusinessSegmentsForSelect() {
 }
 export async function fetchAllDepartmentsForSelect() {
   const { data } = await axios.post(apiUrl + "/Select/SelectDepartment");
+  return data.data || [];
+}
+export async function fetchAllUsersForSelect() {
+  const { data } = await axios.post(apiUrl + "/Select/SelectUsers");
   return data.data || [];
 }

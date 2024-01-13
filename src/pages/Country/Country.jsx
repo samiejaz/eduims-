@@ -192,7 +192,12 @@ export function CountryForm({ pagesTitle, user, mode }) {
       if (success) {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
         navigate(`${parentRoute}/${CountryID}`);
-        await connection.invoke("SendNotification");
+        try {
+          await connection.invoke("SendMessageToGroup", {
+            GroupName: "",
+            UserName: "1009",
+          });
+        } catch (e) {}
       }
     },
   });

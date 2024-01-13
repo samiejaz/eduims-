@@ -29,4 +29,5 @@ export const SELECT_QUERY_KEYS = {
   TEHSIL_SELECT_QUERY_KEY: "tehsilsSelect",
   LEAD_SOURCE_SELECT_QUERY_KEY: "leadSourcesSelect",
   DEPARTMENT_SELECT_QUERY_KEY: "departmentsSelect",
+  USERS_SELECT_QUERY_KEY: "usersSelect",
 };

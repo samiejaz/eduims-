@@ -20,6 +20,7 @@ import {
   fetchAllSessionsForSelect,
   fetchAllSoftwareCustomersForSelect,
   fetchAllTehsilsForSelect,
+  fetchAllUsersForSelect,
 } from "../../api/SelectData";
 import { SELECT_QUERY_KEYS } from "../../utils/enums";
 
@@ -185,10 +186,10 @@ export function useAllBusinessTypesSelectData() {
 }
 
 // Business Natures
-export function useAllBusinessNatureSelectData() {
+export function useAllBusinessNatureSelectData(forAutoComplete = false) {
   const data = useQuery({
     queryKey: [SELECT_QUERY_KEYS.BUSINESS_NATURE_SELECT_QUERY_KEY],
-    queryFn: () => fetchAllBusinessNatureForSelect(),
+    queryFn: () => fetchAllBusinessNatureForSelect(forAutoComplete),
     initialData: [],
   });
   return data;
@@ -219,6 +220,16 @@ export function useAllDepartmentsSelectData() {
   const data = useQuery({
     queryKey: [SELECT_QUERY_KEYS.DEPARTMENT_SELECT_QUERY_KEY],
     queryFn: () => fetchAllDepartmentsForSelect(),
+    initialData: [],
+  });
+  return data;
+}
+
+// Users
+export function useAllUsersSelectData() {
+  const data = useQuery({
+    queryKey: [SELECT_QUERY_KEYS.USERS_SELECT_QUERY_KEY],
+    queryFn: () => fetchAllUsersForSelect(),
     initialData: [],
   });
   return data;

@@ -13,7 +13,7 @@ export async function fetchAllLeadIntroductions(LoginUserID) {
   const { data } = await axios.post(
     `${apiUrl}/${CONTROLLER}/${WHEREMETHOD}?LoginUserID=${LoginUserID}`
   );
-  console.log(data);
+
   return data.data ?? [];
 }
 
@@ -59,7 +59,7 @@ export async function addNewLeadIntroduction({
       BusinessTypeID: formData.BusinessTypeID,
       CompanyAddress: formData.CompanyAddress,
       CompanyWebsite: formData.CompanyWebsite,
-      BusinessNature: formData.BusinessNature.toString(),
+      BusinessNature: formData.BusinessNatureID,
       ContactPersonName: formData.ContactPersonName,
       ContactPersonEmail: formData.ContactPersonEmail,
       RequirementDetails: formData.RequirementDetails,
@@ -67,12 +67,15 @@ export async function addNewLeadIntroduction({
       InActive: formData.InActive === true ? 1 : 0,
       EntryUserID: userID,
     };
-    console.log(formData);
     DataToSend.ContactPersonMobileNo =
       formData.ContactPersonMobileNo.replaceAll("-", "");
-    DataToSend.ContactPersonWhatsAppNo =
-      formData.ContactPersonWhatsAppNo.replaceAll("-", "");
-    console.log(DataToSend);
+    if (formData?.IsWANumberSameAsMobile) {
+      DataToSend.ContactPersonWhatsAppNo =
+        formData.ContactPersonWhatsAppNo[0].replaceAll("-", "");
+    } else {
+      DataToSend.ContactPersonWhatsAppNo =
+        formData.ContactPersonWhatsAppNo.replaceAll("-", "");
+    }
     if (LeadIntroductionID === 0 || LeadIntroductionID === undefined) {
       DataToSend.LeadIntroductionID = 0;
     } else {
@@ -95,7 +98,43 @@ export async function addNewLeadIntroduction({
       toast.error(data.message);
       return { success: false, RecordID: LeadIntroductionID };
     }
-  } catch (e) {
-    console.log(e);
-  }
+  } catch (e) {}
 }
+
+async function addLeadIntroductionOnAction({
+  from,
+  formData,
+  LeedIntroductionID,
+}) {
+  let DataToSend = {};
+  if (from === "Forward") {
+    DataToSend = {
+      DepartmentID: formData.DepartmentID,
+      UserID: formData.UserID,
+      MeetingPlace: formData.MeetingPlace,
+      MeetingTime: formData.MeetingTime,
+      RecommendedProductID: formData.RecommendedProductID,
+      Description: formData.Description,
+    };
+  } else if (from === "Quoted" || formData === "Finalized") {
+    DataToSend = {
+      AttachmentFile: formData.AttachmentFile,
+      Amount: formData.Amount,
+      Description: formData.Description,
+    };
+  } else if (from === "Closed") {
+    DataToSend = {
+      Amount: formData.Amount,
+      Description: formData.Description,
+    };
+  }
+  DataToSend.LeadIntroductionDetailID = 0;
+  DataToSend.LeedIntroductionID = LeedIntroductionID;
+}
+
+// newFormData.append("DepartmentID", formData.DepartmentID),
+// newFormData.append("UserID", formData.UserID),
+// newFormData.append("MeetingPlace", formData.MeetingPlace),
+// newFormData.append("MeetingTime", formData.MeetingTime),
+// newFormData.append("RecommendedProductID", formData.RecommendedProductID),
+// newFormData.append("Description", formData.Description),

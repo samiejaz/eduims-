@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import { FormProvider, useForm, useFormContext } from "react-hook-form";
+import {
+  Controller,
+  FormProvider,
+  useForm,
+  useFormContext,
+} from "react-hook-form";
 import {
   useAllBusinessNatureSelectData,
   useAllBusinessTypesSelectData,
@@ -14,6 +19,8 @@ import TextInput from "../../components/Forms/TextInput";
 import CMaskInput from "../../components/Forms/CMaskInput";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
+import { AutoComplete } from "primereact/autocomplete";
+import { classNames } from "primereact/utils";
 
 const useLeadsIntroductionModalHook = () => {
   const [visible, setVisible] = useState(false);
@@ -84,9 +91,7 @@ const useLeadsIntroductionModalHook = () => {
     </>
   );
 
-  function onSubmit(data) {
-    console.log(data);
-  }
+  function onSubmit(data) {}
 
   return {
     setVisible,
@@ -110,16 +115,26 @@ const useLeadsIntroductionModalHook = () => {
     ),
   };
 };
-export function LeadsIntroductionFormComponent({ isEnable = true }) {
+export function LeadsIntroductionFormComponent({ mode = "" }) {
   const [CountryID, setCountryID] = useState(0);
+  const [items, setItems] = useState([]);
 
   const countriesSelectData = useAllCountiesSelectData();
   const tehsilsSelectData = useAllTehsilsSelectData(CountryID);
   const businessTypesSelectData = useAllBusinessTypesSelectData();
-  const businessNatureSelectData = useAllBusinessNatureSelectData();
+  const businessNatureSelectData = useAllBusinessNatureSelectData(true);
   const leadSourcesSelectData = useAllLeadsSouceSelectData();
 
   const method = useFormContext();
+
+  const search = (event) => {
+    let _filteredItems;
+    let query = event.query;
+    _filteredItems = businessNatureSelectData?.data.filter((item) => {
+      return item.toLowerCase().includes(query.toLowerCase());
+    });
+    setItems(_filteredItems);
+  };
 
   return (
     <>
@@ -136,7 +151,7 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
                 ID={"CompanyName"}
                 required={true}
                 focusOptions={() => method.setFocus("CountryID")}
-                //isEnable={mode !== "view"}
+                isEnable={mode !== "view"}
               />
             </div>
           </Form.Group>
@@ -154,7 +169,7 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
                 placeholder="Select a country"
                 options={countriesSelectData.data}
                 required={true}
-                //   disabled={mode === "view"}
+                disabled={mode === "view"}
                 focusOptions={() => method.setFocus("TehsilID")}
                 onChange={(e) => {
                   setCountryID(e.value);
@@ -177,7 +192,7 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
                 placeholder="Select a tehsil"
                 options={tehsilsSelectData.data}
                 required={true}
-                //   disabled={mode === "view"}
+                disabled={mode === "view"}
                 focusOptions={() => method.setFocus("BusinessTypeID")}
               />
             </div>
@@ -196,7 +211,7 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
                 placeholder="Select a business type"
                 options={businessTypesSelectData.data}
                 required={true}
-                //   disabled={mode === "view"}
+                disabled={mode === "view"}
                 focusOptions={() => method.setFocus("BusinessNatureID")}
               />
             </div>
@@ -208,17 +223,35 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
               Business Nature
               <span className="text-danger fw-bold ">*</span>
             </Form.Label>
-            <div>
-              <CDropdown
+            <div style={{ width: "100%" }}>
+              <Controller
+                name="BusinessNatureID"
                 control={method.control}
-                name={`BusinessNatureID`}
-                optionLabel="BusinessNatureTitle"
-                optionValue="BusinessNatureID"
-                placeholder="Select a business natrue"
-                options={businessNatureSelectData.data}
-                required={true}
-                //   disabled={mode === "view"}
-                focusOptions={() => method.setFocus("CompanyWebsite")}
+                rules={{ required: true }}
+                render={({ field, fieldState }) => (
+                  <>
+                    <AutoComplete
+                      inputId={field.name}
+                      value={field.value}
+                      onChange={field.onChange}
+                      inputRef={field.ref}
+                      suggestions={items}
+                      completeMethod={search}
+                      disabled={mode === "view"}
+                      style={{ width: "100%" }}
+                      pt={{
+                        dropdownButton: {
+                          root: {
+                            style: {
+                              padding: "0 !important",
+                            },
+                          },
+                        },
+                      }}
+                      className={classNames({ "p-invalid": fieldState.error })}
+                    />
+                  </>
+                )}
               />
             </div>
           </Form.Group>
@@ -231,7 +264,7 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
                 ID={"CompanyWebsite"}
                 required={true}
                 focusOptions={() => method.setFocus("ContactPersonName")}
-                //isEnable={mode !== "view"}
+                isEnable={mode !== "view"}
               />
             </div>
           </Form.Group>
@@ -243,14 +276,26 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
                 ID={"ContactPersonName"}
                 required={true}
                 focusOptions={() => method.setFocus("ContactPersonMobileNo")}
-                //isEnable={mode !== "view"}
+                isEnable={mode !== "view"}
               />
             </div>
           </Form.Group>
           <Form.Group as={Col} controlId="ContactPersonMobileNo">
             <Form.Label>Contact Person Mobile No</Form.Label>
             <div>
-              <CMaskInput
+              <TextInput
+                control={method.control}
+                ID={"ContactPersonMobileNo"}
+                required={true}
+                isEnable={mode !== "view"}
+                focusOptions={() => method.setFocus("ContactPersonEmail")}
+                onChange={(e) => {
+                  if (method.watch("IsWANumberSameAsMobile")) {
+                    method.setValue("ContactPersonWhatsAppNo", e.target.value);
+                  }
+                }}
+              />
+              {/* <CMaskInput
                 control={method.control}
                 name={"ContactPersonMobileNo"}
                 required={true}
@@ -261,7 +306,7 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
                     method.setValue("ContactPersonWhatsAppNo", e.value);
                   }
                 }}
-              />
+              /> */}
             </div>
           </Form.Group>
         </Row>
@@ -274,7 +319,7 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
                 ID={"ContactPersonEmail"}
                 required={true}
                 focusOptions={() => method.setFocus("CompanyAddress")}
-                //isEnable={mode !== "view"}
+                isEnable={mode !== "view"}
               />
             </div>
           </Form.Group>
@@ -289,7 +334,7 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
                 ID={"CompanyAddress"}
                 required={true}
                 focusOptions={() => method.setFocus("ContactPersonWhatsAppNo")}
-                //isEnable={mode !== "view"}
+                isEnable={mode !== "view"}
               />
             </div>
           </Form.Group>
@@ -297,13 +342,20 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
           <Form.Group as={Col} controlId="ContactPersonWhatsAppNo">
             <Form.Label>Contact Person Whatsapp No</Form.Label>
             <div>
-              <CMaskInput
+              {/* <CMaskInput
                 control={method.control}
                 name={"ContactPersonWhatsAppNo"}
                 required={true}
                 disabled={method.watch("IsWANumberSameAsMobile")}
                 focusOptions={() => method.setFocus("IsWANumberSameAsMobile")}
                 mask="9999-9999999"
+              /> */}
+              <TextInput
+                control={method.control}
+                ID={"ContactPersonWhatsAppNo"}
+                required={true}
+                isEnable={mode !== "view"}
+                focusOptions={() => method.setFocus("IsWANumberSameAsMobile")}
               />
             </div>
           </Form.Group>
@@ -314,8 +366,7 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
                 control={method.control}
                 ID={"IsWANumberSameAsMobile"}
                 Label={"Same as mobile no"}
-                isEnable={true}
-                // isEnable={mode !== "view"}
+                isEnable={mode !== "view"}
                 onChange={(e) => {
                   if (e.checked) {
                     method.setValue(
@@ -336,7 +387,7 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
             <Form.Control
               as={"textarea"}
               rows={1}
-              //   disabled={!isEnable}
+              disabled={mode === "view"}
               className="form-control"
               style={{
                 padding: "0.3rem 0.4rem",
@@ -359,7 +410,7 @@ export function LeadsIntroductionFormComponent({ isEnable = true }) {
                 placeholder="Select a lead source"
                 options={leadSourcesSelectData.data}
                 required={true}
-                //   disabled={mode === "view"}
+                disabled={mode === "view"}
               />
             </div>
           </Form.Group>

@@ -14,6 +14,7 @@ function ActionButtons(
         placement="left"
         overlay={<Tooltip id="tooltip-2">View</Tooltip>}
       > */}
+
       <Button
         size="sm"
         id="view"
