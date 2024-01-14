@@ -12,8 +12,13 @@ export function preventFormByEnterKeySubmission(e) {
   }
 }
 
-export function convertBase64StringToFile(imageString) {
-  const base64Image = "data:image/png;base64," + imageString;
+export function convertBase64StringToFile(imageString, withBase64 = false) {
+  let base64Image = "";
+  if (!withBase64) {
+    base64Image = "data:image/png;base64," + imageString;
+  } else {
+    base64Image = imageString;
+  }
   const byteString = atob(base64Image.split(",")[1]);
   const bytes = new ArrayBuffer(byteString.length);
   const byteArray = new Uint8Array(bytes);

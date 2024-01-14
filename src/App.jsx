@@ -1,7 +1,6 @@
 import { Route, Routes, useNavigate } from "react-router-dom";
 import ProtectedRoutes from "./components/ProtectedRoutes";
-import { useEventListener } from "primereact/hooks";
-import React, { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 import SignUp from "./pages/MDBLOGIN4";
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -65,14 +64,13 @@ import {
   LeadIntroductionDetail,
   LeadIntroductionForm,
 } from "./pages/LeadsIntroduction/LeadsIntroduction";
-import ChatRoom from "./test/Chat";
+// import ChatRoom from "./test/Chat";
 import { UserDetail, UserForm } from "./pages/GenUsers/Users";
 import signalRConnectionManager from "./services/SignalRService";
 
 const App = () => {
   const { pageTitles } = useContext(AppConfigurationContext);
-  const [pressed, setPressed] = useState(false);
-  const [value, setValue] = useState("");
+
   const navigate = useNavigate();
   const user = useUserData();
   const actions = [
@@ -544,7 +542,7 @@ const App = () => {
               }
             />
             {/* User END */}
-            <Route path={`/chat`} element={<ChatRoom />} />
+            {/* <Route path={`/chat`} element={<ChatRoom />} /> */}
           </Route>
         </Routes>
         <ToastContainer

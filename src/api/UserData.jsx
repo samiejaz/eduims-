@@ -1,5 +1,6 @@
 import axios from "axios";
 import { toast } from "react-toastify";
+import { convertBase64StringToFile } from "../utils/CommonFunctions";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
@@ -53,7 +54,10 @@ export async function addNewUser({ formData, userID, UserID = 0, UserImage }) {
     newFormData.append("Password", formData.Password);
     newFormData.append("Inactive", formData.InActive === false ? 0 : 1);
     newFormData.append("EntryUserID", userID);
-    newFormData.append("image", UserImage);
+    if (UserImage !== "") {
+      let userImageFile = convertBase64StringToFile(UserImage, true);
+      newFormData.append("image", userImageFile);
+    }
 
     if (+UserID === 0 || +UserID === undefined) {
       newFormData.append("LoginUserID", 0);
@@ -82,5 +86,7 @@ export async function addNewUser({ formData, userID, UserID = 0, UserImage }) {
       toast.error(data.message);
       return { success: false, RecordID: UserID };
     }
-  } catch (err) {}
+  } catch (err) {
+    console.log(err);
+  }
 }

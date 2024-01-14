@@ -4,16 +4,38 @@ import Logo from "../images/logo.png";
 import User from "../images/profilelogo.png";
 import Sidebar from "../components/Forms/Sidebar/Sidebar";
 import { Avatar } from "primereact/avatar";
+import CSidebar from "./Sidebar/CSidebar";
+import { useRef } from "react";
 
 function RootLayout() {
+  const sidebarRef = useRef();
+
   return (
     <>
-      <div style={{ padding: "1rem" }}>
-        <Sidebar logoImage={<LogoImage />} userImage={<UserImage />} />
-        {/* <BasicDemo /> */}
-        <div>
-          <Outlet />
-        </div>
+      <div>
+        <CSidebar sideBarRef={sidebarRef}></CSidebar>
+        {/* <Sidebar logoImage={<LogoImage />} userImage={<UserImage />} />{" "} */}
+        <section className="c-home-section">
+          <div className="c-home-content">
+            <div className="mt-4">
+              <i
+                className="pi pi-bars"
+                onClick={() => {
+                  if (sidebarRef.current.className.includes("c-close")) {
+                    sidebarRef.current.className = "c-sidebar";
+                    localStorage.setItem("isSidebarOpen", true);
+                  } else {
+                    sidebarRef.current.className = "c-sidebar c-close";
+                    localStorage.removeItem("isSidebarOpen");
+                  }
+                }}
+              ></i>
+            </div>
+          </div>
+          <div className="px-3">
+            <Outlet />
+          </div>
+        </section>
       </div>
     </>
   );
@@ -42,11 +64,11 @@ function UserImage() {
     <>
       {user ? (
         <>
-          <Avatar
+          {/* <Avatar
             image={"data:image/png;base64," + user.image}
             size="large"
             shape="circle"
-          />
+          /> */}
           {/* <img  
             alt="User Profile"
             src={"data:image/png;base64," + user.image}
