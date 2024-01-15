@@ -44,6 +44,7 @@ export async function deleteUserByID({ UserID, LoginUserID }) {
 }
 // URL: /gen_User/UserInsertUpdate
 export async function addNewUser({ formData, userID, UserID = 0, UserImage }) {
+  const user = JSON.parse(localStorage.getItem("user"));
   try {
     let newFormData = new FormData();
     newFormData.append("FirstName", formData.FirstName);
@@ -76,7 +77,17 @@ export async function addNewUser({ formData, userID, UserID = 0, UserImage }) {
     );
 
     if (data.success === true) {
-      if (UserID !== 0) {
+      if (+UserID !== 0) {
+        if (+UserID === user.userID) {
+          localStorage.setItem(
+            "user",
+            JSON.stringify({
+              userID: UserID,
+              username: formData.FirstName + " " + formData.LastName,
+              image: UserImage,
+            })
+          );
+        }
         toast.success("User updated successfully!");
       } else {
         toast.success("User created successfully!");

@@ -13,7 +13,7 @@ export async function fetchAllLeadIntroductions(LoginUserID) {
   const { data } = await axios.post(
     `${apiUrl}/${CONTROLLER}/${WHEREMETHOD}?LoginUserID=${LoginUserID}`
   );
-  console.log(data);
+
   return data.data ?? [];
 }
 
@@ -38,7 +38,7 @@ export async function deleteLeadIntroductionByID(serviceInfo) {
   );
 
   if (data.success === true) {
-    toast.success("Business Type sucessfully deleted!");
+    toast.success("Lead sucessfully deleted!");
     return true;
   } else {
     toast.error(data.message);
@@ -59,7 +59,7 @@ export async function addNewLeadIntroduction({
       BusinessTypeID: formData.BusinessTypeID,
       CompanyAddress: formData.CompanyAddress,
       CompanyWebsite: formData.CompanyWebsite,
-      BusinessNature: formData.BusinessNature.toString(),
+      BusinessNature: formData.BusinessNatureID,
       ContactPersonName: formData.ContactPersonName,
       ContactPersonEmail: formData.ContactPersonEmail,
       RequirementDetails: formData.RequirementDetails,
@@ -67,12 +67,15 @@ export async function addNewLeadIntroduction({
       InActive: formData.InActive === true ? 1 : 0,
       EntryUserID: userID,
     };
-    console.log(formData);
     DataToSend.ContactPersonMobileNo =
       formData.ContactPersonMobileNo.replaceAll("-", "");
-    DataToSend.ContactPersonWhatsAppNo =
-      formData.ContactPersonWhatsAppNo.replaceAll("-", "");
-    console.log(DataToSend);
+    if (formData?.IsWANumberSameAsMobile) {
+      DataToSend.ContactPersonWhatsAppNo =
+        formData.ContactPersonWhatsAppNo[0].replaceAll("-", "");
+    } else {
+      DataToSend.ContactPersonWhatsAppNo =
+        formData.ContactPersonWhatsAppNo.replaceAll("-", "");
+    }
     if (LeadIntroductionID === 0 || LeadIntroductionID === undefined) {
       DataToSend.LeadIntroductionID = 0;
     } else {
@@ -86,16 +89,75 @@ export async function addNewLeadIntroduction({
 
     if (data.success === true) {
       if (LeadIntroductionID !== 0) {
-        toast.success("Business Type updated successfully!");
+        toast.success("Lead updated successfully!");
       } else {
-        toast.success("Business Type created successfully!");
+        toast.success("Lead created successfully!");
       }
       return { success: true, RecordID: data?.LeadIntroductionID };
     } else {
       toast.error(data.message);
       return { success: false, RecordID: LeadIntroductionID };
     }
-  } catch (e) {
-    console.log(e);
+  } catch (e) {}
+}
+
+export async function addLeadIntroductionOnAction({
+  from,
+  formData,
+  userID,
+  LeadIntroductionID,
+}) {
+  let Status = "";
+  console.log(from, formData, userID, LeadIntroductionID);
+  let newFormData = new FormData();
+  if (from === "Forward") {
+    newFormData.append("UserID", formData.UserID);
+    newFormData.append("MeetingPlace", formData.MeetingPlace);
+    newFormData.append("MeetingTime", formData.MeetingTime.toUTCString());
+    newFormData.append("RecommendedProductID", formData.ProductInfoID);
+    newFormData.append("Description", formData.Description ?? "");
+    Status = "Forwarded";
+  } else if (from === "Quoted" || from === "Finalized") {
+    newFormData.append("AttachmentFile", formData.AttachmentFile[0]);
+    newFormData.append("Amount", formData.Amount ?? 1900);
+    newFormData.append("Description", formData.Description);
+    Status = from === "Quoted" ? "Quoted" : "Finalized";
+  } else if (from === "Closed") {
+    newFormData.append("Amount", formData.Amount ?? 100);
+    newFormData.append("Description", formData.Description);
+    Status = "Closed";
+  }
+  newFormData.append("LeadIntroductionDetailID", 0);
+  newFormData.append("EntryUserID", +userID);
+  newFormData.append("LeadIntroductionID", LeadIntroductionID);
+  newFormData.append("Status", Status);
+
+  const { data } = await axios.post(
+    apiUrl + `/${CONTROLLER}/LeadIntroductionOnAction`,
+    newFormData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+
+  if (data.success === true) {
+    if (LeadIntroductionID !== 0) {
+      toast.success("Lead forwared successfully!");
+    } else {
+      toast.success("Lead forwared successfully!");
+    }
+    return { success: true };
+  } else {
+    toast.error(data.message);
+    return { success: false };
   }
 }
+
+// newFormData.append("DepartmentID", formData.DepartmentID),
+// newFormData.append("UserID", formData.UserID),
+// newFormData.append("MeetingPlace", formData.MeetingPlace),
+// newFormData.append("MeetingTime", formData.MeetingTime),
+// newFormData.append("RecommendedProductID", formData.RecommendedProductID),
+// newFormData.append("Description", formData.Description),

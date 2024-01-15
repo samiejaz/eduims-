@@ -32,13 +32,19 @@ function Sidebar({ logoImage, userImage }) {
   const connection = signalRConnectionManager.getConnection();
 
   useEffect(() => {
-    connection.on("ReceiveNotification", (message) => {
-      toast.success(message);
-    });
+    if (connection) {
+      connection.on("ReceiveNotification", (message) => {
+        toast.success(message);
+      });
+      connection.on("ReceiveAllNotification", (message) => {
+        toast.success(message);
+      });
 
-    return () => {
-      connection.off("ReceiveNotification");
-    };
+      return () => {
+        connection.off("ReceiveNotification");
+        connection.off("ReceiveAllNotification");
+      };
+    }
   }, [connection]);
 
   const { logoutUser, user } = useContext(AuthContext);

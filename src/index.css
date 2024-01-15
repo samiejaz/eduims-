@@ -14,6 +14,19 @@ body {
 
 /* Changed css */
 
+.hoverIcon:hover {
+  cursor: pointer;
+}
+
+.p-autocomplete-input {
+  width: 100%;
+}
+
+.p-autocomplete-panel .p-autocomplete-items {
+  padding: 0;
+  margin-bottom: 0;
+}
+
 .spinner {
   position: fixed;
   z-index: 1031;
@@ -70,6 +83,23 @@ th.p-filter-column {
 
 .p-dropdown-panel .p-dropdown-items {
   padding: 0 0;
+}
+
+.p-button.p-button-icon-only {
+padding: 0;
+}
+
+.p-datepicker table td {
+padding: 0;
+border: none;
+}
+.p-datepicker table th {
+padding: 0;
+text-align: center;
+}
+.p-datepicker .p-timepicker {
+  border-top: 1px solid #dee2e6;
+  padding: 0;
 }
 
 /* Login Form */

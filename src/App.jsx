@@ -67,6 +67,7 @@ import {
 // import ChatRoom from "./test/Chat";
 import { UserDetail, UserForm } from "./pages/GenUsers/Users";
 import signalRConnectionManager from "./services/SignalRService";
+import FileViewer from "./pages/FileViewer";
 
 const App = () => {
   const { pageTitles } = useContext(AppConfigurationContext);
@@ -106,6 +107,10 @@ const App = () => {
 
   useEffect(() => {
     signalRConnectionManager.startConnection();
+
+    return () => {
+      //signalRConnectionManager.stopConnection();
+    };
   }, []);
 
   return (
@@ -123,30 +128,33 @@ const App = () => {
           <Route path="/" element={<ProtectedRoutes />}>
             <Route index element={<Dashboard />} />
             <Route
-              path="/customers/oldCustomerEntry"
+              path={ROUTE_URLS.CUSTOMERS.OLD_CUSTOMER_ENTRY}
               element={<GenOldCustomers />}
             />
             <Route
-              path="/customers/customerEntry"
+              path={ROUTE_URLS.CUSTOMERS.CUSTOMER_ENTRY}
               element={<GenCustomerEntry />}
             />
             <Route
-              path="/customers/customerEntry/:CustomerID"
+              path={`${ROUTE_URLS.CUSTOMERS.CUSTOMER_ENTRY}/:CustomerID`}
               element={<GenNewCustomerView />}
             />
-            <Route path="/users/usersentry" element={<GenUsers />} />
+            {/* <Route path={`${ROUTE_URLS.USER_ROUTE}`} element={<GenUsers />} /> */}
 
-            <Route path="/customers/sessionInfo" element={<SessionInfo />} />
             <Route
+              path={`${ROUTE_URLS.GENERAL.SESSION_INFO}`}
+              element={<SessionInfo />}
+            />
+            {/* <Route
               path="/customers/customerBranch"
               element={<CustomerBranch />}
-            />
+            /> */}
             <Route
-              path="/customers/bankAccountOpening"
+              path={`${ROUTE_URLS.ACCOUNTS.BANK_ACCOUNT_OPENING}`}
               element={<BankAccountOpening />}
             />
             <Route
-              path="/customers/customerInvoice"
+              path={`${ROUTE_URLS.ACCOUNTS.CUSTOMER_INVOICE}`}
               element={<CustomerInvoice />}
             />
             <Route
@@ -173,23 +181,23 @@ const App = () => {
             />
             {/* Receipt Routes */}
             <Route
-              path="/customers/receiptVoucher"
+              path={`${ROUTE_URLS.ACCOUNTS.RECIEPT_VOUCHER_ROUTE}`}
               element={<ReceiptVoucher />}
             />
             <Route
-              path="/customers/receiptVoucher/:ReceiptVoucherID"
+              path={`${ROUTE_URLS.ACCOUNTS.RECIEPT_VOUCHER_ROUTE}/:ReceiptVoucherID`}
               element={
                 <ReceiptEntryForm pageTitles={pageTitles} mode={"view"} />
               }
             />
             <Route
-              path="/customers/receiptVoucher/edit/:ReceiptVoucherID"
+              path={`${ROUTE_URLS.ACCOUNTS.RECIEPT_VOUCHER_ROUTE}/edit/:ReceiptVoucherID`}
               element={
                 <ReceiptEntryForm pageTitles={pageTitles} mode={"edit"} />
               }
             />
             <Route
-              path="/customers/receiptVoucher/new"
+              path={`${ROUTE_URLS.ACCOUNTS.RECIEPT_VOUCHER_ROUTE}/new`}
               element={
                 <ReceiptEntryForm pageTitles={pageTitles} mode={"new"} />
               }
@@ -209,7 +217,7 @@ const App = () => {
               element={<DPForm pageTitles={pageTitles} mode={"new"} />}
             />
             <Route
-              path="/customers/customerInvoice/:CustomerInvoiceID"
+              path={`${ROUTE_URLS.ACCOUNTS.CUSTOMER_INVOICE}/:CustomerInvoiceID`}
               element={
                 <CustomerInvoiceFormMaster
                   pageTitles={pageTitles}
@@ -218,7 +226,7 @@ const App = () => {
               }
             />
             <Route
-              path="/customers/customerInvoice/edit/:CustomerInvoiceID"
+              path={`${ROUTE_URLS.ACCOUNTS.CUSTOMER_INVOICE}/edit/:CustomerInvoiceID`}
               element={
                 <CustomerInvoiceFormMaster
                   pageTitles={pageTitles}
@@ -227,7 +235,7 @@ const App = () => {
               }
             />
             <Route
-              path="/customers/customerInvoice/new"
+              path={`${ROUTE_URLS.ACCOUNTS.CUSTOMER_INVOICE}/new`}
               element={
                 <CustomerInvoiceFormMaster
                   pageTitles={pageTitles}
@@ -236,29 +244,38 @@ const App = () => {
               }
             />
             <Route
-              path="/general/productCategories"
+              path={`${ROUTE_URLS.GENERAL.PRODUCT_CATEGORY_ROUTE}`}
               element={<ProductCategory />}
             />
             <Route
-              path="/general/invoiceDescriptions"
+              path={`${ROUTE_URLS.UTILITIES.INVOICE_DESCRIPTIONS}`}
               element={<InvoiceDefaultDescriptions />}
             />
-            <Route path="/general/productInfo" element={<ProductInfo />} />
             <Route
+              path={`${ROUTE_URLS.GENERAL.PRODUCT_INFO_ROUTE}`}
+              element={<ProductInfo />}
+            />
+            {/* <Route
               path="/general/serviceCategories"
               element={<ServiceCategory />}
             />
-            <Route path="/general/servicesInfo" element={<ServiceInfo />} />
-            <Route path="/general/companyInfo" element={<CompanyInfo />} />
+            <Route path="/general/servicesInfo" element={<ServiceInfo />} /> */}
             <Route
-              path="/general/appConfiguration"
+              path={`${ROUTE_URLS.GENERAL.COMPANY_INFO_ROUTE}`}
+              element={<CompanyInfo />}
+            />
+            <Route
+              path={`${ROUTE_URLS.UTILITIES.APP_CONFIGURATION_ROUTE}`}
               element={<AppConfiguration />}
             />
 
             {/* Country */}
-            <Route path="/general/country" element={<CountryDetail />} />
             <Route
-              path="/general/country/:CountryID"
+              path={`${ROUTE_URLS.COUNTRY_ROUTE}`}
+              element={<CountryDetail />}
+            />
+            <Route
+              path={`${ROUTE_URLS.COUNTRY_ROUTE}/:CountryID`}
               element={
                 <CountryForm
                   pageTitles={pageTitles}
@@ -268,7 +285,7 @@ const App = () => {
               }
             />
             <Route
-              path="/general/country/edit/:CountryID"
+              path={`${ROUTE_URLS.COUNTRY_ROUTE}/edit/:CountryID`}
               element={
                 <CountryForm
                   pageTitles={pageTitles}
@@ -278,28 +295,31 @@ const App = () => {
               }
             />
             <Route
-              path="/general/country/new"
+              path={`${ROUTE_URLS.COUNTRY_ROUTE}/new`}
               element={
                 <CountryForm pageTitles={pageTitles} mode={"new"} user={user} />
               }
             />
             {/* Country END */}
             {/* Tehsil */}
-            <Route path="/general/tehsil" element={<TehsilDetail />} />
             <Route
-              path="/general/tehsil/:TehsilID"
+              path={`${ROUTE_URLS.TEHSIL_ROUTE}`}
+              element={<TehsilDetail />}
+            />
+            <Route
+              path={`${ROUTE_URLS.TEHSIL_ROUTE}/:TehsilID`}
               element={
                 <TehsilForm pageTitles={pageTitles} mode={"view"} user={user} />
               }
             />
             <Route
-              path="/general/tehsil/edit/:TehsilID"
+              path={`${ROUTE_URLS.TEHSIL_ROUTE}/edit/:TehsilID`}
               element={
                 <TehsilForm pageTitles={pageTitles} mode={"edit"} user={user} />
               }
             />
             <Route
-              path="/general/tehsil/new"
+              path={`${ROUTE_URLS.TEHSIL_ROUTE}/new`}
               element={
                 <TehsilForm pageTitles={pageTitles} mode={"new"} user={user} />
               }
@@ -307,11 +327,11 @@ const App = () => {
             {/* Tehsil END */}
             {/* Business Nature */}
             <Route
-              path="/general/businessnature"
+              path={`${ROUTE_URLS.BUSINESS_NATURE_ROUTE}`}
               element={<BusinessNatureDetail />}
             />
             <Route
-              path="/general/businessnature/:BusinessNatureID"
+              path={`${ROUTE_URLS.BUSINESS_NATURE_ROUTE}/:BusinessNatureID`}
               element={
                 <BusinessNatureForm
                   pageTitles={pageTitles}
@@ -321,7 +341,7 @@ const App = () => {
               }
             />
             <Route
-              path="/general/businessnature/edit/:BusinessNatureID"
+              path={`${ROUTE_URLS.BUSINESS_NATURE_ROUTE}/edit/:BusinessNatureID`}
               element={
                 <BusinessNatureForm
                   pageTitles={pageTitles}
@@ -331,7 +351,7 @@ const App = () => {
               }
             />
             <Route
-              path="/general/businessnature/new"
+              path={`${ROUTE_URLS.BUSINESS_NATURE_ROUTE}/new`}
               element={
                 <BusinessNatureForm
                   pageTitles={pageTitles}
@@ -343,11 +363,11 @@ const App = () => {
             {/* Business Nature END */}
             {/* Business Nature */}
             <Route
-              path="/general/businesssegment"
+              path={`${ROUTE_URLS.BUSINESS_SEGMENT_ROUTE}`}
               element={<BusinessSegmentDetail />}
             />
             <Route
-              path="/general/businesssegment/:BusinessSegmentID"
+              path={`${ROUTE_URLS.BUSINESS_SEGMENT_ROUTE}/:BusinessSegmentID`}
               element={
                 <BusinessSegmentForm
                   pageTitles={pageTitles}
@@ -357,7 +377,7 @@ const App = () => {
               }
             />
             <Route
-              path="/general/businesssegment/edit/:BusinessSegmentID"
+              path={`${ROUTE_URLS.BUSINESS_SEGMENT_ROUTE}/edit/:BusinessSegmentID`}
               element={
                 <BusinessSegmentForm
                   pageTitles={pageTitles}
@@ -367,7 +387,7 @@ const App = () => {
               }
             />
             <Route
-              path="/general/businesssegment/new"
+              path={`${ROUTE_URLS.BUSINESS_SEGMENT_ROUTE}/new`}
               element={
                 <BusinessSegmentForm
                   pageTitles={pageTitles}
@@ -543,6 +563,7 @@ const App = () => {
             />
             {/* User END */}
             {/* <Route path={`/chat`} element={<ChatRoom />} /> */}
+            <Route path="/fileviewer" element={<FileViewer />} />
           </Route>
         </Routes>
         <ToastContainer

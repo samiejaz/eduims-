@@ -10,6 +10,7 @@ function TextInput({
   focusOptions,
   isEnable = true,
   floatLabel = false,
+  onChange,
   ...options
 }) {
   return (
@@ -26,7 +27,12 @@ function TextInput({
               id={field.name}
               value={field.value}
               ref={field.ref}
-              onChange={(e) => field.onChange(e.target.value)}
+              onChange={(e) => {
+                field.onChange(e.target.value);
+                if (onChange) {
+                  onChange(e);
+                }
+              }}
               style={{
                 width: "100%",
                 backgroundColor: isEnable === false ? "#dee2e6" : "white",

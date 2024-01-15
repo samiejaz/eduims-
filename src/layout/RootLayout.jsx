@@ -2,7 +2,6 @@ import { Outlet } from "react-router-dom";
 import { Navbar } from "react-bootstrap";
 import Logo from "../images/logo.png";
 import User from "../images/profilelogo.png";
-import Sidebar from "../components/Forms/Sidebar/Sidebar";
 import { Avatar } from "primereact/avatar";
 import CSidebar from "./Sidebar/CSidebar";
 import { useRef } from "react";
@@ -19,7 +18,7 @@ function RootLayout() {
           <div className="c-home-content">
             <div className="mt-4">
               <i
-                className="pi pi-bars"
+                className="pi pi-bars hoverIcon"
                 onClick={() => {
                   if (sidebarRef.current.className.includes("c-close")) {
                     sidebarRef.current.className = "c-sidebar";

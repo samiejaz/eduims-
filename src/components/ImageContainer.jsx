@@ -1,8 +1,8 @@
 import { Button } from "primereact/button";
+import { Image } from "primereact/image";
 import React, { useRef } from "react";
-import { Controller } from "react-hook-form";
 
-const ImageContainer = ({ imageRef }) => {
+const ImageContainer = ({ imageRef, hideButtons = false }) => {
   const imputRef = useRef();
 
   async function previewImage(e) {
@@ -22,60 +22,81 @@ const ImageContainer = ({ imageRef }) => {
   return (
     <div
       style={{
-        border: "1px solid #ddd",
         padding: "0",
-        width: "98.5%",
+        width: "15%",
         margin: "0px 10px",
       }}
     >
+      {!hideButtons && (
+        <>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "5px",
+              padding: ".5rem",
+            }}
+          >
+            <Button
+              icon="pi pi-plus"
+              rounded
+              tooltip="Choose"
+              severity="primary"
+              aria-label="Choose"
+              style={{ borderRadius: "50%" }}
+              outlined
+              text
+              type="button"
+              onClick={() => {
+                imputRef.current.click();
+              }}
+            />
+
+            <input
+              type="file"
+              hidden
+              ref={imputRef}
+              accept="image/*"
+              onChange={previewImage}
+            />
+            <Button
+              icon="pi pi-trash"
+              rounded
+              tooltip="Remove"
+              severity="danger"
+              aria-label="Remove"
+              style={{ borderRadius: "50%", padding: "0" }}
+              outlined
+              text
+              type="button"
+              onClick={() => {
+                imputRef.current.value = "";
+                imageRef.current.src = "";
+              }}
+            />
+          </div>
+        </>
+      )}
+
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "5px",
-          background: "#f8f9fa",
-          padding: "1.5rem",
+          padding: "2rem",
+          border: "1px solid #eee",
+          borderRadius: "5px",
         }}
       >
-        <span
-          className="p-button"
-          onClick={() => {
-            imputRef.current.click();
-          }}
-        >
-          Choose
-        </span>
-
-        <input
-          type="file"
-          hidden
-          ref={imputRef}
-          accept="image/*"
-          onChange={previewImage}
-        />
-
-        <Button
-          label="Remove"
-          severity="danger"
-          className="rounded"
-          type="button"
-          onClick={() => {
-            imputRef.current.value = "";
-            imageRef.current.src = "";
-          }}
-        />
-      </div>
-      <div style={{ padding: "2rem" }}>
-        <div>
+        <div style={{ textAlign: "center" }}>
           <img
             style={{
               overflowClipMargin: "content-box",
               overflow: "clip",
-              width: "50px",
+              width: "100px",
+              height: "100px",
+              objectFit: "fill",
             }}
             ref={imageRef}
             src=""
-            alt="Image"
+            alt="Profile Pic"
           />
         </div>
       </div>

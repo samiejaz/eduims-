@@ -20,8 +20,12 @@ class SignalRConnectionManager {
         .build();
 
       try {
+        const user = JSON.parse(localStorage.getItem("user"));
         await this.connection.start();
-        console.log("SignalR connection established.");
+        await this.connection.invoke("JoinGroup", {
+          GroupName: "",
+          UserName: user.userID.toString(),
+        });
       } catch (err) {
         console.error("Error while starting SignalR connection:", err);
       }
@@ -32,7 +36,6 @@ class SignalRConnectionManager {
     if (this.connection) {
       try {
         await this.connection.stop();
-        console.log("SignalR connection stopped.");
       } catch (err) {
         console.error("Error while stopping SignalR connection:", err);
       } finally {
@@ -43,6 +46,10 @@ class SignalRConnectionManager {
 
   getConnection = () => {
     return this.connection;
+  };
+
+  getConnectionID = async () => {
+    await this.connection.invoke("GetConnectionID", (connectionID) => {});
   };
 }
 

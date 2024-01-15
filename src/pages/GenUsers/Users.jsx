@@ -190,9 +190,7 @@ export function UserDetail() {
   );
 }
 
-let renderCount = 0;
 export function UserForm({ pagesTitle, user, mode }) {
-  renderCount++;
   document.title = "User Entry";
 
   const queryClient = useQueryClient();
@@ -233,15 +231,17 @@ export function UserForm({ pagesTitle, user, mode }) {
     if (!isDirty) {
       if (+UserID !== undefined && UserData?.data?.length > 0) {
         try {
+          console.log(UserData);
           setValue("FirstName", UserData?.data[0]?.FirstName);
           setValue("LastName", UserData?.data[0]?.LastName);
           setValue("Email", UserData?.data[0]?.Email);
           setValue("UserName", UserData?.data[0]?.UserName);
           setValue("Password", UserData?.data[0]?.Password);
           setValue("InActive", UserData?.data[0]?.InActive);
-        } catch (error) {
-          console.log(error);
-        }
+          setValue("DepartmentID", UserData?.data[0]?.DepartmentID);
+          imageRef.current.src =
+            "data:image/png;base64," + UserData?.data[0]?.ProfilePic;
+        } catch (error) {}
       }
     }
   }, [UserID, UserData]);
@@ -443,10 +443,17 @@ export function UserForm({ pagesTitle, user, mode }) {
             </Row>
 
             <Row>
-              <ImageContainer imageRef={imageRef} />
+              <Form.Group as={Col} controlId="InActive">
+                <Form.Label>Profie Pic</Form.Label>
+                <div>
+                  <ImageContainer
+                    imageRef={imageRef}
+                    hideButtons={mode === "view"}
+                  />
+                </div>
+              </Form.Group>
             </Row>
           </form>
-          {renderCount}
         </>
       )}
     </>
