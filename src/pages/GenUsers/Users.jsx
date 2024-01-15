@@ -25,6 +25,7 @@ import { ROUTE_URLS, QUERY_KEYS } from "../../utils/enums";
 import { FileUpload } from "primereact/fileupload";
 import { useAllDepartmentsSelectData } from "../../hooks/SelectData/useSelectData";
 import CDropdown from "../../components/Forms/CDropdown";
+import ImageContainer from "../../components/ImageContainer";
 
 let parentRoute = ROUTE_URLS.USER_ROUTE;
 let editRoute = `${parentRoute}/edit/`;
@@ -195,8 +196,7 @@ export function UserForm({ pagesTitle, user, mode }) {
   document.title = "User Entry";
 
   const queryClient = useQueryClient();
-
-  const [UserImage, setUserImage] = useState();
+  const imageRef = useRef();
 
   const navigate = useNavigate();
   const { UserID } = useParams();
@@ -207,7 +207,6 @@ export function UserForm({ pagesTitle, user, mode }) {
     setFocus,
     setValue,
     reset,
-    register,
     formState: { isDirty },
   } = useForm({
     defaultValues: {
@@ -288,6 +287,7 @@ export function UserForm({ pagesTitle, user, mode }) {
   function onSubmit(data) {
     mutation.mutate({
       formData: data,
+<<<<<<< HEAD
       userID: user.userID,
       UserID: parseInt(0 + UserID),
       UserImage: UserImage,
@@ -305,6 +305,12 @@ export function UserForm({ pagesTitle, user, mode }) {
     reader.onloadend = function () {
       const base64data = reader.result;
     };
+=======
+      userID: user?.userID,
+      UserID: UserID,
+      UserImage: imageRef.current.src,
+    });
+>>>>>>> 8d048dc921ea315896c60dd9fcae015cdbdd42fc
   }
 
   return (
@@ -384,7 +390,7 @@ export function UserForm({ pagesTitle, user, mode }) {
                     optionValue="DepartmentID"
                     placeholder="Select a department"
                     options={departmentSelectData.data}
-                    required={true}
+                    //required={true}
                     disabled={mode === "view"}
                     focusOptions={() => setFocus("InActive")}
                   />
@@ -453,75 +459,9 @@ export function UserForm({ pagesTitle, user, mode }) {
                 </div>
               </Form.Group>
             </Row>
+
             <Row>
-              {/* <div className="mt-2">
-                <Form.Label>Image</Form.Label>
-                <FileUpload
-                  mode="advanced"
-                  name="UserImage"
-                  accept="image/*"
-                  customUpload
-                  uploadHandler={customBase64Uploader}
-                />
-              </div> */}
-            </Row>
-            <Row>
-              <div
-                style={{
-                  border: "1px solid #ddd",
-                  padding: "0",
-                  width: "98.5%",
-                  margin: "0px 10px",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "5px",
-                    background: "#f8f9fa",
-                    padding: "1.5rem",
-                  }}
-                >
-                  <span
-                    className="p-button"
-                    onClick={() => {
-                      control._fields.UserImage._f.ref.click();
-                    }}
-                  >
-                    Choose
-                  </span>
-                  <input
-                    type="file"
-                    hidden
-                    accept="image/*"
-                    {...register("UserImage")}
-                    onChange={previewImage}
-                  />
-                  <Button
-                    label="Remove"
-                    severity="danger"
-                    className="rounded"
-                    type="button"
-                    onClick={() => {
-                      control._fields.UserImage._f.ref.value = "";
-                    }}
-                  />
-                </div>
-                <div style={{ padding: "2rem" }}>
-                  <div>
-                    <img
-                      style={{
-                        overflowClipMargin: "content-box",
-                        overflow: "clip",
-                        width: "50px",
-                      }}
-                      src="data:image/png;base64,"
-                      alt="Image"
-                    />
-                  </div>
-                </div>
-              </div>
+              <ImageContainer imageRef={imageRef} />
             </Row>
           </form>
           {renderCount}

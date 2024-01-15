@@ -8,6 +8,16 @@ export const ROUTE_URLS = {
   LEED_SOURCE_ROUTE: "/general/leadsource",
   LEAD_INTRODUCTION_ROUTE: "/general/leadintroduction",
   USER_ROUTE: "/general/users",
+  DASHBOARD: "/dashboard",
+  CUSTOMERS: {
+    CUSTOMER_ENTRY: "/customer/customerentry",
+    OLD_CUSTOMER_ENTRY: "/customer/oldcustomerentry",
+    CUSTOMER_INVOICE: "/customer/customerinvoice",
+    RECIEPT_VOUCHER_ROUTE: "/customer/reciepts",
+  },
+  GENERAL: {
+    BUSINESS_UNITS: "/general/businessunits",
+  },
 };
 
 export const QUERY_KEYS = {
