@@ -13,6 +13,7 @@ function Dashboard() {
         flexDirection: "column",
         gap: "1rem",
       }}
+      className="mt-4"
     >
       <div className="card p-4 border-0 shadow-sm">
         <div

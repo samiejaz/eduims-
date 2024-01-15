@@ -2,64 +2,27 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import "./sidebar.css";
 import { ROUTE_URLS } from "../../utils/enums";
+import signalRConnectionManager from "../../services/SignalRService";
+import { toast } from "react-toastify";
+import { useUserData } from "../../context/AuthContext";
 
 const CSidebar = ({ sideBarRef }) => {
-  // const navLinks = [
-  //   {
-  //     icon: "pi pi-home",
-  //     text: "Dashboard",
-  //     link: "/dashboard",
-  //     subLinks: ["Category"],
-  //   },
-  //   {
-  //     icon: "pi pi-th-large",
-  //     text: "Category",
-  //     link: "/category",
-  //     subLinks: ["/category", "/html-css", "/javascript", "/php-mysql"],
-  //   },
-  //   {
-  //     icon: "pi pi-book",
-  //     text: "Posts",
-  //     link: "/posts",
-  //     subLinks: ["/posts", "/web-design", "/login-form", "/card-design"],
-  //   },
-  //   {
-  //     icon: "pi pi-chart-line",
-  //     text: "Analytics",
-  //     link: "/analytics",
-  //     subLinks: ["/analytics"],
-  //   },
-  //   {
-  //     icon: "pi pi-chart-bar",
-  //     text: "Chart",
-  //     link: "/chart",
-  //     subLinks: ["/chart"],
-  //   },
-  //   {
-  //     icon: "pi pi-plug",
-  //     text: "Plugins",
-  //     link: "/plugins",
-  //     subLinks: ["/plugins", "/ui-face", "/pigments", "/box-icons"],
-  //   },
-  //   {
-  //     icon: "pi pi-compass",
-  //     text: "Explore",
-  //     link: "/explore",
-  //     subLinks: ["/explore"],
-  //   },
-  //   {
-  //     icon: "pi pi-clock",
-  //     text: "History",
-  //     link: "/history",
-  //     subLinks: ["/history"],
-  //   },
-  //   {
-  //     icon: "pi pi-cog",
-  //     text: "Setting",
-  //     link: "/setting",
-  //     subLinks: ["/setting"],
-  //   },
-  // ];
+  const connection = signalRConnectionManager.getConnection();
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  useEffect(() => {
+    connection.on("ReceiveNotification", (message) => {
+      toast.success(message);
+    });
+    connection.on("ReceiveAllNotification", (message) => {
+      toast.success(message);
+    });
+
+    return () => {
+      connection.off("ReceiveNotification");
+      connection.off("ReceiveAllNotification");
+    };
+  }, [connection]);
 
   useEffect(() => {
     async function configurationSetup() {
@@ -77,11 +40,6 @@ const CSidebar = ({ sideBarRef }) => {
 
   function toggleSubmenu(e) {
     let parent = e.target.parentNode.parentNode;
-    // if (parent.className.includes("c-showMenu")) {
-    //   parent.className = "";
-    // } else {
-    //   parent.className = "c-showMenu";
-    // }
     parent.classList.toggle("c-showMenu");
   }
 
@@ -95,13 +53,13 @@ const CSidebar = ({ sideBarRef }) => {
         </div>
         <ul className="c-nav-links">
           <li>
-            <Link to={ROUTE_URLS.DASHBOARD}>
+            <Link to={"/"}>
               <i className="pi pi-home"></i>
               <span className="c-link_name">Dashboard</span>
             </Link>
             <ul className="c-sub-menu c-blank">
               <li>
-                <Link className="c-link_name" to={ROUTE_URLS.DASHBOARD}>
+                <Link className="c-link_name" to={"/"}>
                   Dashboard
                 </Link>
               </li>
@@ -111,7 +69,7 @@ const CSidebar = ({ sideBarRef }) => {
           <li className="">
             <div className="c-iocn-link">
               <a href="#">
-                <i className="pi pi-cog"></i>
+                <i className="pi pi-list"></i>
                 <span className="c-link_name">General</span>
               </a>
               <i
@@ -133,7 +91,9 @@ const CSidebar = ({ sideBarRef }) => {
               </li>
               <hr style={{ color: "white", padding: "0", margin: "0" }} />
               <li>
-                <Link to={ROUTE_URLS.GENERAL.BUSINESS_UNITS}>Company Info</Link>
+                <Link to={ROUTE_URLS.GENERAL.COMPANY_INFO_ROUTE}>
+                  Company Info
+                </Link>
               </li>
               <li>
                 <Link to={ROUTE_URLS.GENERAL.BUSINESS_UNITS}>
@@ -146,10 +106,10 @@ const CSidebar = ({ sideBarRef }) => {
                 </Link>
               </li>
               <li>
-                <Link to={ROUTE_URLS.BUSINESS_NATURE_ROUTE}>Business Type</Link>
+                <Link to={ROUTE_URLS.BUSINESS_TYPE}>Business Type</Link>
               </li>
               <li>
-                <Link to={ROUTE_URLS.BUSINESS_NATURE_ROUTE}>
+                <Link to={ROUTE_URLS.BUSINESS_SEGMENT_ROUTE}>
                   Business Segments
                 </Link>
               </li>
@@ -164,11 +124,14 @@ const CSidebar = ({ sideBarRef }) => {
               </li>
               <hr style={{ color: "white", padding: "0", margin: "0" }} />
               <li>
+                <Link to={ROUTE_URLS.GENERAL.SESSION_INFO}>Session Info</Link>
+              </li>
+              {/* <li>
                 <Link to={ROUTE_URLS.USER_ROUTE}>Users</Link>
               </li>
               <li>
                 <Link to={ROUTE_URLS.DEPARTMENT}>Department</Link>
-              </li>
+              </li> */}
             </ul>
           </li>
 
@@ -177,7 +140,7 @@ const CSidebar = ({ sideBarRef }) => {
             <div className="c-iocn-link">
               <a href="#">
                 <i className="pi pi-users"></i>
-                <span className="c-link_name">Customers</span>
+                <span className="c-link_name">Users</span>
               </a>
               <i
                 className="pi pi-chevron-down c-arrow"
@@ -187,9 +150,16 @@ const CSidebar = ({ sideBarRef }) => {
             <ul className="c-sub-menu">
               <li>
                 <a className="c-link_name" href="#">
-                  Customers
+                  Users
                 </a>
               </li>
+              <li>
+                <Link to={ROUTE_URLS.USER_ROUTE}>Users</Link>
+              </li>
+              <li>
+                <Link to={ROUTE_URLS.DEPARTMENT}>Departments</Link>
+              </li>
+              <hr style={{ color: "white", padding: "0", margin: "0" }} />
               <li>
                 <Link to={ROUTE_URLS.CUSTOMERS.CUSTOMER_ENTRY}>
                   Customer Entry
@@ -200,15 +170,76 @@ const CSidebar = ({ sideBarRef }) => {
                   Old Customer Entry
                 </Link>
               </li>
-              <hr style={{ color: "white", padding: "0", margin: "0" }} />
+            </ul>
+          </li>
+
+          {/* Accounts */}
+          <li className="">
+            <div className="c-iocn-link">
+              <a href="#">
+                <i className="pi pi-dollar"></i>
+                <span className="c-link_name">Accounts</span>
+              </a>
+              <i
+                className="pi pi-chevron-down c-arrow"
+                onClick={toggleSubmenu}
+              ></i>
+            </div>
+            <ul className="c-sub-menu">
               <li>
-                <Link to={ROUTE_URLS.CUSTOMERS.CUSTOMER_INVOICE}>
+                <a className="c-link_name" href="#">
+                  Accounts
+                </a>
+              </li>
+              <li>
+                <Link to={ROUTE_URLS.ACCOUNTS.CUSTOMER_INVOICE}>
                   Customer Invoice
                 </Link>
               </li>
               <li>
-                <Link to={ROUTE_URLS.CUSTOMERS.RECIEPT_VOUCHER_ROUTE}>
+                <Link to={ROUTE_URLS.ACCOUNTS.RECIEPT_VOUCHER_ROUTE}>
                   Receipt Voucher
+                </Link>
+              </li>
+            </ul>
+          </li>
+
+          {/* Utilities */}
+          <li className="">
+            <div className="c-iocn-link">
+              <a href="#">
+                <i className="pi pi-cog"></i>
+                <span className="c-link_name">Utilities</span>
+              </a>
+              <i
+                className="pi pi-chevron-down c-arrow"
+                onClick={toggleSubmenu}
+              ></i>
+            </div>
+            <ul className="c-sub-menu">
+              <li>
+                <a className="c-link_name" href="#">
+                  Utilities
+                </a>
+              </li>
+              <li>
+                <Link to={ROUTE_URLS.GENERAL.APP_CONFIGURATION_ROUTE}>
+                  App Configuration
+                </Link>
+              </li>
+              <li>
+                <Link to={ROUTE_URLS.GENERAL.PRODUCT_CATEGORY_ROUTE}>
+                  Product Category
+                </Link>
+              </li>
+              <li>
+                <Link to={ROUTE_URLS.GENERAL.PRODUCT_INFO_ROUTE}>
+                  Product Info
+                </Link>
+              </li>
+              <li>
+                <Link to={ROUTE_URLS.UTILITIES.INVOICE_DESCRIPTIONS}>
+                  Invoice Descriptions
                 </Link>
               </li>
             </ul>
@@ -225,7 +256,7 @@ const CSidebar = ({ sideBarRef }) => {
               >
                 <div>
                   <div className="c-profile_name" style={{ marginLeft: "5px" }}>
-                    Muhammad Huzaifa Sajid
+                    {user.username}
                   </div>
                   <div className="c-job" style={{ marginLeft: "5px" }}>
                     Development

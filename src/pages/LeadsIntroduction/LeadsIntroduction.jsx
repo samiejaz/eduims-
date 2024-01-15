@@ -9,14 +9,13 @@ import { Button } from "primereact/button";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import ActionButtons from "../../components/ActionButtons";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider, Controller } from "react-hook-form";
 import ButtonToolBar from "../CustomerInvoice/CustomerInvoiceToolbar";
 import { Col, Form, Row } from "react-bootstrap";
-import TextInput from "../../components/Forms/TextInput";
-import CheckBox from "../../components/Forms/CheckBox";
 
 import { useUserData } from "../../context/AuthContext";
 import {
+  addLeadIntroductionOnAction,
   addNewLeadIntroduction,
   deleteLeadIntroductionByID,
   fetchAllLeadIntroductions,
@@ -37,6 +36,9 @@ import {
 import CDropdown from "../../components/Forms/CDropdown";
 import ReactDatePicker from "react-datepicker";
 import NumberInput from "../../components/Forms/NumberInput";
+import { Calendar } from "primereact/calendar";
+import { classNames } from "primereact/utils";
+import { Tag } from "primereact/tag";
 
 let parentRoute = ROUTE_URLS.LEAD_INTRODUCTION_ROUTE;
 let editRoute = `${parentRoute}/edit/`;
@@ -74,21 +76,14 @@ export function LeadIntroductionDetail() {
 
   const user = useUserData();
 
-  // const { data, isLoading, isFetching } = useQuery({
-  //   queryKey: [queryKey],
-  //   queryFn: () => fetchAllLeadIntroductions(user.userID),
-  //   initialData: [],
-  // });
-  let data = [
-    {
-      LeadSourceID: 1,
-      LeadIntroductionID: 1,
-      LeadSourceTitle: "asdg",
-      CompanyName: "asd",
-    },
-  ];
-  let isLoading = false;
-  let isFetching = false;
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: [queryKey],
+    queryFn: () => fetchAllLeadIntroductions(user.userID),
+    initialData: [],
+  });
+  // let data = [{ LeadIntroductionID: 1 }];
+  // let isLoading = false;
+  // let isFetching = false;
 
   const deleteMutation = useMutation({
     mutationFn: deleteLeadIntroductionByID,
@@ -119,13 +114,45 @@ export function LeadIntroductionDetail() {
     return (
       <React.Fragment>
         <div>
-          <ForwardDialogComponent />
-          <QuoteDialogComponent />
-          <FinalizedDialogComponent />
-          <ClosedDialogComponent />
+          <ForwardDialogComponent
+            LeadIntroductionID={rowData.LeadIntroductionID}
+          />
+          <QuoteDialogComponent
+            LeadIntroductionID={rowData.LeadIntroductionID}
+          />
+          <FinalizedDialogComponent
+            LeadIntroductionID={rowData.LeadIntroductionID}
+          />
+          <ClosedDialogComponent
+            LeadIntroductionID={rowData.LeadIntroductionID}
+          />
         </div>
       </React.Fragment>
     );
+  };
+
+  const statusBodyTemplate = (rowData) => {
+    return (
+      <Tag
+        value={rowData.Status}
+        style={{ background: getSeverity(rowData.Status) }}
+      />
+    );
+  };
+
+  const getSeverity = (status) => {
+    switch (status) {
+      case "New Lead":
+        return "linear-gradient(90deg, rgba(31, 17, 206, 1) 0%, rgba(229, 43, 43, 1) 100%)";
+      case "Closed":
+        return "linear-gradient(90deg, rgba(200, 0, 0, 1) 0%, rgba(128, 0, 0, 1) 100%)";
+      case "Quoted":
+        return "linear-gradient(90deg, rgba(200, 0, 158, 1) 0%, rgba(0, 128, 0, 1) 100%)";
+      case "Finalized":
+        return "linear-gradient(90deg, rgba(0, 255, 49, 1) 0%, rgba(0, 188, 212, 1) 100%, rgba(238, 130, 238, 1) 100%)";
+      case "Forwarded":
+        return "help";
+    }
   };
 
   return (
@@ -144,7 +171,7 @@ export function LeadIntroductionDetail() {
             <h2 className="text-center my-auto">Lead Introductions</h2>
             <div className="text-end my-auto" style={{ marginLeft: "10px" }}>
               <Button
-                label="Add New LeadIntroduction"
+                label="Add New Lead Introduction"
                 icon="pi pi-plus"
                 type="button"
                 className="rounded"
@@ -187,6 +214,17 @@ export function LeadIntroductionDetail() {
               style={{ minWidth: "7rem", maxWidth: "10rem", width: "8.2rem" }}
             ></Column>
             <Column
+              field="Status"
+              filter
+              filterPlaceholder="Search by status"
+              sortable
+              header="Current Status"
+              showFilterMenu={false}
+              filterMenuStyle={{ width: "14rem" }}
+              style={{ minWidth: "12rem" }}
+              body={statusBodyTemplate}
+            ></Column>
+            <Column
               field="CompanyName"
               filter
               filterPlaceholder="Search by company"
@@ -217,6 +255,7 @@ export function LeadIntroductionForm({ pagesTitle, user, mode }) {
   document.title = "LeadIntroduction Entry";
 
   const queryClient = useQueryClient();
+  const countryRef = useRef();
 
   const navigate = useNavigate();
   const { LeadIntroductionID } = useParams();
@@ -252,6 +291,8 @@ export function LeadIntroductionForm({ pagesTitle, user, mode }) {
       LeadIntroductionID !== undefined &&
       LeadIntroductionData?.data?.length > 0
     ) {
+      method.control._fields.CountryID._f.value =
+        LeadIntroductionData.data[0].CountryID;
       method.setValue("CompanyName", LeadIntroductionData.data[0].CompanyName);
       method.setValue("CountryID", LeadIntroductionData.data[0].CountryID);
       method.setValue("TehsilID", LeadIntroductionData.data[0].TehsilID);
@@ -291,6 +332,7 @@ export function LeadIntroductionForm({ pagesTitle, user, mode }) {
         "RequirementDetails",
         LeadIntroductionData.data[0].RequirementDetails
       );
+
       method.setValue(
         "LeadSourceID",
         LeadIntroductionData.data[0].LeadSourceID
@@ -503,16 +545,22 @@ function MenuItemsComponent() {
   );
 }
 
-const useForwardDialog = () => {
+const useForwardDialog = (LeadIntroductionID) => {
   const [visible, setVisible] = useState(false);
   return {
     setVisible,
-    render: <ForwardDialog visible={visible} setVisible={setVisible} />,
+    render: (
+      <ForwardDialog
+        visible={visible}
+        setVisible={setVisible}
+        LeadIntroductionID={LeadIntroductionID}
+      />
+    ),
   };
 };
 
-function ForwardDialogComponent() {
-  const { setVisible, render } = useForwardDialog();
+function ForwardDialogComponent({ LeadIntroductionID }) {
+  const { setVisible, render } = useForwardDialog(LeadIntroductionID);
 
   return (
     <>
@@ -540,11 +588,22 @@ function ForwardDialogComponent() {
   );
 }
 
-function ForwardDialog({ visible = true, setVisible }) {
+function ForwardDialog({ visible = true, setVisible, LeadIntroductionID }) {
+  const queryClient = useQueryClient();
+  const user = useUserData();
   const usersSelectData = useAllUsersSelectData();
   const departmentSelectData = useAllDepartmentsSelectData();
   const productsSelectData = useProductsInfoSelectData();
   const method = useForm();
+
+  const mutation = useMutation({
+    mutationFn: addLeadIntroductionOnAction,
+    onSuccess: ({ success }) => {
+      if (success) {
+        queryClient.invalidateQueries({ queryKey: [queryKey] });
+      }
+    },
+  });
 
   const footerContent = (
     <>
@@ -553,6 +612,7 @@ function ForwardDialog({ visible = true, setVisible }) {
         severity="success"
         className="rounded"
         type="button"
+        onClick={() => method.handleSubmit(onSubmit)()}
       />
     </>
   );
@@ -624,11 +684,28 @@ function ForwardDialog({ visible = true, setVisible }) {
             <span className="text-danger fw-bold ">*</span>
           </Form.Label>
           <div>
-            <ReactDatePicker className="binput" />
+            <Controller
+              name="MeetingTime"
+              control={method.control}
+              rules={{ required: "Date is required." }}
+              render={({ field, fieldState }) => (
+                <>
+                  <Calendar
+                    inputId={field.name}
+                    value={field.value}
+                    onChange={field.onChange}
+                    dateFormat="dd/mm/yy"
+                    style={{ width: "100%" }}
+                    className={classNames({ "p-invalid": fieldState.error })}
+                    showTime
+                    showIcon
+                    hourFormat="12"
+                  />
+                </>
+              )}
+            />
           </div>
         </Form.Group>
-      </Row>
-      <Row>
         <Form.Group as={Col} controlId="DepartmentID">
           <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
             Recomended Product
@@ -647,7 +724,9 @@ function ForwardDialog({ visible = true, setVisible }) {
             />
           </div>
         </Form.Group>
-        <Form.Group as={Col} controlId="Description" className="col-9">
+      </Row>
+      <Row>
+        <Form.Group as={Col} controlId="Description" className="col-12">
           <Form.Label>Description</Form.Label>
           <Form.Control
             as={"textarea"}
@@ -664,11 +743,20 @@ function ForwardDialog({ visible = true, setVisible }) {
     </>
   );
 
+  function onSubmit(data) {
+    mutation.mutate({
+      from: "Forward",
+      formData: data,
+      userID: user.userID,
+      LeadIntroductionID: LeadIntroductionID,
+    });
+  }
+
   return (
     <>
       <Dialog
         footer={footerContent}
-        header="Quote To"
+        header="Forward To"
         visible={visible}
         draggable={false}
         onHide={() => setVisible(false)}
@@ -679,17 +767,23 @@ function ForwardDialog({ visible = true, setVisible }) {
     </>
   );
 }
-
-const useQuoteDialog = () => {
+// Quoted
+const useQuoteDialog = (LeadIntroductionID) => {
   const [visible, setVisible] = useState(false);
   return {
     setVisible,
-    render: <QuoteDialog visible={visible} setVisible={setVisible} />,
+    render: (
+      <QuoteDialog
+        visible={visible}
+        setVisible={setVisible}
+        LeadIntroductionID={LeadIntroductionID}
+      />
+    ),
   };
 };
 
-function QuoteDialogComponent() {
-  const { setVisible, render } = useQuoteDialog();
+function QuoteDialogComponent({ LeadIntroductionID }) {
+  const { setVisible, render } = useQuoteDialog(LeadIntroductionID);
 
   return (
     <>
@@ -718,9 +812,10 @@ function QuoteDialogComponent() {
   );
 }
 
-function QuoteDialog({ visible = true, setVisible }) {
+function QuoteDialog({ visible = true, setVisible, LeadIntroductionID }) {
   const method = useForm();
-
+  const queryClient = useQueryClient();
+  const user = useUserData();
   const footerContent = (
     <>
       <Button
@@ -728,6 +823,7 @@ function QuoteDialog({ visible = true, setVisible }) {
         severity="success"
         className="rounded"
         type="button"
+        onClick={() => method.handleSubmit(onSubmit)()}
       />
     </>
   );
@@ -740,7 +836,10 @@ function QuoteDialog({ visible = true, setVisible }) {
             File
             <span className="text-danger fw-bold ">*</span>
           </Form.Label>
-          <Form.Control type="file" {...method.register("File")}></Form.Control>
+          <Form.Control
+            type="file"
+            {...method.register("AttachmentFile")}
+          ></Form.Control>
         </Form.Group>
       </Row>
       <Row>
@@ -750,8 +849,8 @@ function QuoteDialog({ visible = true, setVisible }) {
             <NumberInput
               control={method.control}
               id={`Amount`}
-              required={true}
-              enterKeyOptions={() => method.setFocus("FromBank")}
+              //required={true}
+              enterKeyOptions={() => method.setFocus("Description")}
             />
           </div>
         </Form.Group>
@@ -771,6 +870,22 @@ function QuoteDialog({ visible = true, setVisible }) {
       </Row>
     </>
   );
+  const mutation = useMutation({
+    mutationFn: addLeadIntroductionOnAction,
+    onSuccess: ({ success }) => {
+      if (success) {
+        queryClient.invalidateQueries({ queryKey: [queryKey] });
+      }
+    },
+  });
+  function onSubmit(data) {
+    mutation.mutate({
+      from: "Quoted",
+      formData: data,
+      userID: user.userID,
+      LeadIntroductionID: LeadIntroductionID,
+    });
+  }
 
   return (
     <>
@@ -787,16 +902,23 @@ function QuoteDialog({ visible = true, setVisible }) {
     </>
   );
 }
-const useFinalizedDialog = () => {
+// Finalized
+const useFinalizedDialog = (LeadIntroductionID) => {
   const [visible, setVisible] = useState(false);
   return {
     setVisible,
-    render: <FinalizedDialog visible={visible} setVisible={setVisible} />,
+    render: (
+      <FinalizedDialog
+        visible={visible}
+        setVisible={setVisible}
+        LeadIntroductionID={LeadIntroductionID}
+      />
+    ),
   };
 };
 
-function FinalizedDialogComponent() {
-  const { setVisible, render } = useFinalizedDialog();
+function FinalizedDialogComponent({ LeadIntroductionID }) {
+  const { setVisible, render } = useFinalizedDialog(LeadIntroductionID);
 
   return (
     <>
@@ -825,8 +947,19 @@ function FinalizedDialogComponent() {
   );
 }
 
-function FinalizedDialog({ visible = true, setVisible }) {
+function FinalizedDialog({ visible = true, setVisible, LeadIntroductionID }) {
+  const queryClient = useQueryClient();
+  const user = useUserData();
   const method = useForm();
+
+  const mutation = useMutation({
+    mutationFn: addLeadIntroductionOnAction,
+    onSuccess: ({ success }) => {
+      if (success) {
+        queryClient.invalidateQueries({ queryKey: [queryKey] });
+      }
+    },
+  });
 
   const footerContent = (
     <>
@@ -835,6 +968,7 @@ function FinalizedDialog({ visible = true, setVisible }) {
         severity="success"
         className="rounded"
         type="button"
+        onClick={() => method.handleSubmit(onSubmit)()}
       />
     </>
   );
@@ -847,7 +981,10 @@ function FinalizedDialog({ visible = true, setVisible }) {
             File
             <span className="text-danger fw-bold ">*</span>
           </Form.Label>
-          <Form.Control type="file" {...method.register("File")}></Form.Control>
+          <Form.Control
+            type="file"
+            {...method.register("AttachmentFile")}
+          ></Form.Control>
         </Form.Group>
       </Row>
       <Row>
@@ -857,7 +994,7 @@ function FinalizedDialog({ visible = true, setVisible }) {
             <NumberInput
               control={method.control}
               id={`Amount`}
-              required={true}
+              //required={true}
               enterKeyOptions={() => method.setFocus("FromBank")}
             />
           </div>
@@ -879,11 +1016,20 @@ function FinalizedDialog({ visible = true, setVisible }) {
     </>
   );
 
+  function onSubmit(data) {
+    mutation.mutate({
+      from: "Finalized",
+      formData: data,
+      userID: user.userID,
+      LeadIntroductionID: LeadIntroductionID,
+    });
+  }
+
   return (
     <>
       <Dialog
         footer={footerContent}
-        header="Quote To"
+        header="Finalized"
         visible={visible}
         draggable={false}
         onHide={() => setVisible(false)}
@@ -894,16 +1040,24 @@ function FinalizedDialog({ visible = true, setVisible }) {
     </>
   );
 }
-const useClosedDialog = () => {
+
+// Closed
+const useClosedDialog = (LeadIntroductionID) => {
   const [visible, setVisible] = useState(false);
   return {
     setVisible,
-    render: <ClosedDialog visible={visible} setVisible={setVisible} />,
+    render: (
+      <ClosedDialog
+        visible={visible}
+        setVisible={setVisible}
+        LeadIntroductionID={LeadIntroductionID}
+      />
+    ),
   };
 };
 
-function ClosedDialogComponent() {
-  const { setVisible, render } = useClosedDialog();
+function ClosedDialogComponent({ LeadIntroductionID }) {
+  const { setVisible, render } = useClosedDialog(LeadIntroductionID);
 
   return (
     <>
@@ -933,9 +1087,10 @@ function ClosedDialogComponent() {
   );
 }
 
-function ClosedDialog({ visible = true, setVisible }) {
+function ClosedDialog({ visible = true, setVisible, LeadIntroductionID }) {
   const method = useForm();
-
+  const queryClient = useQueryClient();
+  const user = useUserData();
   const footerContent = (
     <>
       <Button
@@ -943,10 +1098,27 @@ function ClosedDialog({ visible = true, setVisible }) {
         severity="success"
         className="rounded"
         type="button"
+        onClick={() => method.handleSubmit(onSubmit)()}
       />
     </>
   );
   const headerContent = <></>;
+  const mutation = useMutation({
+    mutationFn: addLeadIntroductionOnAction,
+    onSuccess: ({ success }) => {
+      if (success) {
+        queryClient.invalidateQueries({ queryKey: [queryKey] });
+      }
+    },
+  });
+  function onSubmit(data) {
+    mutation.mutate({
+      from: "Closed",
+      formData: data,
+      userID: user.userID,
+      LeadIntroductionID: LeadIntroductionID,
+    });
+  }
   const dialogConent = (
     <>
       <Row>
@@ -969,7 +1141,7 @@ function ClosedDialog({ visible = true, setVisible }) {
             <NumberInput
               control={method.control}
               id={`Amount`}
-              required={true}
+              //       required={true}
               enterKeyOptions={() => method.setFocus("FromBank")}
             />
           </div>
@@ -982,7 +1154,7 @@ function ClosedDialog({ visible = true, setVisible }) {
     <>
       <Dialog
         footer={footerContent}
-        header="Quote To"
+        header="Closed"
         visible={visible}
         draggable={false}
         onHide={() => setVisible(false)}

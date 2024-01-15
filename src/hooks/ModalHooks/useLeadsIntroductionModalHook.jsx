@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Controller,
   FormProvider,
@@ -120,12 +120,19 @@ export function LeadsIntroductionFormComponent({ mode = "" }) {
   const [items, setItems] = useState([]);
 
   const countriesSelectData = useAllCountiesSelectData();
-  const tehsilsSelectData = useAllTehsilsSelectData(CountryID);
+
   const businessTypesSelectData = useAllBusinessTypesSelectData();
+  const tehsilsSelectData = useAllTehsilsSelectData(CountryID);
   const businessNatureSelectData = useAllBusinessNatureSelectData(true);
   const leadSourcesSelectData = useAllLeadsSouceSelectData();
 
   const method = useFormContext();
+
+  //
+
+  useEffect(() => {
+    setCountryID(method.control._fields.CountryID._f.value);
+  }, []);
 
   const search = (event) => {
     let _filteredItems;
@@ -172,7 +179,7 @@ export function LeadsIntroductionFormComponent({ mode = "" }) {
                 disabled={mode === "view"}
                 focusOptions={() => method.setFocus("TehsilID")}
                 onChange={(e) => {
-                  setCountryID(e.value);
+                  // setCountryID(e.value);
                   method.resetField("TehsilID");
                 }}
               />
@@ -238,6 +245,7 @@ export function LeadsIntroductionFormComponent({ mode = "" }) {
                       suggestions={items}
                       completeMethod={search}
                       disabled={mode === "view"}
+                      dropdown
                       style={{ width: "100%" }}
                       pt={{
                         dropdownButton: {
@@ -245,6 +253,16 @@ export function LeadsIntroductionFormComponent({ mode = "" }) {
                             style: {
                               padding: "0 !important",
                             },
+                          },
+                          icon: {
+                            style: {
+                              padding: "0",
+                            },
+                          },
+                        },
+                        input: {
+                          style: {
+                            width: "100%",
                           },
                         },
                       }}
@@ -393,7 +411,7 @@ export function LeadsIntroductionFormComponent({ mode = "" }) {
                 padding: "0.3rem 0.4rem",
                 fontSize: "0.8em",
               }}
-              {...method.register("LeadSourceID")}
+              {...method.register("RequirementDetails")}
             />
           </Form.Group>
           <Form.Group as={Col} controlId="LeadSourceID">

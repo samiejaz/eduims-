@@ -48,6 +48,6 @@ export const AuthProvier = ({ children }) => {
 };
 
 export function useUserData() {
-  const { user } = useContext(AuthContext);
+  const user = JSON.parse(localStorage.getItem("user"));
   return user;
 }

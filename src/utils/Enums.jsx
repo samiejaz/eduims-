@@ -17,6 +17,21 @@ export const ROUTE_URLS = {
   },
   GENERAL: {
     BUSINESS_UNITS: "/general/businessunits",
+    SESSION_INFO: "/general/sessioninfo",
+    PRODUCT_CATEGORY_ROUTE: "/general/productcategory",
+    PRODUCT_INFO_ROUTE: "/general/productinfo",
+    COMPANY_INFO_ROUTE: "/general/companyinfo",
+  },
+  UTILITIES: {
+    PRODUCT_CATEGORY_ROUTE: "/utilities/productcategory",
+    PRODUCT_INFO_ROUTE: "/utilities/productinfo",
+    INVOICE_DESCRIPTIONS: "/utilities/invoicedescription",
+    APP_CONFIGURATION_ROUTE: "/utilities/appconfiguration",
+  },
+  ACCOUNTS: {
+    BANK_ACCOUNT_OPENING: "/accounts/bankaccountopening",
+    CUSTOMER_INVOICE: "/customer/customerinvoice",
+    RECIEPT_VOUCHER_ROUTE: "/customer/reciepts",
   },
 };
 

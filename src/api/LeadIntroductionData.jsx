@@ -38,7 +38,7 @@ export async function deleteLeadIntroductionByID(serviceInfo) {
   );
 
   if (data.success === true) {
-    toast.success("Business Type sucessfully deleted!");
+    toast.success("Lead sucessfully deleted!");
     return true;
   } else {
     toast.error(data.message);
@@ -89,9 +89,9 @@ export async function addNewLeadIntroduction({
 
     if (data.success === true) {
       if (LeadIntroductionID !== 0) {
-        toast.success("Business Type updated successfully!");
+        toast.success("Lead updated successfully!");
       } else {
-        toast.success("Business Type created successfully!");
+        toast.success("Lead created successfully!");
       }
       return { success: true, RecordID: data?.LeadIntroductionID };
     } else {
@@ -101,35 +101,58 @@ export async function addNewLeadIntroduction({
   } catch (e) {}
 }
 
-async function addLeadIntroductionOnAction({
+export async function addLeadIntroductionOnAction({
   from,
   formData,
-  LeedIntroductionID,
+  userID,
+  LeadIntroductionID,
 }) {
-  let DataToSend = {};
+  let Status = "";
+  console.log(from, formData, userID, LeadIntroductionID);
+  let newFormData = new FormData();
   if (from === "Forward") {
-    DataToSend = {
-      DepartmentID: formData.DepartmentID,
-      UserID: formData.UserID,
-      MeetingPlace: formData.MeetingPlace,
-      MeetingTime: formData.MeetingTime,
-      RecommendedProductID: formData.RecommendedProductID,
-      Description: formData.Description,
-    };
-  } else if (from === "Quoted" || formData === "Finalized") {
-    DataToSend = {
-      AttachmentFile: formData.AttachmentFile,
-      Amount: formData.Amount,
-      Description: formData.Description,
-    };
+    newFormData.append("UserID", formData.UserID);
+    newFormData.append("MeetingPlace", formData.MeetingPlace);
+    newFormData.append("MeetingTime", formData.MeetingTime.toUTCString());
+    newFormData.append("RecommendedProductID", formData.ProductInfoID);
+    newFormData.append("Description", formData.Description ?? "");
+    Status = "Forwarded";
+  } else if (from === "Quoted" || from === "Finalized") {
+    newFormData.append("AttachmentFile", formData.AttachmentFile[0]);
+    newFormData.append("Amount", formData.Amount ?? 1900);
+    newFormData.append("Description", formData.Description);
+    Status = from === "Quoted" ? "Quoted" : "Finalized";
   } else if (from === "Closed") {
-    DataToSend = {
-      Amount: formData.Amount,
-      Description: formData.Description,
-    };
+    newFormData.append("Amount", formData.Amount ?? 100);
+    newFormData.append("Description", formData.Description);
+    Status = "Closed";
   }
-  DataToSend.LeadIntroductionDetailID = 0;
-  DataToSend.LeedIntroductionID = LeedIntroductionID;
+  newFormData.append("LeadIntroductionDetailID", 0);
+  newFormData.append("EntryUserID", +userID);
+  newFormData.append("LeadIntroductionID", LeadIntroductionID);
+  newFormData.append("Status", Status);
+
+  const { data } = await axios.post(
+    apiUrl + `/${CONTROLLER}/LeadIntroductionOnAction`,
+    newFormData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+
+  if (data.success === true) {
+    if (LeadIntroductionID !== 0) {
+      toast.success("Lead forwared successfully!");
+    } else {
+      toast.success("Lead forwared successfully!");
+    }
+    return { success: true };
+  } else {
+    toast.error(data.message);
+    return { success: false };
+  }
 }
 
 // newFormData.append("DepartmentID", formData.DepartmentID),
