@@ -70,4 +70,5 @@ export const SELECT_QUERY_KEYS = {
   DEPARTMENT_SELECT_QUERY_KEY: "departmentsSelect",
   USERS_SELECT_QUERY_KEY: "usersSelect",
   SESSION_SELECT_QUERY_KEY: "sessionsSelect",
+  BANKS_SELECT_QUERY_KEY: "bankAccountsSelect",
 };

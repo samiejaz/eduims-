@@ -45,12 +45,14 @@ import { parseISO } from "date-fns";
 import { Tag } from "primereact/tag";
 import { QUERY_KEYS, ROUTE_URLS, SELECT_QUERY_KEYS } from "../../utils/enums";
 import {
+  fetchAllBankAccountsForSelect,
   fetchAllBusinessUnitsForSelect,
   fetchAllCustomerAccountsForSelect,
   fetchAllOldCustomersForSelect,
   fetchAllSessionsForSelect,
 } from "../../api/SelectData";
 import { Dropdown } from "primereact/dropdown";
+import CDatePicker from "../../components/Forms/CDatePicker";
 const receiptModeOptions = [
   { value: "Cash", label: "Cash" },
   { value: "Online", label: "Online Transfer" },
@@ -3324,70 +3326,74 @@ function ReceiptModeDependantFields({ mode }) {
           />
         </div>
       </Form.Group>
-      <Form.Group className="col-xl-2 " as={Col} controlId="Session">
-        <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
-          From Bank
-        </Form.Label>
-        <div>
-          <CDropdown
-            control={method.control}
-            name={`InstrumentType`}
-            placeholder="Select a type"
-            options={instrumentTypeOptions}
-            required={receiptMode !== "Instrument"}
-            disabled={mode === "view" || receiptMode !== "Instrument"}
-            focusOptions={() => method.setFocus("Description")}
-          />
-        </div>
-      </Form.Group>
-      <Form.Group className="col-xl-2 " as={Col} controlId="Session">
-        <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
-          To bank
-        </Form.Label>
-        <div>
-          <CDropdown
-            control={method.control}
-            name={`InstrumentType`}
-            placeholder="Select a type"
-            options={instrumentTypeOptions}
-            required={receiptMode !== "Instrument"}
-            disabled={mode === "view" || receiptMode !== "Instrument"}
-            focusOptions={() => method.setFocus("Description")}
-          />
-        </div>
-      </Form.Group>
+      <MasterBankFields mode={mode} />
       <Form.Group className="col-xl-2 " as={Col} controlId="Session">
         <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
           Instrument Date
         </Form.Label>
         <div>
-          <CDropdown
+          <CDatePicker
             control={method.control}
-            name={`InstrumentType`}
-            placeholder="Select a type"
-            options={instrumentTypeOptions}
-            required={receiptMode !== "Instrument"}
-            disabled={mode === "view" || receiptMode !== "Instrument"}
-            focusOptions={() => method.setFocus("Description")}
-          />
-        </div>
-      </Form.Group>
-      <Form.Group className="col-xl-2 " as={Col} controlId="Session">
-        <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
-          Instrument No
-        </Form.Label>
-        <div>
-          <CDropdown
-            control={method.control}
-            name={`InstrumentType`}
-            placeholder="Select a type"
-            options={instrumentTypeOptions}
-            required={receiptMode !== "Instrument"}
-            disabled={mode === "view" || receiptMode !== "Instrument"}
-            focusOptions={() => method.setFocus("Description")}
+            name="InstrumentDate"
+            disabled={mode === "view"}
           />
         </div>
       </Form.Group>
     </>
   );
 }
+
+const MasterBankFields = ({ mode }) => {
+  const { data } = useQuery({
+    queryKey: [SELECT_QUERY_KEYS.BANKS_SELECT_QUERY_KEY],
+    queryFn: fetchAllBankAccountsForSelect,
+    initialData: [],
+  });
+
+  const method = useFormContext();
+
+  return (
+    <>
+      <Form.Group className="col-xl-3 " as={Col}>
+        <Form.Label>From Bank</Form.Label>
+        <div>
+          <TextInput
+            ID={"FromBank"}
+            control={method.control}
+            required={true}
+            focusOptions={() => method.setFocus("ReceivedInBankID")}
+            isEnable={mode !== "view"}
+          />
+        </div>
+      </Form.Group>
+      <Form.Group className="col-xl-3 " as={Col}>
+        <Form.Label>Recieved In Back</Form.Label>
+        <div>
+          <CDropdown
+            control={method.control}
+            options={data}
+            optionValue="BankAccountID"
+            optionLabel="BankAccountTitle"
+            name="ReceivedInBankID"
+            placeholder="Select a bank"
+            required={true}
+            disabled={mode === "view"}
+            focusOptions={() => method.setFocus("TransactionID")}
+          />
+        </div>
+      </Form.Group>
+      <Form.Group className="col-xl-3 " as={Col}>
+        <Form.Label>TransactionID</Form.Label>
+        <div>
+          <TextInput
+            control={method.control}
+            ID={"TransactionID"}
+            required={true}
+            isEnable={mode !== "view"}
+            focusOptions={() => method.setFocus("IntrumentDate")}
+          />
+        </div>
+      </Form.Group>
+    </>
+  );
+};
