@@ -43,6 +43,14 @@ import {
 import ButtonToolBar from "../CustomerInvoice/CustomerInvoiceToolbar";
 import { parseISO } from "date-fns";
 import { Tag } from "primereact/tag";
+import { QUERY_KEYS, ROUTE_URLS, SELECT_QUERY_KEYS } from "../../utils/enums";
+import {
+  fetchAllBusinessUnitsForSelect,
+  fetchAllCustomerAccountsForSelect,
+  fetchAllOldCustomersForSelect,
+  fetchAllSessionsForSelect,
+} from "../../api/SelectData";
+import { Dropdown } from "primereact/dropdown";
 const receiptModeOptions = [
   { value: "Cash", label: "Cash" },
   { value: "Online", label: "Online Transfer" },
@@ -59,9 +67,9 @@ const instrumentTypeOptions = [
   { value: "DD", label: "DD" },
 ];
 
-let parentRoute = "/customers/receiptVoucher";
-let editRoute = "/customers/receiptVoucher/edit/";
-let newRoute = "/customers/receiptVoucher/new";
+let parentRoute = ROUTE_URLS.ACCOUNTS.RECIEPT_VOUCHER_ROUTE;
+let editRoute = `${parentRoute}/edit/`;
+let newRoute = `${parentRoute}/new`;
 let cashDetailColor = "#22C55E";
 let onlineDetailColor = "#F59E0B";
 let chequeDetailColor = "#3B82F6";
@@ -80,6 +88,7 @@ function ReceiptEntry() {
   );
 }
 const apiUrl = import.meta.env.VITE_APP_API_URL;
+
 function ReceiptEntrySearch() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -355,54 +364,6 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
     }
   }, [receiptMode]);
 
-  const {
-    removeAllRows,
-    render: CashModeDetail,
-    appendSingleRow,
-    appendAllRows,
-  } = useCashModeDetail(
-    method.control,
-    isEnable,
-    customerInvoiceInsallments.data,
-    method.setValue
-  );
-  const {
-    removeAllRows: removeAllOnlineRows,
-    render: OnlineModeDetail,
-    appendSingleRow: appendOnlineRow,
-    appendAllRows: appendAllOnlineRows,
-  } = useOnlineModeDetail(
-    method.control,
-    isEnable,
-    customerInvoiceInsallments.data,
-    bankAccountsSelectData.data,
-    method.setValue
-  );
-  const {
-    removeAllRows: removeAllChequeRows,
-    render: ChequeModeDetail,
-    appendSingleRow: appendSingleChequeRow,
-    appendAllRows: appendAllChequeRows,
-  } = useChequeModeDetail(
-    method.control,
-    isEnable,
-    customerInvoiceInsallments.data,
-    bankAccountsSelectData.data,
-    method.setValue
-  );
-  const {
-    removeAllRows: removeAllDDRows,
-    render: DDModeDetail,
-    appendSingleRow: appendSingleDdRow,
-    appendAllRows: appendAllDDRows,
-  } = useDDModeDetail(
-    method.control,
-    isEnable,
-    customerInvoiceInsallments.data,
-    bankAccountsSelectData.data,
-    method.setValue
-  );
-
   useEffect(() => {
     async function pageSetup() {
       if (mode === "view") {
@@ -677,21 +638,21 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
           : ReceiptVoucher?.Master[0]?.ReceiptMode
       );
 
-      if (ReceiptVoucher?.Master[0]?.ReceiptMode === "Online") {
-        appendAllOnlineRows(ReceiptVoucher?.Detail);
-      } else if (ReceiptVoucher?.Master[0]?.ReceiptMode === "Cash") {
-        appendAllRows(ReceiptVoucher?.Detail);
-      } else if (
-        ReceiptVoucher?.Master[0]?.ReceiptMode === "Instrument" &&
-        ReceiptVoucher?.Master[0]?.InstrumentType === "Cheque"
-      ) {
-        appendAllChequeRows(ReceiptVoucher?.Detail);
-      } else if (
-        ReceiptVoucher?.Master[0]?.ReceiptMode === "Instrument" &&
-        ReceiptVoucher?.Master[0]?.InstrumentType === "DD"
-      ) {
-        appendAllDDRows(ReceiptVoucher?.Detail);
-      }
+      // if (ReceiptVoucher?.Master[0]?.ReceiptMode === "Online") {
+      //   appendAllOnlineRows(ReceiptVoucher?.Detail);
+      // } else if (ReceiptVoucher?.Master[0]?.ReceiptMode === "Cash") {
+      //   appendAllRows(ReceiptVoucher?.Detail);
+      // } else if (
+      //   ReceiptVoucher?.Master[0]?.ReceiptMode === "Instrument" &&
+      //   ReceiptVoucher?.Master[0]?.InstrumentType === "Cheque"
+      // ) {
+      //   appendAllChequeRows(ReceiptVoucher?.Detail);
+      // } else if (
+      //   ReceiptVoucher?.Master[0]?.ReceiptMode === "Instrument" &&
+      //   ReceiptVoucher?.Master[0]?.InstrumentType === "DD"
+      // ) {
+      //   appendAllDDRows(ReceiptVoucher?.Detail);
+      // }
     }
   }, [ReceiptVoucher, ReceiptVoucherID]);
 
@@ -705,81 +666,6 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
 
   function onSubmit(data) {
     receiptVoucherMutation.mutate(data);
-  }
-
-  function ShowSection() {
-    if (receiptMode === "Cash") {
-      return (
-        <>
-          {isEnable && (
-            <>
-              <div className="card p-2 bg-light mt-2">
-                <CashModeFields
-                  appendSingleRow={appendSingleRow}
-                  customerInvoiceInsallments={customerInvoiceInsallments.data}
-                  unregister={method.unregister}
-                />
-              </div>
-            </>
-          )}
-          <FormProvider {...method}>{CashModeDetail}</FormProvider>
-        </>
-      );
-    } else if (receiptMode === "Online") {
-      return (
-        <>
-          {isEnable && (
-            <>
-              <div className="card p-2 bg-light mt-2">
-                <OnlineTransferFields
-                  appendSingleRow={appendOnlineRow}
-                  customerInvoiceInsallments={customerInvoiceInsallments.data}
-                  bankAccountsSelectData={bankAccountsSelectData.data}
-                  unregister={method.unregister}
-                />
-              </div>
-            </>
-          )}
-          <FormProvider {...method}>{OnlineModeDetail}</FormProvider>
-        </>
-      );
-    } else if (receiptMode === "Cheque") {
-      return (
-        <>
-          {isEnable && (
-            <>
-              <div className="card p-2 bg-light mt-2">
-                <ChequeFields
-                  appendSingleRow={appendSingleChequeRow}
-                  customerInvoiceInsallments={customerInvoiceInsallments.data}
-                  bankAccountsSelectData={bankAccountsSelectData.data}
-                  unregister={method.unregister}
-                />
-              </div>
-            </>
-          )}
-          <FormProvider {...method}>{ChequeModeDetail}</FormProvider>
-        </>
-      );
-    } else if (receiptMode === "DD") {
-      return (
-        <>
-          {isEnable && (
-            <>
-              <div className="card p-2 bg-light mt-2">
-                <DDFields
-                  appendSingleRow={appendSingleDdRow}
-                  customerInvoiceInsallments={customerInvoiceInsallments.data}
-                  bankAccountsSelectData={bankAccountsSelectData.data}
-                  unregister={method.unregister}
-                />
-              </div>
-            </>
-          )}
-          <FormProvider {...method}>{DDModeDetail}</FormProvider>
-        </>
-      );
-    }
   }
 
   /*
@@ -802,6 +688,7 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
         </>
       ) : (
         <>
+          {renderCount}
           <div className="mt-4">
             <ButtonToolBar
               editDisable={mode !== "view"}
@@ -823,56 +710,47 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
             />
           </div>
           <form id="receiptVoucher" className="mt-4">
-            <Row>
-              <Form.Group className="col-xl-2" as={Col} controlId="Session">
-                <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
-                  Session
-                  <span className="text-danger fw-bold ">*</span>
-                </Form.Label>
-                <div>
-                  <CDropdown
-                    control={method.control}
-                    name={`Session`}
-                    optionLabel="SessionTitle"
-                    optionValue="SessionID"
-                    placeholder="Select a session"
-                    options={sessionSelectData.data}
-                    required={true}
-                    disabled={!isEnable}
-                    focusOptions={() => method.setFocus("Customer")}
-                  />
-                </div>
-              </Form.Group>
-              <Form.Group className="col-xl-3" as={Col} controlId="Customer">
+            <FormProvider {...method}>
+              <Row>
+                <SessionSelect mode={mode} />
+                {/* <Form.Group className="col-xl-3" as={Col} controlId="Customer">
                 <Form.Label>
-                  Customer
-                  <span className="text-danger fw-bold ">*</span>
+                Customer
+                <span className="text-danger fw-bold ">*</span>
                 </Form.Label>
                 <div>
-                  <CDropdown
-                    control={method.control}
-                    name={"Customer"}
-                    options={customerSelectData.data}
-                    optionLabel="CustomerName"
-                    optionValue="CustomerID"
-                    placeholder="Select a customer"
-                    showOnFocus={true}
-                    required={true}
-                    filter={true}
-                    onChange={(e) => {
-                      setCustomerID(e.value);
-                      removeAllRows();
-                      removeAllOnlineRows();
-                      removeAllChequeRows();
-                      removeAllDDRows();
-                      //removeAllDDRows();
-                    }}
-                    disabled={!isEnable}
-                    focusOptions={() => method.setFocus("CustomerLedger")}
+                <CDropdown
+                control={method.control}
+                name={"Customer"}
+                options={customerSelectData.data}
+                optionLabel="CustomerName"
+                optionValue="CustomerID"
+                placeholder="Select a customer"
+                showOnFocus={true}
+                required={true}
+                filter={true}
+                onChange={(e) => {
+                  setCustomerID(e.value);
+                  removeAllRows();
+                  removeAllOnlineRows();
+                  removeAllChequeRows();
+                  removeAllDDRows();
+                  //removeAllDDRows();
+                }}
+                disabled={!isEnable}
+                focusOptions={() => method.setFocus("CustomerLedger")}
                   />
-                </div>
-              </Form.Group>
-              <Form.Group
+                  </div>
+                </Form.Group> */}
+                <BusinessUnitDependantFields mode={mode} />
+                <CustomerDependentFields mode={mode} />
+              </Row>
+
+              <Row>
+                <ReceiptModeDependantFields mode={mode} />
+              </Row>
+            </FormProvider>
+            {/* <Form.Group
                 className="col-xl-3"
                 as={Col}
                 controlId="CustomerLedger"
@@ -903,8 +781,8 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
                     focusOptions={() => method.setFocus("ReceiptMode")}
                   />
                 </div>
-              </Form.Group>
-              <Form.Group
+              </Form.Group> */}
+            {/* <Form.Group
                 className="col-xl-2 "
                 as={Col}
                 controlId="ReceiptMode"
@@ -966,8 +844,8 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
                     }}
                   />
                 </div>
-              </Form.Group>
-            </Row>
+              </Form.Group> */}
+
             <Row>
               <Form.Group as={Col} controlId="ReceiptNo">
                 <Form.Label>Receipt No</Form.Label>
@@ -1017,7 +895,7 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
               </Form.Group>
             </Row>
 
-            <ShowSection />
+            {/* <ShowSection /> */}
           </form>
 
           <DevTool control={method.control} />
@@ -3247,4 +3125,269 @@ function getTotal(from = "Cash", detail) {
     }
   }
   return total;
+}
+
+function SessionSelect({ mode }) {
+  const { data } = useQuery({
+    queryKey: [SELECT_QUERY_KEYS.SESSION_SELECT_QUERY_KEY],
+    queryFn: fetchAllSessionsForSelect,
+    initialData: [],
+  });
+
+  const method = useForm();
+
+  useEffect(() => {
+    if (data.length > 0) {
+      method.setValue("SessionID", data[0]?.SessionID);
+    }
+  }, [data]);
+
+  return (
+    <>
+      <Form.Group className="col-xl-2" as={Col}>
+        <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
+          Session
+          <span className="text-danger fw-bold ">*</span>
+        </Form.Label>
+        <div>
+          <CDropdown
+            control={method.control}
+            name={`SessionID`}
+            optionLabel="SessionTitle"
+            optionValue="SessionID"
+            placeholder="Select a session"
+            options={data}
+            required={true}
+            disabled={mode === "view"}
+            focusOptions={() => method.setFocus("BusinessUnitID")}
+          />
+        </div>
+      </Form.Group>
+    </>
+  );
+}
+
+function CustomerDependentFields({ mode }) {
+  const [CustomerID, setCustomerID] = useState(0);
+
+  const { data: customerSelectData } = useQuery({
+    queryKey: [QUERY_KEYS.ALL_CUSTOMER_QUERY_KEY],
+    queryFn: fetchAllOldCustomersForSelect,
+    initialData: [],
+  });
+
+  const { data: CustomerAccounts } = useQuery({
+    queryKey: [QUERY_KEYS.CUSTOMER_ACCOUNTS_QUERY_KEY, CustomerID],
+    queryFn: () => fetchAllCustomerAccountsForSelect(CustomerID),
+    initialData: [],
+  });
+
+  const method = useFormContext();
+
+  return (
+    <>
+      <Form.Group as={Col}>
+        <Form.Label>
+          Customer Name
+          <span className="text-danger fw-bold ">*</span>
+        </Form.Label>
+
+        <div>
+          <CDropdown
+            control={method.control}
+            name={"Customer"}
+            optionLabel="CustomerName"
+            optionValue="CustomerID"
+            placeholder="Select a customer"
+            options={customerSelectData}
+            disabled={mode === "view"}
+            required={true}
+            filter={true}
+            onChange={(e) => {
+              setCustomerID(e.value);
+              // removeAllRows();
+            }}
+            focusOptions={() => method.setFocus("CustomerLedgers")}
+          />
+        </div>
+      </Form.Group>
+      <Form.Group as={Col}>
+        <Form.Label>
+          Customer Ledgers
+          <span className="text-danger fw-bold ">*</span>
+        </Form.Label>
+
+        <div>
+          <CDropdown
+            control={method.control}
+            name={`CustomerLedgers`}
+            optionLabel="AccountTitle"
+            optionValue="AccountID"
+            placeholder="Select a ledger"
+            options={CustomerAccounts}
+            disabled={mode === "view"}
+            required={true}
+            onChange={(e) => {
+              //setAccountID(e.value);
+            }}
+            focusOptions={() => method.setFocus("ReceiptMode")}
+          />
+        </div>
+      </Form.Group>
+    </>
+  );
+}
+
+function BusinessUnitDependantFields({ mode }) {
+  const { data: BusinessUnitSelectData } = useQuery({
+    queryKey: [QUERY_KEYS.BUSINESS_UNIT_QUERY_KEY],
+    queryFn: fetchAllBusinessUnitsForSelect,
+    initialData: [],
+    enabled: mode !== "",
+  });
+
+  const method = useFormContext();
+
+  return (
+    <>
+      <Form.Group as={Col}>
+        <Form.Label>
+          Business Unit
+          <span className="text-danger fw-bold ">*</span>
+        </Form.Label>
+
+        <div>
+          <CDropdown
+            control={method.control}
+            name={`BusinessUnitID`}
+            optionLabel="BusinessUnitName"
+            optionValue="BusinessUnitID"
+            placeholder="Select a business unit"
+            options={BusinessUnitSelectData}
+            disabled={mode === "view"}
+            required={true}
+            focusOptions={() => method.setFocus("Customer")}
+          />
+        </div>
+      </Form.Group>
+    </>
+  );
+}
+
+function ReceiptModeDependantFields({ mode }) {
+  const [receiptMode, setReceiptMode] = useState("");
+
+  const method = useFormContext();
+
+  return (
+    <>
+      <Form.Group className="col-xl-2 " as={Col}>
+        <Form.Label>
+          Receipt Mode
+          <span className="text-danger fw-bold ">*</span>
+        </Form.Label>
+        <div>
+          <CDropdown
+            control={method.control}
+            options={receiptModeOptions}
+            optionValue="value"
+            optionLabel="label"
+            name={`ReceiptMode`}
+            placeholder="Select receipt mode"
+            onChange={(e) => {
+              setReceiptMode(e.value);
+              method.setValue("InstrumentType", []);
+            }}
+            showOnFocus={true}
+            disabled={mode === "view"}
+            focusOptions={(e) => {
+              method.setFocus(
+                e.value === "Instrument" ? "InstrumentType" : "Description"
+              );
+            }}
+          />
+        </div>
+      </Form.Group>
+      <Form.Group className="col-xl-2 " as={Col} controlId="Session">
+        <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
+          Instrument Type
+        </Form.Label>
+        <div>
+          <CDropdown
+            control={method.control}
+            name={`InstrumentType`}
+            placeholder="Select a type"
+            options={instrumentTypeOptions}
+            required={receiptMode !== "Instrument"}
+            disabled={mode === "view" || receiptMode !== "Instrument"}
+            focusOptions={() => method.setFocus("Description")}
+          />
+        </div>
+      </Form.Group>
+      <Form.Group className="col-xl-2 " as={Col} controlId="Session">
+        <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
+          From Bank
+        </Form.Label>
+        <div>
+          <CDropdown
+            control={method.control}
+            name={`InstrumentType`}
+            placeholder="Select a type"
+            options={instrumentTypeOptions}
+            required={receiptMode !== "Instrument"}
+            disabled={mode === "view" || receiptMode !== "Instrument"}
+            focusOptions={() => method.setFocus("Description")}
+          />
+        </div>
+      </Form.Group>
+      <Form.Group className="col-xl-2 " as={Col} controlId="Session">
+        <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
+          To bank
+        </Form.Label>
+        <div>
+          <CDropdown
+            control={method.control}
+            name={`InstrumentType`}
+            placeholder="Select a type"
+            options={instrumentTypeOptions}
+            required={receiptMode !== "Instrument"}
+            disabled={mode === "view" || receiptMode !== "Instrument"}
+            focusOptions={() => method.setFocus("Description")}
+          />
+        </div>
+      </Form.Group>
+      <Form.Group className="col-xl-2 " as={Col} controlId="Session">
+        <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
+          Instrument Date
+        </Form.Label>
+        <div>
+          <CDropdown
+            control={method.control}
+            name={`InstrumentType`}
+            placeholder="Select a type"
+            options={instrumentTypeOptions}
+            required={receiptMode !== "Instrument"}
+            disabled={mode === "view" || receiptMode !== "Instrument"}
+            focusOptions={() => method.setFocus("Description")}
+          />
+        </div>
+      </Form.Group>
+      <Form.Group className="col-xl-2 " as={Col} controlId="Session">
+        <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
+          Instrument No
+        </Form.Label>
+        <div>
+          <CDropdown
+            control={method.control}
+            name={`InstrumentType`}
+            placeholder="Select a type"
+            options={instrumentTypeOptions}
+            required={receiptMode !== "Instrument"}
+            disabled={mode === "view" || receiptMode !== "Instrument"}
+            focusOptions={() => method.setFocus("Description")}
+          />
+        </div>
+      </Form.Group>
+    </>
+  );
 }

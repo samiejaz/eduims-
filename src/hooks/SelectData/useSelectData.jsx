@@ -8,7 +8,6 @@ import {
   fetchAllBusinessUnitsForSelect,
   fetchAllCountriesForSelect,
   fetchAllCustomerAccountsForSelect,
-  fetchAllCustomerInvoices,
   fetchAllCustomersBranch,
   fetchAllDepartmentsForSelect,
   fetchAllInvoiceInstallmetns,

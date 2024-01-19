@@ -5,16 +5,20 @@ import {
   FormProvider,
   useFieldArray,
   useForm,
+  useFormContext,
 } from "react-hook-form";
 import CustomerInvoiceDetailTable from "./CustomerInvoiceDetailTable";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import ReactDatePicker from "react-datepicker";
 import { AppConfigurationContext } from "../../context/AppConfigurationContext";
 import { CustomerEntryForm } from "../../components/CustomerEntryFormComponent";
 import CustomerInvoiceHeader from "./CustomerInvoiceHeader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  fetchAllBusinessUnitsForSelect,
+  fetchAllCustomerAccountsForSelect,
   fetchAllCustomerBranchesData,
+  fetchAllOldCustomersForSelect,
   fetchAllProductsForSelect,
   fetchAllServicesForSelect,
   fetchAllSessionsForSelect,
@@ -54,8 +58,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import ButtonToolBar from "./CustomerInvoiceToolbar";
 import TextInput from "../../components/Forms/TextInput";
 import CDropdown from "../../components/Forms/CDropdown";
+import { QUERY_KEYS } from "../../utils/enums";
 
-let parentRoute = "/customers/customerInvoice";
+let parentRoute = "/customer/customerInvoice";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 function CustomerInvoice() {
@@ -282,8 +287,9 @@ export function CustomerInvoiceFormMaster({ pageTitles, mode }) {
     </InvoiceDataProivder>
   );
 }
-
+let renderCount = 0;
 function CustomerInvoiceForm({ pageTitles, mode }) {
+  renderCount++;
   const queryClient = useQueryClient();
   const [CustomerID, setCustomerID] = useState(0);
   const [AccountID, setAccountID] = useState(0);
@@ -310,22 +316,13 @@ function CustomerInvoiceForm({ pageTitles, mode }) {
       if (mode === "new") {
         method.reset();
         invoiceHeaderForm.reset();
-        fetchInvoiceNo();
-        fetchSessionBasedVoucherNo();
         setCustomerInvoice([]);
         setCustomerInvoiceID(0);
         setIsEnable(true);
         method.setValue("Session", 1);
       }
     }
-    async function fetchInvoiceNo() {
-      const data = await fetchMaxInvoiceNo(user?.userID);
-      method.setValue("InvoiceNo", data.data[0]?.Column1);
-    }
-    async function fetchSessionBasedVoucherNo() {
-      const data = await fetchMaxSessionBasedVoucherNo(user?.userID);
-      method.setValue("SessionBasedInvoiceNo", data.data[0]?.Column1);
-    }
+
     pageSetup();
   }, [mode]);
 
@@ -334,6 +331,7 @@ function CustomerInvoiceForm({ pageTitles, mode }) {
     queryFn: () => fetchAllSessionsForSelect(),
     initialData: [],
   });
+
   const customerSelectData = useOldCustomerSelectData();
   const CustomerAccounts = useCustomerLedgersSelectData(CustomerID);
   const businessSelectData = useBusinessUnitsSelectData();
@@ -477,23 +475,25 @@ function CustomerInvoiceForm({ pageTitles, mode }) {
               InstallmentAmount: item.Amount,
             };
           });
-        } else {
-          InstallmentDetail = [
-            {
-              InstallmentRowID: 0,
-              InstallmentDueDate: formData.DueDate ?? new Date(),
-              InstallmentAmount: formData.Total_Amount,
-            },
-          ];
         }
+        // else {
+        //   InstallmentDetail = [
+        //     {
+        //       InstallmentRowID: 0,
+        //       InstallmentDueDate: formData.DueDate ?? new Date(),
+        //       InstallmentAmount: formData.Total_Amount,
+        //     },
+        //   ];
+        // }
 
         let DataToSend = {
-          SessionID: formData?.Session || sessionSelectData[0]?.SessionID,
-          InvoiceNo: formData?.InvoiceNo || 1,
+          SessionID: formData?.Session,
+          InvoiceNo: formData?.InvoiceNo,
           InvoiceDate: formData?.InvoiceDate || new Date(),
           InvoiceDueDate: formData?.DueDate || new Date(),
           CustomerID: formData?.Customer,
           AccountID: formData?.CustomerLedgers,
+          BusinessUnitID: formData?.BusinessUnitID,
           InvoiceTitle: formData?.InvoiceTitle,
           Description: formData?.Description,
           EntryUserID: user.userID,
@@ -502,18 +502,22 @@ function CustomerInvoiceForm({ pageTitles, mode }) {
           TotalDiscount: formData?.Total_Discount,
           TotalNetAmount: formData?.Total_Amount,
           InvoiceDetail: JSON.stringify(InvoiceDetail),
-          InvoiceInstallmentDetail: JSON.stringify(InstallmentDetail),
         };
 
-        if (
-          CustomerInvoice?.length !== 0 &&
-          CustomerInvoice?.Master[0]?.CustomerInvoiceID !== undefined
-        ) {
-          DataToSend.CustomerInvoiceID =
-            CustomerInvoice?.Master[0]?.CustomerInvoiceID;
-        } else {
-          DataToSend.CustomerInvoiceID = 0;
+        if (InstallmentDetail.length > 0) {
+          DataToSend.InvoiceInstallmentDetail =
+            JSON.stringify(InstallmentDetail);
         }
+
+        // if (
+        //   CustomerInvoice?.length !== 0 &&
+        //   CustomerInvoice?.Master[0]?.CustomerInvoiceID !== undefined
+        // ) {
+        //   DataToSend.CustomerInvoiceID =
+        //     CustomerInvoice?.Master[0]?.CustomerInvoiceID;
+        // } else {
+        //   DataToSend.CustomerInvoiceID = 0;
+        // }
 
         const { data } = await axios.post(
           apiUrl + `/CustomerInvoice/CustomerInvoiceInsertUpdate`,
@@ -644,6 +648,7 @@ function CustomerInvoiceForm({ pageTitles, mode }) {
         </>
       ) : (
         <>
+          {renderCount}
           <div className="mt-4">
             <ButtonToolBar
               editDisable={mode !== "view"}
@@ -672,7 +677,7 @@ function CustomerInvoiceForm({ pageTitles, mode }) {
 
           <form id="parenForm" className="mt-4">
             <Row>
-              <Form.Group as={Col} controlId="Session">
+              <Form.Group as={Col}>
                 <Form.Label>
                   Session
                   <span className="text-danger fw-bold ">*</span>
@@ -692,38 +697,18 @@ function CustomerInvoiceForm({ pageTitles, mode }) {
                   />
                 </div>
               </Form.Group>
-
-              <Form.Group as={Col} controlId="SessionBasedInvoiceNo">
-                <Form.Label>Invoice No</Form.Label>
-                <Form.Control
-                  type="number"
-                  size="sm"
-                  {...method.register("SessionBasedInvoiceNo")}
-                  disabled
-                />
-              </Form.Group>
-              <Form.Group as={Col} controlId="InvoiceNo">
-                <Form.Label>Ref No</Form.Label>
-                <div>
-                  <TextInput
-                    control={method.control}
-                    ID={"InvoiceNo"}
-                    isEnable={false}
-                    required={true}
-                  />
-                </div>
-              </Form.Group>
-              <Form.Group as={Col} controlId="InoviceDate">
+              <FormProvider {...method}>
+                <BusinessUnitDependantFields mode={mode} />
+              </FormProvider>
+              <Form.Group as={Col}>
                 <Form.Label>Invoice Date</Form.Label>
-
                 <div>
                   <Controller
-                    disabled={!isEnable}
                     control={method.control}
                     name="InoviceDate"
                     render={({ field }) => (
                       <ReactDatePicker
-                        disabled={!isEnable}
+                        disabled={mode === "view"}
                         placeholderText="Select date"
                         onChange={(date) => field.onChange(date)}
                         selected={field.value || new Date()}
@@ -734,7 +719,6 @@ function CustomerInvoiceForm({ pageTitles, mode }) {
                   />
                 </div>
               </Form.Group>
-
               <Form.Group as={Col} controlId="DueDate">
                 <Form.Label>
                   DueDate
@@ -961,4 +945,178 @@ function useCustomerInvoiceDetail(
       </>
     ),
   };
+}
+
+function BusinessUnitDependantFields({ mode }) {
+  const [BusinessUnitID, setBusinessUnitID] = useState(0);
+
+  const { data: BusinessUnitSelectData } = useQuery({
+    queryKey: [QUERY_KEYS.BUSINESS_UNIT_QUERY_KEY],
+    queryFn: fetchAllBusinessUnitsForSelect,
+    initialData: [],
+    enabled: mode !== "",
+  });
+
+  useEffect(() => {
+    if (BusinessUnitSelectData.length > 0) {
+      method.setValue(
+        "BusinessUnitID",
+        BusinessUnitSelectData[0].BusinessUnitID
+      );
+      setBusinessUnitID(BusinessUnitSelectData[0].BusinessUnitID);
+    }
+  }, [BusinessUnitSelectData]);
+
+  useEffect(() => {
+    async function fetchInvoiceAndRefNo() {
+      if (mode !== "view") {
+        try {
+          if (BusinessUnitID !== 0) {
+            const { data } = await axios.post(
+              apiUrl +
+                `/CustomerInvoice/GetInvoiceNo?BusinessUnitID=${BusinessUnitID}`
+            );
+
+            if (data.data.length > 0) {
+              method.setValue("InvoiceNo", data.data[0].InvoiceNo);
+              method.setValue(
+                "SessionBasedInvoiceNo",
+                data.data[0].SessionBasedVoucherNo
+              );
+            }
+          }
+        } catch (e) {
+          toast.error(e.message);
+        }
+      }
+    }
+    fetchInvoiceAndRefNo();
+  }, [BusinessUnitID, mode]);
+
+  const method = useFormContext();
+
+  return (
+    <>
+      <Form.Group as={Col}>
+        <Form.Label>
+          Business Unit
+          <span className="text-danger fw-bold ">*</span>
+        </Form.Label>
+
+        <div>
+          <CDropdown
+            control={method.control}
+            name={`BusinessUnitID`}
+            optionLabel="BusinessUnitName"
+            optionValue="BusinessUnitID"
+            placeholder="Select a business unit"
+            options={BusinessUnitSelectData}
+            disabled={mode === "view"}
+            required={true}
+            focusOptions={() => method.setFocus("InvoiceTitle")}
+            onChange={(e) => {
+              setBusinessUnitID(e.value);
+            }}
+          />
+        </div>
+      </Form.Group>
+      <Form.Group as={Col}>
+        <Form.Label>Invoice No</Form.Label>
+        <Form.Control
+          type="text"
+          size="sm"
+          {...method.register("SessionBasedInvoiceNo")}
+          disabled
+        />
+      </Form.Group>
+      <Form.Group as={Col}>
+        <Form.Label>Ref No</Form.Label>
+        <div>
+          <Form.Control
+            type="text"
+            size="sm"
+            {...method.register("InvoiceNo")}
+            disabled
+          />
+        </div>
+      </Form.Group>
+    </>
+  );
+}
+
+function CustomerDependentFields({ mode }) {
+  const [CustomerID, setCustomerID] = useState(0);
+
+  const { data: customerSelectData } = useQuery({
+    queryKey: [QUERY_KEYS.ALL_CUSTOMER_QUERY_KEY],
+    queryFn: fetchAllOldCustomersForSelect,
+    initialData: [],
+  });
+
+  const { data: CustomerAccounts } = useQuery({
+    queryKey: [QUERY_KEYS.CUSTOMER_ACCOUNTS_QUERY_KEY, CustomerID],
+    queryFn: () => fetchAllCustomerAccountsForSelect(CustomerID),
+    initialData: [],
+  });
+
+  const method = useFormContext();
+
+  return (
+    <>
+      <Form.Group as={Col} controlId="Customer">
+        <Form.Label>
+          Customer Name
+          <span className="text-danger fw-bold ">*</span>
+          {mode !== "view" && (
+            <>
+              <CustomerEntryForm IconButton={true} />
+            </>
+          )}
+        </Form.Label>
+
+        <div>
+          <CDropdown
+            control={method.control}
+            name={`Customer`}
+            optionLabel="CustomerName"
+            optionValue="CustomerID"
+            placeholder="Select a customer"
+            options={customerSelectData}
+            disabled={mode === "view"}
+            required={true}
+            filter={true}
+            onChange={(e) => {
+              setCustomerID(e.value);
+              // removeAllRows();
+            }}
+            focusOptions={() => method.setFocus("CustomerLedgers")}
+          />
+        </div>
+      </Form.Group>
+      <Form.Group as={Col} controlId="CustomerLedgers">
+        <Form.Label>
+          Customer Ledgers
+          <span className="text-danger fw-bold ">*</span>
+        </Form.Label>
+
+        <div>
+          <CDropdown
+            control={method.control}
+            name={`CustomerLedgers`}
+            optionLabel="AccountTitle"
+            optionValue="AccountID"
+            placeholder="Select a ledger"
+            options={CustomerAccounts}
+            disabled={mode === "view"}
+            required={true}
+            onChange={(e) => {
+              setAccountID(e.value);
+              // removeAllRows();
+            }}
+            focusOptions={() => method.setFocus("Description")}
+          />
+        </div>
+      </Form.Group>
+    </>
+  );
 }

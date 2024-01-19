@@ -17,7 +17,6 @@ const CDropdown = ({
   showClear = false,
   filter = false,
   disabled = false,
-
   ...moreOptions
 }) => {
   return (
@@ -43,7 +42,7 @@ const CDropdown = ({
                 e.originalEvent.key === "ArrowUp"
               ) {
               } else {
-                focusOptions();
+                focusOptions(e);
                 let obj = {
                   value: e.value,
                   ref: field.ref,
@@ -57,7 +56,7 @@ const CDropdown = ({
           onKeyDown={(e) => {
             if (focusOptions) {
               if (e.key === "Enter") {
-                focusOptions();
+                focusOptions(e);
                 let obj = {
                   value: field.value,
                 };

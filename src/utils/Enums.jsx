@@ -21,6 +21,8 @@ export const ROUTE_URLS = {
     PRODUCT_CATEGORY_ROUTE: "/general/productcategory",
     PRODUCT_INFO_ROUTE: "/general/productinfo",
     COMPANY_INFO_ROUTE: "/general/companyinfo",
+    LEADS_INTROUDCTION_VIEWER_ROUTE: "/general/leadsview",
+    LEADS_INTROUDCTION_DETAIL_VIEWER_ROUTE: "/general/leadsview/detail",
   },
   UTILITIES: {
     PRODUCT_CATEGORY_ROUTE: "/utilities/productcategory",
@@ -33,17 +35,29 @@ export const ROUTE_URLS = {
     CUSTOMER_INVOICE: "/customer/customerinvoice",
     RECIEPT_VOUCHER_ROUTE: "/customer/reciepts",
   },
+  LEADS: {
+    LEADS_DASHBOARD: "/leads/dashboard",
+    LEED_SOURCE_ROUTE: "/leads/leadsource",
+    LEAD_INTRODUCTION_ROUTE: "/leads/leadintroduction",
+  },
 };
 
 export const QUERY_KEYS = {
   BUSINESS_TYPE_QUERY_KEY: "businessTypes",
+  BUSINESS_UNIT_QUERY_KEY: "businessUnits",
   DEPARTMENT_QUERY_KEY: "departments",
   COUNTRIES_QUERY_KEY: "countries",
   TEHSIL_QUERY_KEY: "tehsils",
   BUSINESS_NATURE_QUERY_KEY: "businessNature",
   BUSINESS_SEGMENT_QUERY_KEY: "businessSegments",
   LEED_SOURCE_QUERY_KEY: "leadSources",
-  USER_QUERY_KEY: "leadIntroduction",
+  LEAD_INTRODUCTION_QUERY_KEY: "leadIntroduction",
+  LEADS_CARD_DATA: "leadsCardData",
+  LEADS_DEMO_DATA: "leadsDemoData",
+  SESSION_INFO_QUERY_KEY: "sessions",
+  // Select
+  ALL_CUSTOMER_QUERY_KEY: "oldcustomers",
+  CUSTOMER_ACCOUNTS_QUERY_KEY: "customerAccounts",
 };
 
 export const SELECT_QUERY_KEYS = {
@@ -55,4 +69,5 @@ export const SELECT_QUERY_KEYS = {
   LEAD_SOURCE_SELECT_QUERY_KEY: "leadSourcesSelect",
   DEPARTMENT_SELECT_QUERY_KEY: "departmentsSelect",
   USERS_SELECT_QUERY_KEY: "usersSelect",
+  SESSION_SELECT_QUERY_KEY: "sessionsSelect",
 };

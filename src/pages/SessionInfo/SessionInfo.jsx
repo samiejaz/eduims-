@@ -16,29 +16,24 @@ import TextInput from "../../components/Forms/TextInput";
 import CheckBox from "../../components/Forms/CheckBox";
 import { useUserData } from "../../context/AuthContext";
 import {
-  addNewCountry,
-  deleteCountryByID,
-  fetchAllCountries,
-  fetchCountryById,
-} from "../../api/CountryData";
-import { QUERY_KEYS, ROUTE_URLS } from "../../utils/enums";
-import {
-  HttpTransportType,
-  HubConnectionBuilder,
-  LogLevel,
-} from "@microsoft/signalr";
-import { toast } from "react-toastify";
-import signalRConnectionManager from "../../services/SignalRService";
+  addNewSession,
+  deleteSessionByID,
+  fetchAllSessions,
+  fetchSessionById,
+} from "../../api/SessionData";
+import { ROUTE_URLS, QUERY_KEYS } from "../../utils/enums";
+import CDatePicker from "../../components/Forms/CDatePicker";
+import { parseISO } from "date-fns";
 
-let parentRoute = ROUTE_URLS.COUNTRY_ROUTE;
+let parentRoute = ROUTE_URLS.GENERAL.SESSION_INFO;
 let editRoute = `${parentRoute}/edit/`;
 let newRoute = `${parentRoute}/new`;
 let viewRoute = `${parentRoute}/`;
 let detail = "#22C55E";
-let queryKey = QUERY_KEYS.COUNTRIES_QUERY_KEY;
+let queryKey = QUERY_KEYS.SESSION_INFO_QUERY_KEY;
 
-export function CountryDetail() {
-  document.title = "Countries";
+export function SessionDetail() {
+  document.title = "Session Info";
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const {
@@ -52,30 +47,30 @@ export function CountryDetail() {
     useDeleteModal(handleDelete);
 
   const [filters, setFilters] = useState({
-    VoucherNo: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    CustomerName: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    AccountTitle: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    ReceiptMode: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    TotalNetAmount: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    SessionTitle: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
   const user = useUserData();
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: [queryKey],
-    queryFn: () => fetchAllCountries(user.userID),
+    queryFn: () => fetchAllSessions(user.userID),
     initialData: [],
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteCountryByID,
+    mutationFn: deleteSessionByID,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKey] });
+      navigate(parentRoute);
     },
   });
 
   function handleDelete(id) {
-    deleteMutation.mutate({ CountryID: id, LoginUserID: user.userID });
+    deleteMutation.mutate({
+      SessionID: id,
+      LoginUserID: user.userID,
+    });
   }
 
   function handleEdit(id) {
@@ -101,10 +96,10 @@ export function CountryDetail() {
       ) : (
         <>
           <div className="d-flex text-dark  mb-4 ">
-            <h2 className="text-center my-auto">Countries</h2>
+            <h2 className="text-center my-auto">Session Infos</h2>
             <div className="text-end my-auto" style={{ marginLeft: "10px" }}>
               <Button
-                label="Add New Country"
+                label="Add New Session Info"
                 icon="pi pi-plus"
                 type="button"
                 className="rounded"
@@ -115,40 +110,51 @@ export function CountryDetail() {
           <DataTable
             showGridlines
             value={data}
-            dataKey="CountryID"
+            dataKey="SessionID"
             paginator
             rows={10}
             rowsPerPageOptions={[5, 10, 25, 50]}
             removableSort
-            emptyMessage="No countries found!"
+            emptyMessage="No session found!"
             filters={filters}
             filterDisplay="row"
             resizableColumns
             size="small"
             selectionMode="single"
-            style={{ backgroundColor: "red" }}
-            className={"thead"}
             tableStyle={{ minWidth: "50rem" }}
           >
             <Column
               body={(rowData) =>
                 ActionButtons(
-                  rowData.CountryID,
-                  () => handleDeleteShow(rowData.CountryID),
+                  rowData.SessionID,
+                  handleDeleteShow,
                   handleEditShow,
                   handleView
                 )
               }
               header="Actions"
               resizeable={false}
-              style={{ minWidth: "7rem", maxWidth: "10rem", width: "7rem" }}
+              style={{ minWidth: "7rem", maxWidth: "7rem", width: "7rem" }}
             ></Column>
             <Column
-              field="CountryTitle"
+              field="SessionTitle"
               filter
-              filterPlaceholder="Search by country"
+              filterPlaceholder="Search by session"
               sortable
-              header="Country"
+              header="Session"
+              style={{ minWidth: "20rem" }}
+            ></Column>
+            <Column
+              field="SessionOpeningDate"
+              sortable
+              header="Opening Date"
+              style={{ minWidth: "20rem" }}
+            ></Column>
+            <Column
+              field="SessionClosingDate"
+              sortable
+              header="Closing Date"
+              style={{ minWidth: "20rem" }}
             ></Column>
           </DataTable>
           {EditModal}
@@ -158,52 +164,50 @@ export function CountryDetail() {
     </div>
   );
 }
-export function CountryForm({ pagesTitle, user, mode }) {
-  document.title = "Country Entry";
-
+export function SessionForm({ pagesTitle, user, mode }) {
+  document.title = "Session Info Entry";
   const queryClient = useQueryClient();
-  const connection = signalRConnectionManager.getConnection();
-
   const navigate = useNavigate();
-  const { CountryID } = useParams();
+  const { SessionID } = useParams();
   const { control, handleSubmit, setFocus, setValue, reset } = useForm({
     defaultValues: {
-      Country: "",
+      SessionTitle: "",
       InActive: false,
     },
   });
-
-  const CountryData = useQuery({
-    queryKey: [queryKey, CountryID],
-    queryFn: () => fetchCountryById(CountryID, user?.userID),
+  const SessionData = useQuery({
+    queryKey: [queryKey, SessionID],
+    queryFn: () => fetchSessionById(SessionID, user.userID),
+    enabled: SessionID !== undefined,
     initialData: [],
   });
 
   useEffect(() => {
-    if (CountryID !== undefined && CountryData?.data.length > 0) {
-      setValue("CountryTitle", CountryData.data[0].CountryTitle);
-      setValue("InActive", CountryData.data[0].InActive);
+    if (SessionID !== undefined && SessionData.data.length > 0) {
+      setValue("SessionTitle", SessionData?.data[0]?.SessionTitle);
+      setValue(
+        "SessionOpeningDate",
+        parseISO(SessionData?.data[0]?.SessionOpeningDate)
+      );
+      setValue(
+        "SessionClosingDate",
+        parseISO(SessionData?.data[0]?.SessionClosingDate)
+      );
     }
-  }, [CountryID, CountryData]);
+  }, [SessionID, SessionData]);
 
   const mutation = useMutation({
-    mutationFn: addNewCountry,
-    onSuccess: async (success) => {
+    mutationFn: addNewSession,
+    onSuccess: ({ success, RecordID }) => {
       if (success) {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
-        navigate(`${parentRoute}/${CountryID}`);
-        try {
-          await connection.invoke("SendMessageToGroup", {
-            GroupName: "",
-            UserName: "",
-          });
-        } catch (e) {}
+        navigate(`${parentRoute}/${RecordID}`);
       }
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteCountryByID,
+    mutationFn: deleteSessionByID,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKey] });
       navigate(parentRoute);
@@ -211,7 +215,10 @@ export function CountryForm({ pagesTitle, user, mode }) {
   });
 
   function handleDelete() {
-    deleteMutation.mutate({ CountryID: CountryID, LoginUserID: user.userID });
+    deleteMutation.mutate({
+      SessionID: SessionID,
+      LoginUserID: user.userID,
+    });
   }
 
   function handleAddNew() {
@@ -222,23 +229,23 @@ export function CountryForm({ pagesTitle, user, mode }) {
     if (mode === "new") {
       navigate(parentRoute);
     } else if (mode === "edit") {
-      navigate(viewRoute + CountryID);
+      navigate(viewRoute + SessionID);
     }
   }
   function handleEdit() {
-    navigate(editRoute + CountryID);
+    navigate(editRoute + SessionID);
   }
   function onSubmit(data) {
     mutation.mutate({
       formData: data,
       userID: user.userID,
-      CountryID: CountryID,
+      SessionID: SessionID,
     });
   }
 
   return (
     <>
-      {CountryData.isLoading ? (
+      {SessionData.isLoading ? (
         <>
           <CustomSpinner />
         </>
@@ -263,28 +270,58 @@ export function CountryForm({ pagesTitle, user, mode }) {
               }}
               handleDelete={handleDelete}
               handleSave={() => handleSubmit(onSubmit)()}
-              GoBackLabel="Countries"
+              GoBackLabel="Sessions"
             />
           </div>
           <form className="mt-4">
             <Row>
-              <Form.Group as={Col} controlId="Country">
+              <Form.Group as={Col}>
                 <Form.Label>
-                  Country
+                  Session Info
                   <span className="text-danger fw-bold ">*</span>
                 </Form.Label>
 
                 <div>
                   <TextInput
                     control={control}
-                    ID={"CountryTitle"}
+                    ID={"SessionTitle"}
                     required={true}
                     focusOptions={() => setFocus("InActive")}
                     isEnable={mode !== "view"}
                   />
                 </div>
               </Form.Group>
-              <Form.Group as={Col} controlId="InActive">
+              <Form.Group as={Col}>
+                <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
+                  Session Opening Date
+                  <span className="text-danger fw-bold ">*</span>
+                </Form.Label>
+                <div>
+                  <CDatePicker
+                    control={control}
+                    name={"SessionOpeningDate"}
+                    disabled={mode === "view"}
+                    required={true}
+                  />
+                </div>
+              </Form.Group>
+              <Form.Group as={Col}>
+                <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
+                  Session Closing Date
+                  <span className="text-danger fw-bold ">*</span>
+                </Form.Label>
+                <div>
+                  <CDatePicker
+                    control={control}
+                    name={"SessionClosingDate"}
+                    disabled={mode === "view"}
+                    required={true}
+                  />
+                </div>
+              </Form.Group>
+            </Row>
+            <Row>
+              <Form.Group as={Col}>
                 <Form.Label></Form.Label>
                 <div className="mt-1">
                   <CheckBox

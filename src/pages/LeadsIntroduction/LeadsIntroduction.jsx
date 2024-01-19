@@ -22,10 +22,7 @@ import {
   fetchLeadIntroductionById,
 } from "../../api/LeadIntroductionData";
 import { ROUTE_URLS, QUERY_KEYS } from "../../utils/enums";
-import {
-  LeadsIntroductionFormComponent,
-  LeadsIntroductionFormModal,
-} from "../../hooks/ModalHooks/useLeadsIntroductionModalHook";
+import { LeadsIntroductionFormComponent } from "../../hooks/ModalHooks/useLeadsIntroductionModalHook";
 import { Menu } from "primereact/menu";
 import { Dialog } from "primereact/dialog";
 import {
@@ -34,11 +31,12 @@ import {
   useProductsInfoSelectData,
 } from "../../hooks/SelectData/useSelectData";
 import CDropdown from "../../components/Forms/CDropdown";
-import ReactDatePicker from "react-datepicker";
+
 import NumberInput from "../../components/Forms/NumberInput";
 import { Calendar } from "primereact/calendar";
 import { classNames } from "primereact/utils";
 import { Tag } from "primereact/tag";
+import { toast } from "react-toastify";
 
 let parentRoute = ROUTE_URLS.LEAD_INTRODUCTION_ROUTE;
 let editRoute = `${parentRoute}/edit/`;
@@ -47,8 +45,8 @@ let viewRoute = `${parentRoute}/`;
 let detail = "#22C55E";
 let queryKey = QUERY_KEYS.LEAD_INTRODUCTION_QUERY_KEY;
 
-export function LeadIntroductionDetail() {
-  document.title = "Lead Introductions";
+export function LeadIntroductionDetail({ ShowMetaDeta = true, Rows = 10 }) {
+  document.title = ShowMetaDeta ? "Lead Introductions" : "Leads Dashboard";
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -67,11 +65,9 @@ export function LeadIntroductionDetail() {
   } = useDeleteModal(handleDelete);
 
   const [filters, setFilters] = useState({
-    VoucherNo: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    CustomerName: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    AccountTitle: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    ReceiptMode: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    TotalNetAmount: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    Status: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    CompanyName: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    LeadSourceTitle: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
   const user = useUserData();
@@ -130,6 +126,46 @@ export function LeadIntroductionDetail() {
       </React.Fragment>
     );
   };
+  const leftActionBodyTemplate = (rowData) => {
+    return (
+      <React.Fragment>
+        <div style={{ display: "flex" }}>
+          {ActionButtons(
+            rowData.LeadIntroductionID,
+            () => handleDeleteShow(rowData.LeadIntroductionID),
+            handleEditShow,
+            handleView
+          )}
+          <div>
+            <Button
+              icon="pi pi-list"
+              rounded
+              outlined
+              severity="help"
+              tooltip="Timeline"
+              tooltipOptions={{
+                position: "right",
+              }}
+              onClick={() =>
+                navigate(
+                  ROUTE_URLS.GENERAL.LEADS_INTROUDCTION_VIEWER_ROUTE +
+                    "/" +
+                    rowData.LeadIntroductionID
+                )
+              }
+              style={{
+                padding: "1px 0px",
+                fontSize: "small",
+                width: "30px",
+                height: "2rem",
+                border: "none",
+              }}
+            />
+          </div>
+        </div>
+      </React.Fragment>
+    );
+  };
 
   const statusBodyTemplate = (rowData) => {
     return (
@@ -167,25 +203,31 @@ export function LeadIntroductionDetail() {
         </>
       ) : (
         <>
-          <div className="d-flex text-dark  mb-4 ">
-            <h2 className="text-center my-auto">Lead Introductions</h2>
-            <div className="text-end my-auto" style={{ marginLeft: "10px" }}>
-              <Button
-                label="Add New Lead Introduction"
-                icon="pi pi-plus"
-                type="button"
-                className="rounded"
-                onClick={() => navigate(newRoute)}
-              />
-              {/* <LeadsIntroductionFormModal /> */}
-            </div>
-          </div>
+          {ShowMetaDeta && (
+            <>
+              <div className="d-flex text-dark  mb-4 ">
+                <h2 className="text-center my-auto">Lead Introductions</h2>
+                <div
+                  className="text-end my-auto"
+                  style={{ marginLeft: "10px" }}
+                >
+                  <Button
+                    label="Add New Lead Introduction"
+                    icon="pi pi-plus"
+                    type="button"
+                    className="rounded"
+                    onClick={() => navigate(newRoute)}
+                  />
+                  {/* <LeadsIntroductionFormModal /> */}
+                </div>
+              </div>
+            </>
+          )}
           <DataTable
-            showGridlines
             value={data}
             dataKey="LeadIntroductionID"
             paginator
-            rows={10}
+            rows={Rows}
             rowsPerPageOptions={[5, 10, 25, 50]}
             removableSort
             emptyMessage="No LeadIntroductions found!"
@@ -193,25 +235,14 @@ export function LeadIntroductionDetail() {
             filterDisplay="row"
             resizableColumns
             size="small"
-            selectionMode="single"
-            style={{ backgroundColor: "red" }}
             className={"thead"}
             tableStyle={{ minWidth: "50rem" }}
           >
             <Column
-              body={(rowData) =>
-                ActionButtons(
-                  rowData.LeadIntroductionID,
-                  () => handleDeleteShow(rowData.LeadIntroductionID),
-                  handleEditShow,
-                  handleView,
-
-                  <MenuItemsComponent />
-                )
-              }
+              body={leftActionBodyTemplate}
               header="Actions"
               resizeable={false}
-              style={{ minWidth: "7rem", maxWidth: "10rem", width: "8.2rem" }}
+              style={{ minWidth: "10rem", maxWidth: "10rem", width: "10rem" }}
             ></Column>
             <Column
               field="Status"
@@ -224,6 +255,7 @@ export function LeadIntroductionDetail() {
               style={{ minWidth: "12rem" }}
               body={statusBodyTemplate}
             ></Column>
+
             <Column
               field="CompanyName"
               filter
@@ -387,7 +419,6 @@ export function LeadIntroductionForm({ pagesTitle, user, mode }) {
       userID: user.userID,
       LeadIntroductionID: LeadIntroductionID,
     });
-    console.log(data);
   }
 
   return (
@@ -443,6 +474,7 @@ function MenuItemsComponent() {
             <Button
               className="menuBtn"
               icon="pi pi-send"
+              style={{ background: "tranparent" }}
               label={"Forward"}
               pt={{
                 label: {
@@ -461,6 +493,7 @@ function MenuItemsComponent() {
               className="menuBtn"
               icon={item.icon}
               label={"Quote"}
+              style={{ background: "tranparent" }}
               pt={{
                 label: {
                   style: {
@@ -513,9 +546,7 @@ function MenuItemsComponent() {
     },
   ];
 
-  function handleCloseClick() {
-    console.log("cled");
-  }
+  function handleCloseClick() {}
 
   return (
     <>
@@ -594,13 +625,21 @@ function ForwardDialog({ visible = true, setVisible, LeadIntroductionID }) {
   const usersSelectData = useAllUsersSelectData();
   const departmentSelectData = useAllDepartmentsSelectData();
   const productsSelectData = useProductsInfoSelectData();
-  const method = useForm();
+  const method = useForm({
+    defaultValues: {
+      Description: "",
+    },
+  });
 
   const mutation = useMutation({
     mutationFn: addLeadIntroductionOnAction,
     onSuccess: ({ success }) => {
       if (success) {
+        toast.success("Lead forwarded successfully!");
         queryClient.invalidateQueries({ queryKey: [queryKey] });
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.LEADS_CARD_DATA],
+        });
       }
     },
   });
@@ -633,12 +672,12 @@ function ForwardDialog({ visible = true, setVisible, LeadIntroductionID }) {
               optionValue="DepartmentID"
               placeholder="Select a department"
               options={departmentSelectData.data}
-              required={true}
               focusOptions={() => method.setFocus("InActive")}
+              showClear={true}
             />
           </div>
         </Form.Group>
-        <Form.Group as={Col} controlId="DepartmentID">
+        <Form.Group as={Col} controlId="UserID">
           <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
             User
             <span className="text-danger fw-bold ">*</span>
@@ -651,14 +690,14 @@ function ForwardDialog({ visible = true, setVisible, LeadIntroductionID }) {
               optionValue="UserID"
               placeholder="Select a user"
               options={usersSelectData.data}
-              required={true}
               focusOptions={() => method.setFocus("InActive")}
+              showClear={true}
             />
           </div>
         </Form.Group>
       </Row>
       <Row>
-        <Form.Group as={Col} controlId="DepartmentID">
+        <Form.Group as={Col} controlId="MeetingPlace">
           <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
             Meeting Medium
             <span className="text-danger fw-bold ">*</span>
@@ -674,11 +713,11 @@ function ForwardDialog({ visible = true, setVisible, LeadIntroductionID }) {
                 { label: "Online", value: "Online" },
               ]}
               required={true}
-              focusOptions={() => method.setFocus("InActive")}
+              focusOptions={() => method.setFocus("MeetingTime")}
             />
           </div>
         </Form.Group>
-        <Form.Group as={Col} controlId="DepartmentID">
+        <Form.Group as={Col} controlId="MeetingTime">
           <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
             Meeting Date
             <span className="text-danger fw-bold ">*</span>
@@ -720,7 +759,7 @@ function ForwardDialog({ visible = true, setVisible, LeadIntroductionID }) {
               placeholder="Select a product"
               options={productsSelectData.data}
               required={true}
-              focusOptions={() => method.setFocus("InActive")}
+              focusOptions={() => method.setFocus("Description")}
             />
           </div>
         </Form.Group>
@@ -736,7 +775,7 @@ function ForwardDialog({ visible = true, setVisible, LeadIntroductionID }) {
               padding: "0.3rem 0.4rem",
               fontSize: "0.8em",
             }}
-            {...method.register("LeadSourceID")}
+            {...method.register("Description")}
           />
         </Form.Group>
       </Row>
@@ -744,12 +783,17 @@ function ForwardDialog({ visible = true, setVisible, LeadIntroductionID }) {
   );
 
   function onSubmit(data) {
-    mutation.mutate({
-      from: "Forward",
-      formData: data,
-      userID: user.userID,
-      LeadIntroductionID: LeadIntroductionID,
-    });
+    if (data.DepartmentID === undefined && data.UserID === undefined) {
+      method.setError("DepartmentID", { type: "required" });
+      method.setError("UserID", { type: "required" });
+    } else {
+      mutation.mutate({
+        from: "Forward",
+        formData: data,
+        userID: user.userID,
+        LeadIntroductionID: LeadIntroductionID,
+      });
+    }
   }
 
   return (
@@ -831,7 +875,7 @@ function QuoteDialog({ visible = true, setVisible, LeadIntroductionID }) {
   const dialogConent = (
     <>
       <Row>
-        <Form.Group as={Col} controlId="DepartmentID">
+        <Form.Group as={Col} controlId="AttachmentFile">
           <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
             File
             <span className="text-danger fw-bold ">*</span>
@@ -874,7 +918,11 @@ function QuoteDialog({ visible = true, setVisible, LeadIntroductionID }) {
     mutationFn: addLeadIntroductionOnAction,
     onSuccess: ({ success }) => {
       if (success) {
+        toast.success("Lead quoted successfully!");
         queryClient.invalidateQueries({ queryKey: [queryKey] });
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.LEADS_CARD_DATA],
+        });
       }
     },
   });
@@ -956,7 +1004,11 @@ function FinalizedDialog({ visible = true, setVisible, LeadIntroductionID }) {
     mutationFn: addLeadIntroductionOnAction,
     onSuccess: ({ success }) => {
       if (success) {
+        toast.success("Lead finalized successfully!");
         queryClient.invalidateQueries({ queryKey: [queryKey] });
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.LEADS_CARD_DATA],
+        });
       }
     },
   });
@@ -976,7 +1028,7 @@ function FinalizedDialog({ visible = true, setVisible, LeadIntroductionID }) {
   const dialogConent = (
     <>
       <Row>
-        <Form.Group as={Col} controlId="DepartmentID">
+        <Form.Group as={Col} controlId="AttachmentFile">
           <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
             File
             <span className="text-danger fw-bold ">*</span>
@@ -1107,7 +1159,11 @@ function ClosedDialog({ visible = true, setVisible, LeadIntroductionID }) {
     mutationFn: addLeadIntroductionOnAction,
     onSuccess: ({ success }) => {
       if (success) {
+        toast.success("Lead closed successfully!");
         queryClient.invalidateQueries({ queryKey: [queryKey] });
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.LEADS_CARD_DATA],
+        });
       }
     },
   });

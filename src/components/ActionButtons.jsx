@@ -9,7 +9,7 @@ function ActionButtons(
   disableBtn = false
 ) {
   return (
-    <InputGroup>
+    <>
       {/* <OverlayTrigger
         placement="left"
         overlay={<Tooltip id="tooltip-2">View</Tooltip>}
@@ -88,7 +88,7 @@ function ActionButtons(
           {/* </OverlayTrigger> */}
         </>
       )}
-    </InputGroup>
+    </>
   );
 }
 
