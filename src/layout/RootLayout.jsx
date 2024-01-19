@@ -5,6 +5,7 @@ import User from "../images/profilelogo.png";
 import { Avatar } from "primereact/avatar";
 import CSidebar from "./Sidebar/CSidebar";
 import { useRef } from "react";
+import NotificationOverlay from "../components/OverlayPanel/NotificationOverlay";
 
 function RootLayout() {
   const sidebarRef = useRef();
@@ -16,7 +17,15 @@ function RootLayout() {
         {/* <Sidebar logoImage={<LogoImage />} userImage={<UserImage />} />{" "} */}
         <section className="c-home-section">
           <div className="c-home-content">
-            <div className="mt-4">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                width: "100%",
+              }}
+              className="mt-4"
+            >
               <i
                 className="pi pi-bars hoverIcon"
                 onClick={() => {
@@ -29,6 +38,7 @@ function RootLayout() {
                   }
                 }}
               ></i>
+              <NotificationOverlay />
             </div>
           </div>
           <div className="px-3">

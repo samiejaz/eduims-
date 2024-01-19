@@ -3,26 +3,11 @@ import { Link } from "react-router-dom";
 import "./sidebar.css";
 import { ROUTE_URLS } from "../../utils/enums";
 import signalRConnectionManager from "../../services/SignalRService";
-import { toast } from "react-toastify";
-import { useUserData } from "../../context/AuthContext";
+import { Toast } from "primereact/toast";
 
 const CSidebar = ({ sideBarRef }) => {
-  const connection = signalRConnectionManager.getConnection();
   const user = JSON.parse(localStorage.getItem("user"));
-
-  useEffect(() => {
-    connection.on("ReceiveNotification", (message) => {
-      toast.success(message);
-    });
-    connection.on("ReceiveAllNotification", (message) => {
-      toast.success(message);
-    });
-
-    return () => {
-      connection.off("ReceiveNotification");
-      connection.off("ReceiveAllNotification");
-    };
-  }, [connection]);
+  const toastRef = useRef(null);
 
   useEffect(() => {
     async function configurationSetup() {
@@ -114,15 +99,7 @@ const CSidebar = ({ sideBarRef }) => {
                 </Link>
               </li>
               <hr style={{ color: "white", padding: "0", margin: "0" }} />
-              <li>
-                <Link to={ROUTE_URLS.LEED_SOURCE_ROUTE}>Leads Source</Link>
-              </li>
-              <li>
-                <Link to={ROUTE_URLS.LEAD_INTRODUCTION_ROUTE}>
-                  Leads Introduction
-                </Link>
-              </li>
-              <hr style={{ color: "white", padding: "0", margin: "0" }} />
+
               <li>
                 <Link to={ROUTE_URLS.GENERAL.SESSION_INFO}>Session Info</Link>
               </li>
@@ -244,6 +221,37 @@ const CSidebar = ({ sideBarRef }) => {
               </li>
             </ul>
           </li>
+          {/* Lead Dashboard */}
+          <li className="">
+            <div className="c-iocn-link">
+              <Link to={ROUTE_URLS.LEADS.LEADS_DASHBOARD}>
+                <i className="pi pi-phone"></i>
+                <span className="c-link_name">Leads</span>
+              </Link>
+              <i
+                className="pi pi-chevron-down c-arrow"
+                onClick={toggleSubmenu}
+              ></i>
+            </div>
+            <ul className="c-sub-menu">
+              <li>
+                <Link
+                  className="c-link_name"
+                  to={ROUTE_URLS.LEADS.LEADS_DASHBOARD}
+                >
+                  Leads Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link to={ROUTE_URLS.LEED_SOURCE_ROUTE}>Leads Source</Link>
+              </li>
+              <li>
+                <Link to={ROUTE_URLS.LEAD_INTRODUCTION_ROUTE}>
+                  Leads Introduction
+                </Link>
+              </li>
+            </ul>
+          </li>
 
           <li>
             <div className="c-profile-details">
@@ -268,6 +276,8 @@ const CSidebar = ({ sideBarRef }) => {
           </li>
         </ul>
       </div>
+      <NotificationHandler toast={toastRef} />
+      <Toast ref={toastRef} position="top-right" />
     </>
   );
 };
@@ -310,3 +320,50 @@ function submenuItem() {
     </>
   );
 }
+
+const NotificationHandler = ({ toast }) => {
+  const connection = signalRConnectionManager.getConnection();
+
+  useEffect(() => {
+    connection.on("ReceiveNotification", (message) => {
+      toast.current.show({
+        severity: "success",
+        summary: message,
+        sticky: true,
+        content: (props) => (
+          <div
+            className="flex flex-column"
+            style={{ flex: "1", justifyContent: "start" }}
+          >
+            <Link
+              to={"/"}
+              style={{ alignSelf: "start", color: "#1ea97c" }}
+              onClick={() => toast.current.clear()}
+            >
+              <div className="font-medium text-lg my-3 text-900" style={{}}>
+                {props.message.summary}
+              </div>
+            </Link>
+          </div>
+        ),
+      });
+    });
+    connection.on("ReceiveAllNotification", (message) => {
+      toast.current.show(message);
+    });
+
+    return () => {
+      connection.off("ReceiveNotification");
+      connection.off("ReceiveAllNotification");
+    };
+  }, [connection]);
+
+  // useEffect(() => {
+  //   if (toast.current && messages.length > 0) {
+  //     toast.current.show(messages);
+  //     setMessages([]);
+  //   }
+  // }, [messages]);
+
+  return null;
+};

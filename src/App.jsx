@@ -68,6 +68,11 @@ import {
 import { UserDetail, UserForm } from "./pages/GenUsers/Users";
 import signalRConnectionManager from "./services/SignalRService";
 import FileViewer from "./pages/FileViewer";
+import LeadsIntroductionViewer, {
+  LeadsIntroductionViewerDetail,
+} from "./pages/LeadsIntroductionViewer/LeadsIntroductionViewer";
+import LeadsDashboard from "./pages/Leads/LeadsDashboard/LeadsDashboard";
+import { SessionDetail, SessionForm } from "./pages/SessionInfo/SessionInfo";
 
 const App = () => {
   const { pageTitles } = useContext(AppConfigurationContext);
@@ -141,10 +146,6 @@ const App = () => {
             />
             {/* <Route path={`${ROUTE_URLS.USER_ROUTE}`} element={<GenUsers />} /> */}
 
-            <Route
-              path={`${ROUTE_URLS.GENERAL.SESSION_INFO}`}
-              element={<SessionInfo />}
-            />
             {/* <Route
               path="/customers/customerBranch"
               element={<CustomerBranch />}
@@ -540,6 +541,14 @@ const App = () => {
                 />
               }
             />
+            <Route
+              path={`${ROUTE_URLS.GENERAL.LEADS_INTROUDCTION_VIEWER_ROUTE}/:LeadIntroductionID`}
+              element={<LeadsIntroductionViewer />}
+            />
+            <Route
+              path={`${ROUTE_URLS.GENERAL.LEADS_INTROUDCTION_DETAIL_VIEWER_ROUTE}/:LeadIntroductionID/:Type/:LeadIntroductionDetailID`}
+              element={<LeadsIntroductionViewerDetail />}
+            />
             {/* Leads Introduction END */}
             {/* Users */}
             <Route path={ROUTE_URLS.USER_ROUTE} element={<UserDetail />} />
@@ -562,7 +571,45 @@ const App = () => {
               }
             />
             {/* User END */}
+            {/* Session */}
+            <Route
+              path={ROUTE_URLS.GENERAL.SESSION_INFO}
+              element={<SessionDetail />}
+            />
+            <Route
+              path={`${ROUTE_URLS.GENERAL.SESSION_INFO}/:UserID`}
+              element={
+                <SessionForm
+                  pageTitles={pageTitles}
+                  mode={"view"}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.GENERAL.SESSION_INFO}/edit/:UserID`}
+              element={
+                <SessionForm
+                  pageTitles={pageTitles}
+                  mode={"edit"}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.GENERAL.SESSION_INFO}/new`}
+              element={
+                <SessionForm pageTitles={pageTitles} mode={"new"} user={user} />
+              }
+            />
+            {/* Session END */}
             {/* <Route path={`/chat`} element={<ChatRoom />} /> */}
+            {/* Leads */}
+            <Route
+              path={`${ROUTE_URLS.LEADS.LEADS_DASHBOARD}`}
+              element={<LeadsDashboard />}
+            />
+            {/* Leads End */}
             <Route path="/fileviewer" element={<FileViewer />} />
           </Route>
         </Routes>

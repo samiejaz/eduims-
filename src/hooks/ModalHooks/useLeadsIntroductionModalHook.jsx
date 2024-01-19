@@ -16,80 +16,247 @@ import CDropdown from "../../components/Forms/CDropdown";
 import { Col, Form, Row } from "react-bootstrap";
 import CheckBox from "../../components/Forms/CheckBox";
 import TextInput from "../../components/Forms/TextInput";
-import CMaskInput from "../../components/Forms/CMaskInput";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { AutoComplete } from "primereact/autocomplete";
 import { classNames } from "primereact/utils";
+import {
+  fetchDemonstrationLeadsDataByID,
+  fetchLeadIntroductionById,
+} from "../../api/LeadIntroductionData";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "../../utils/enums";
+import { useUserData } from "../../context/AuthContext";
+import { parseISO } from "date-fns";
+import { Dropdown } from "primereact/dropdown";
 
-const useLeadsIntroductionModalHook = () => {
+export const useLeadsIntroductionModalHook = (LeadIntroductionDetailID = 0) => {
+  const queryClient = useQueryClient();
+  const user = useUserData();
+
   const [visible, setVisible] = useState(false);
+  const LeadIntroductionData = useQuery({
+    queryKey: [QUERY_KEYS.LEADS_DEMO_DATA, LeadIntroductionDetailID],
+    queryFn: () =>
+      fetchDemonstrationLeadsDataByID({
+        UserID: user.userID,
+        DepartmentID: user.DepartmentID,
+        LeadIntroductionDetailID,
+      }),
 
-  const method = useForm({
-    defaultValues: {
-      CompanyName: "",
-      CountryID: [],
-      TehsilID: [],
-      BusinessTypeID: [],
-      CompanyAddress: "",
-      CompanyWebsite: "",
-      BusinessNature: "",
-      ContactPersonName: "",
-      ContactPersonMobileNo: "",
-      ContactPersonWhatsAppNo: "",
-      ContactPersonEmail: "",
-      RequirementDetails: "",
-      LeadSourceID: [],
-      IsWANumberSameAsMobile: false,
-    },
+    enabled: LeadIntroductionDetailID !== 0,
+    initialData: [],
   });
+
   const dialogContent = (
     <>
-      <FormProvider {...method}>
-        <LeadsIntroductionFormComponent />
-      </FormProvider>
+      <Row>
+        <Form.Group as={Col}>
+          <Form.Label>Name of firm</Form.Label>
+          <div>
+            <Form.Control
+              type="text"
+              id="CompanyName"
+              value={LeadIntroductionData.data[0]?.CompanyName}
+              disabled
+            />
+          </div>
+        </Form.Group>
+        <Form.Group as={Col}>
+          <Form.Label>Country</Form.Label>
+          <div>
+            <Form.Control
+              type="text"
+              id="CountryID"
+              value={LeadIntroductionData.data[0]?.CountryTitle}
+              disabled
+            />
+          </div>
+        </Form.Group>
+        <Form.Group as={Col}>
+          <Form.Label>Tehsil</Form.Label>
+          <div>
+            <Form.Control
+              type="text"
+              id="TehsilID"
+              value={LeadIntroductionData.data[0]?.TehsilTitle}
+              disabled
+            />
+          </div>
+        </Form.Group>
+        <Form.Group as={Col}>
+          <Form.Label>Business Type</Form.Label>
+          <div>
+            <Form.Control
+              type="text"
+              id="BusinessTypeID"
+              value={LeadIntroductionData.data[0]?.BusinessTypeTitle}
+              disabled
+            />
+          </div>
+        </Form.Group>
+      </Row>
+      <Row>
+        <Form.Group as={Col}>
+          <Form.Label>Business Nature</Form.Label>
+          <div>
+            <Form.Control
+              type="text"
+              id="BusinessNatureID"
+              value={LeadIntroductionData.data[0]?.BusinessNature}
+              disabled
+            />
+          </div>
+        </Form.Group>
+
+        <Form.Group as={Col}>
+          <Form.Label>Company Website</Form.Label>
+          <div>
+            <Form.Control
+              type="text"
+              id="CompanyWebsite"
+              value={LeadIntroductionData.data[0]?.CompanyWebsite}
+              disabled
+            />
+          </div>
+        </Form.Group>
+        <Form.Group as={Col}>
+          <Form.Label>Contact Person Name</Form.Label>
+          <div>
+            <Form.Control
+              type="text"
+              id="ContactPersonName"
+              value={LeadIntroductionData.data[0]?.ContactPersonName}
+              disabled
+            />
+          </div>
+        </Form.Group>
+        <Form.Group as={Col}>
+          <Form.Label>Contact Person Mobile No</Form.Label>
+          <div>
+            <Form.Control
+              type="text"
+              id="ContactPersonMobileNo"
+              value={LeadIntroductionData.data[0]?.ContactPersonMobileNo}
+              disabled
+            />
+          </div>
+        </Form.Group>
+      </Row>
+      <Row>
+        <Form.Group as={Col}>
+          <Form.Label>Contact Person Email</Form.Label>
+          <div>
+            <Form.Control
+              type="text"
+              id="ContactPersonEmail"
+              value={LeadIntroductionData.data[0]?.ContactPersonEmail}
+              disabled
+            />
+          </div>
+        </Form.Group>
+        <Form.Group as={Col}>
+          <Form.Label>Contact Person Whatsapp No</Form.Label>
+          <div>
+            <Form.Control
+              type="text"
+              id="CompanyAddress"
+              value={LeadIntroductionData.data[0]?.CompanyAddress}
+              disabled
+            />
+          </div>
+        </Form.Group>
+
+        <Form.Group as={Col}>
+          <Form.Label>Contact Person Whatsapp No</Form.Label>
+          <div>
+            <Form.Control
+              type="text"
+              id="ContactPersonWhatsAppNo"
+              value={LeadIntroductionData.data[0]?.ContactPersonWhatsAppNo}
+              disabled
+            />
+          </div>
+        </Form.Group>
+      </Row>
+      <Row>
+        <Form.Group as={Col}>
+          <Form.Label>Requirements Detail</Form.Label>
+          <Form.Control
+            as={"textarea"}
+            rows={1}
+            disabled
+            className="form-control"
+            style={{
+              padding: "0.3rem 0.4rem",
+              fontSize: "0.8em",
+            }}
+            value={LeadIntroductionData.data[0]?.RequirementDetail}
+          />
+        </Form.Group>
+      </Row>
+      <Row>
+        <Form.Group as={Col}>
+          <Form.Label>Meeting Place</Form.Label>
+          <div>
+            <Dropdown
+              options={[
+                { label: "At Client Site", value: "AtClientSite" },
+                { label: "At Office", value: "AtOffice" },
+                { label: "Online", value: "Online" },
+              ]}
+              value={LeadIntroductionData.data[0]?.MeetingPlace}
+              style={{ width: "100%", background: "#dee2e6", color: "black" }}
+              disabled
+              dropdownIcon={() => null}
+            />
+          </div>
+        </Form.Group>
+        <Form.Group as={Col}>
+          <Form.Label>Meeting Time</Form.Label>
+          <div>
+            <Form.Control
+              type="text"
+              id="MeetingTime"
+              value={parseISO(LeadIntroductionData.data[0]?.MeetingTime, {
+                additionalDigits: "0",
+              })}
+              disabled
+            />
+          </div>
+        </Form.Group>
+        <Form.Group as={Col}>
+          <Form.Label>Product</Form.Label>
+          <div>
+            <Form.Control
+              type="text"
+              id="Product"
+              value={LeadIntroductionData.data[0]?.ProductInfoTitle}
+              disabled
+            />
+          </div>
+        </Form.Group>
+      </Row>
+      <Row>
+        <Form.Group as={Col}>
+          <Form.Label>Description</Form.Label>
+          <Form.Control
+            as={"textarea"}
+            rows={1}
+            disabled
+            className="form-control"
+            style={{
+              padding: "0.3rem 0.4rem",
+              fontSize: "0.8em",
+            }}
+            value={LeadIntroductionData.data[0]?.Description}
+          />
+        </Form.Group>
+      </Row>
     </>
   );
 
-  const footerContent = (
-    <>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "end",
-          gap: "5px",
-        }}
-      >
-        <Button
-          label="Cancel"
-          severity="danger"
-          type="button"
-          onClick={() => method.reset()}
-          pt={{
-            root: {
-              style: {
-                borderRadius: "16px",
-              },
-            },
-          }}
-        />
-        <Button
-          label="Save"
-          severity="success"
-          type="button"
-          onClick={() => method.handleSubmit(onSubmit)()}
-          pt={{
-            root: {
-              style: {
-                borderRadius: "16px",
-              },
-            },
-          }}
-        />
-      </div>
-    </>
-  );
+  const footerContent = <></>;
 
   function onSubmit(data) {}
 
@@ -106,6 +273,9 @@ const useLeadsIntroductionModalHook = () => {
           style={{ width: "80vw", height: "80vh" }}
           onHide={() => {
             setVisible(false);
+            queryClient.invalidateQueries([
+              QUERY_KEYS.LEAD_INTRODUCTION_QUERY_KEY,
+            ]);
             //TODO: Invalidate the query
           }}
         >
@@ -115,7 +285,10 @@ const useLeadsIntroductionModalHook = () => {
     ),
   };
 };
-export function LeadsIntroductionFormComponent({ mode = "" }) {
+export function LeadsIntroductionFormComponent({
+  mode = "",
+  hideFieldsForDemo = false,
+}) {
   const [CountryID, setCountryID] = useState(0);
   const [items, setItems] = useState([]);
 
@@ -127,8 +300,6 @@ export function LeadsIntroductionFormComponent({ mode = "" }) {
   const leadSourcesSelectData = useAllLeadsSouceSelectData();
 
   const method = useFormContext();
-
-  //
 
   useEffect(() => {
     setCountryID(method.control._fields.CountryID._f.value);
@@ -377,27 +548,33 @@ export function LeadsIntroductionFormComponent({ mode = "" }) {
               />
             </div>
           </Form.Group>
-          <Form.Group as={Col} controlId="IsWANumberSameAsMobile">
-            <Form.Label></Form.Label>
-            <div className="mt-1">
-              <CheckBox
-                control={method.control}
-                ID={"IsWANumberSameAsMobile"}
-                Label={"Same as mobile no"}
-                isEnable={mode !== "view"}
-                onChange={(e) => {
-                  if (e.checked) {
-                    method.setValue(
-                      "ContactPersonWhatsAppNo",
-                      method.getValues(["ContactPersonMobileNo"])
-                    );
-                  } else {
-                    method.setValue("ContactPersonWhatsAppNo", "");
-                  }
-                }}
-              />
-            </div>
-          </Form.Group>
+          {hideFieldsForDemo === false ? (
+            <>
+              <Form.Group as={Col} controlId="IsWANumberSameAsMobile">
+                <Form.Label></Form.Label>
+                <div className="mt-1">
+                  <CheckBox
+                    control={method.control}
+                    ID={"IsWANumberSameAsMobile"}
+                    Label={"Same as mobile no"}
+                    isEnable={mode !== "view"}
+                    onChange={(e) => {
+                      if (e.checked) {
+                        method.setValue(
+                          "ContactPersonWhatsAppNo",
+                          method.getValues(["ContactPersonMobileNo"])
+                        );
+                      } else {
+                        method.setValue("ContactPersonWhatsAppNo", "");
+                      }
+                    }}
+                  />
+                </div>
+              </Form.Group>
+            </>
+          ) : (
+            <></>
+          )}
         </Row>
         <Row>
           <Form.Group as={Col} controlId="RequirementDetails" className="col-9">
@@ -414,69 +591,68 @@ export function LeadsIntroductionFormComponent({ mode = "" }) {
               {...method.register("RequirementDetails")}
             />
           </Form.Group>
-          <Form.Group as={Col} controlId="LeadSourceID">
-            <Form.Label>
-              Where have you here about us?
-              <span className="text-danger fw-bold ">*</span>
-            </Form.Label>
-            <div>
-              <CDropdown
-                control={method.control}
-                name={`LeadSourceID`}
-                optionLabel="LeadSourceTitle"
-                optionValue="LeadSourceID"
-                placeholder="Select a lead source"
-                options={leadSourcesSelectData.data}
-                required={true}
-                disabled={mode === "view"}
-              />
-            </div>
-          </Form.Group>
+          {hideFieldsForDemo === false ? (
+            <>
+              <Form.Group as={Col} controlId="LeadSourceID">
+                <Form.Label>
+                  Where have you here about us?
+                  <span className="text-danger fw-bold ">*</span>
+                </Form.Label>
+                <div>
+                  <CDropdown
+                    control={method.control}
+                    name={`LeadSourceID`}
+                    optionLabel="LeadSourceTitle"
+                    optionValue="LeadSourceID"
+                    placeholder="Select a lead source"
+                    options={leadSourcesSelectData.data}
+                    required={true}
+                    disabled={mode === "view"}
+                  />
+                </div>
+              </Form.Group>
+            </>
+          ) : (
+            <></>
+          )}
         </Row>
       </form>
     </>
   );
 }
-export function LeadsIntroductionFormModal({ IconButton = false }) {
-  const { setVisible, render } = useLeadsIntroductionModalHook();
-
+export function LeadsIntroductionFormModalButton({
+  LeadIntroductionDetailID = 0,
+}) {
+  const queryClient = useQueryClient();
+  const { setVisible, render } = useLeadsIntroductionModalHook(
+    LeadIntroductionDetailID
+  );
   return (
     <>
-      {IconButton ? (
-        <>
-          <Button
-            tooltip="Add new customer"
-            icon="pi pi-plus"
-            severity="success"
-            size="small"
-            className="rounded-2"
-            type="button"
-            onClick={() => setVisible(true)}
-            style={{
-              padding: "1px 0px",
-              fontSize: "small",
-              width: "30px",
-              marginLeft: "10px",
-            }}
-          />
-        </>
-      ) : (
-        <>
-          <Button
-            onClick={() => setVisible(true)}
-            severity="info"
-            icon="pi pi-plus"
-            label="Add New"
-            className="rounded-5"
-            type="button"
-            style={{
-              padding: "0.3rem 1.25rem",
-              marginLeft: "25px",
-              fontSize: ".8em",
-            }}
-          />
-        </>
-      )}
+      <Button
+        icon="pi pi-eye"
+        rounded
+        outlined
+        severity="secondary"
+        tooltip="View"
+        tooltipOptions={{
+          position: "right",
+        }}
+        onClick={() => {
+          setVisible(true);
+          // queryClient.invalidateQueries([
+          //   QUERY_KEYS.LEAD_INTRODUCTION_QUERY_KEY,
+          //   LeadIntroductionDetailID,
+          // ]);
+        }}
+        style={{
+          padding: "1px 0px",
+          fontSize: "small",
+          width: "30px",
+          height: "2rem",
+          border: "none",
+        }}
+      />
       {render}
     </>
   );
