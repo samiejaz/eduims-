@@ -9,6 +9,7 @@ const CDatePicker = ({
   disabled = false,
   required = false,
   showTime = false,
+  showIcon = false,
 }) => {
   return (
     <Controller
@@ -25,7 +26,7 @@ const CDatePicker = ({
             style={{ width: "100%" }}
             className={classNames({ "p-invalid": fieldState.error })}
             showTime={showTime}
-            showIcon
+            showIcon={showIcon}
             hourFormat="12"
             disabled={disabled}
           />

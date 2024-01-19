@@ -55,6 +55,7 @@ export const QUERY_KEYS = {
   LEADS_CARD_DATA: "leadsCardData",
   LEADS_DEMO_DATA: "leadsDemoData",
   SESSION_INFO_QUERY_KEY: "sessions",
+  RECEIPT_VOUCHER_INFO_QUERY_KEY: "receiptVouchers",
   // Select
   ALL_CUSTOMER_QUERY_KEY: "oldcustomers",
   CUSTOMER_ACCOUNTS_QUERY_KEY: "customerAccounts",
