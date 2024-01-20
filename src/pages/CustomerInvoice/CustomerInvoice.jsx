@@ -35,6 +35,7 @@ import { toast } from "react-toastify";
 import useEditModal from "../../hooks/useEditModalHook";
 import useDeleteModal from "../../hooks/useDeleteModalHook";
 import {
+  deleteCustomerInvoiceByID,
   fetchAllCustomerInvoices,
   fetchCustomerInvoiceById,
   fetchMaxInvoiceNo,
@@ -61,6 +62,7 @@ import CDropdown from "../../components/Forms/CDropdown";
 import { QUERY_KEYS } from "../../utils/enums";
 
 let parentRoute = "/customer/customerInvoice";
+let queryKey = QUERY_KEYS.CUSTOMER_INVOICE_QUERY_KEY;
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 function CustomerInvoice() {
@@ -142,14 +144,12 @@ function CustomerInvoiceSearch() {
   });
 
   const deleteMutation = useMutation({
-    // mutationFn: deleteInvoiceDeafultDescriptionsByID,
-    // onSuccess: (data) => {
-    //   if (data === true) {
-    //     queryClient.invalidateQueries({
-    //       queryKey: ["invoiceDefaultDescriptions"],
-    //     });
-    //   }
-    // },
+    mutationFn: deleteCustomerInvoiceByID,
+    onSuccess: (success) => {
+      if (success) {
+        queryClient.invalidateQueries({ queryKey: [queryKey] });
+      }
+    },
   });
 
   function handleEdit(CustomerInvoiceID) {
@@ -184,13 +184,13 @@ function CustomerInvoiceSearch() {
           </div>
         </>
       ) : (
-        <>
+        <div className="mt-5">
           <div className="d-flex text-dark mb-4 ">
             <h3 className="text-center my-auto">Customer Invoice Entry</h3>
 
             <div className="text-end my-auto" style={{ marginLeft: "10px" }}>
               <Button
-                label="Add New"
+                label="Add New Customer Invoice"
                 icon="pi pi-plus"
                 type="button"
                 className="rounded"
@@ -274,7 +274,7 @@ function CustomerInvoiceSearch() {
           </DataTable>
           {EditModal}
           {DeleteModal}
-        </>
+        </div>
       )}
     </>
   );

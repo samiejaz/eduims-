@@ -10,6 +10,7 @@ const CDatePicker = ({
   required = false,
   showTime = false,
   showIcon = false,
+  dateFormat = "dd-M-yy",
 }) => {
   return (
     <Controller
@@ -22,7 +23,7 @@ const CDatePicker = ({
             inputId={field.name}
             value={field.value}
             onChange={field.onChange}
-            dateFormat="dd/mm/yy"
+            dateFormat={dateFormat}
             style={{ width: "100%" }}
             className={classNames({ "p-invalid": fieldState.error })}
             showTime={showTime}

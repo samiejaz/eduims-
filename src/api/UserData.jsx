@@ -97,7 +97,5 @@ export async function addNewUser({ formData, userID, UserID = 0, UserImage }) {
       toast.error(data.message);
       return { success: false, RecordID: UserID };
     }
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 }

@@ -72,6 +72,14 @@ import LeadsIntroductionViewer, {
 } from "./pages/LeadsIntroductionViewer/LeadsIntroductionViewer";
 import LeadsDashboard from "./pages/Leads/LeadsDashboard/LeadsDashboard";
 import { SessionDetail, SessionForm } from "./pages/SessionInfo/SessionInfo";
+import {
+  DebitNoteEntry,
+  DebitNoteEntryForm,
+} from "./pages/DebitNote/DebitNode";
+import {
+  CreditNoteEntry,
+  CreditNoteEntryForm,
+} from "./pages/CreditNote/CreditNote";
 
 const App = () => {
   const { pageTitles } = useContext(AppConfigurationContext);
@@ -589,6 +597,54 @@ const App = () => {
               }
             />
             {/* Session END */}
+            {/* Debit Note */}
+            <Route
+              path={ROUTE_URLS.ACCOUNTS.DEBIT_NODE_ROUTE}
+              element={<DebitNoteEntry />}
+            />
+            <Route
+              path={`${ROUTE_URLS.ACCOUNTS.DEBIT_NODE_ROUTE}/:DebitNoteID`}
+              element={
+                <DebitNoteEntryForm pageTitles={pageTitles} mode={"view"} />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.ACCOUNTS.DEBIT_NODE_ROUTE}/edit/:DebitNoteID`}
+              element={
+                <DebitNoteEntryForm pageTitles={pageTitles} mode={"edit"} />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.ACCOUNTS.DEBIT_NODE_ROUTE}/new`}
+              element={
+                <DebitNoteEntryForm pageTitles={pageTitles} mode={"new"} />
+              }
+            />
+            {/* Debit Note END */}
+            {/* Debit Note */}
+            <Route
+              path={ROUTE_URLS.ACCOUNTS.CREDIT_NODE_ROUTE}
+              element={<CreditNoteEntry />}
+            />
+            <Route
+              path={`${ROUTE_URLS.ACCOUNTS.CREDIT_NODE_ROUTE}/:CreditNoteID`}
+              element={
+                <CreditNoteEntryForm pageTitles={pageTitles} mode={"view"} />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.ACCOUNTS.CREDIT_NODE_ROUTE}/edit/:CreditNoteID`}
+              element={
+                <CreditNoteEntryForm pageTitles={pageTitles} mode={"edit"} />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.ACCOUNTS.CREDIT_NODE_ROUTE}/new`}
+              element={
+                <CreditNoteEntryForm pageTitles={pageTitles} mode={"new"} />
+              }
+            />
+            {/* Debit Note END */}
             {/* <Route path={`/chat`} element={<ChatRoom />} /> */}
             {/* Leads */}
             <Route

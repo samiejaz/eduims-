@@ -27,15 +27,13 @@ import DetailHeaderActionButtons from "../../components/DetailHeaderActionButton
 import CDropdown from "../../components/Forms/CDropdown";
 import { DevTool } from "@hookform/devtools";
 import {
-  addNewReceiptVoucher,
-  deleteReceiptVoucherByID,
-  fetchAllReceiptVoucheres,
-  fetchMonthlyMaxReceiptNo,
-  fetchReceiptVoucherById,
-} from "../../api/ReceiptVoucherData";
+  addNewDebitNote,
+  fetchAllDebitNotees,
+  fetchMonthlyMaxDebitNoteNo,
+  fetchDebitNoteById,
+  deleteDebitNoteByID,
+} from "../../api/DebitNoteData";
 import ButtonToolBar from "../CustomerInvoice/CustomerInvoiceToolbar";
-
-import { Tag } from "primereact/tag";
 import { QUERY_KEYS, ROUTE_URLS, SELECT_QUERY_KEYS } from "../../utils/enums";
 import {
   fetchAllBankAccountsForSelect,
@@ -47,7 +45,7 @@ import {
 import CDatePicker from "../../components/Forms/CDatePicker";
 import CNumberInput from "../../components/Forms/CNumberInput";
 
-const receiptModeOptions = [
+const DebitNoteModeOptions = [
   { value: "Cash", label: "Cash" },
   { value: "Online", label: "Online Transfer" },
   { value: "Instrument", label: "Instrument" },
@@ -58,26 +56,26 @@ const instrumentTypeOptions = [
   { value: "DD", label: "DD" },
 ];
 
-let parentRoute = ROUTE_URLS.ACCOUNTS.RECIEPT_VOUCHER_ROUTE;
+let parentRoute = ROUTE_URLS.ACCOUNTS.DEBIT_NODE_ROUTE;
 let editRoute = `${parentRoute}/edit/`;
 let newRoute = `${parentRoute}/new`;
 let cashDetailColor = "#22C55E";
 let onlineDetailColor = "#F59E0B";
 let chequeDetailColor = "#3B82F6";
 let ddDetailColor = "#8f48d2";
-let queryKey = QUERY_KEYS.RECEIPT_VOUCHER_INFO_QUERY_KEY;
+let queryKey = QUERY_KEYS.DEBIT_Note_QUERY_KEY;
 
-function ReceiptEntry() {
-  document.title = "Reciept Vouchers";
+export function DebitNoteEntry() {
+  document.title = "Debit Notes";
   return (
     <div className="mt-5">
-      <ReceiptEntrySearch />
+      <DebitNoteEntrySearch />
     </div>
   );
 }
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
-function ReceiptEntrySearch() {
+function DebitNoteEntrySearch() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const {
@@ -98,7 +96,7 @@ function ReceiptEntrySearch() {
     VoucherNo: { value: null, matchMode: FilterMatchMode.CONTAINS },
     CustomerName: { value: null, matchMode: FilterMatchMode.CONTAINS },
     AccountTitle: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    ReceiptMode: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    DebitNoteMode: { value: null, matchMode: FilterMatchMode.CONTAINS },
     TotalNetAmount: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
@@ -106,12 +104,12 @@ function ReceiptEntrySearch() {
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: [queryKey],
-    queryFn: () => fetchAllReceiptVoucheres(user.userID),
+    queryFn: () => fetchAllDebitNotees(user.userID),
     initialData: [],
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteReceiptVoucherByID,
+    mutationFn: deleteDebitNoteByID,
     onSuccess: (success) => {
       if (success) {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
@@ -124,7 +122,7 @@ function ReceiptEntrySearch() {
   }
 
   function handleDelete(id) {
-    deleteMutation.mutate({ ReceiptVoucherID: id, LoginUserID: user.userID });
+    deleteMutation.mutate({ DebitNoteID: id, LoginUserID: user.userID });
     handleDeleteClose();
     setIdToDelete(0);
   }
@@ -138,28 +136,6 @@ function ReceiptEntrySearch() {
   function handleView(id) {
     navigate(parentRoute + "/" + id);
   }
-
-  const statusBodyTemplate = (rowData) => {
-    return (
-      <Tag
-        value={rowData.ReceiptMode}
-        severity={getSeverity(rowData.ReceiptMode)}
-      />
-    );
-  };
-
-  const getSeverity = (status) => {
-    switch (status) {
-      case "Online":
-        return "warning";
-      case "Cash":
-        return "success";
-      case "Instument":
-        return "help";
-      case "DD":
-        return "danger";
-    }
-  };
 
   return (
     <>
@@ -179,10 +155,10 @@ function ReceiptEntrySearch() {
       ) : (
         <>
           <div className="d-flex text-dark  mb-4 ">
-            <h2 className="text-center my-auto">Receipt Vouchers</h2>
+            <h2 className="text-center my-auto">Debit Notes</h2>
             <div className="text-end my-auto" style={{ marginLeft: "10px" }}>
               <Button
-                label="Add New Receipt Voucher"
+                label="Add New Debit Note"
                 icon="pi pi-plus"
                 type="button"
                 className="rounded"
@@ -193,12 +169,12 @@ function ReceiptEntrySearch() {
           <DataTable
             showGridlines
             value={data}
-            dataKey="ReceiptVoucherID"
+            dataKey="DebitNoteID"
             paginator
             rows={10}
             rowsPerPageOptions={[5, 10, 25, 50]}
             removableSort
-            emptyMessage="No receipts found!"
+            emptyMessage="No Debit Notes found!"
             filters={filters}
             filterDisplay="row"
             resizableColumns
@@ -211,8 +187,8 @@ function ReceiptEntrySearch() {
             <Column
               body={(rowData) =>
                 ActionButtons(
-                  rowData.ReceiptVoucherID,
-                  () => handleDeleteShow(rowData.ReceiptVoucherID),
+                  rowData.DebitNoteID,
+                  () => handleDeleteShow(rowData.DebitNoteID),
                   handleEditShow,
                   handleView
                 )
@@ -227,17 +203,6 @@ function ReceiptEntrySearch() {
               filterPlaceholder="Search by voucher no"
               sortable
               header="Voucher No"
-            ></Column>
-            <Column
-              field="ReceiptMode"
-              filter
-              filterPlaceholder="Search by receipt mode"
-              sortable
-              header="Receipt Mode"
-              showFilterMenu={false}
-              filterMenuStyle={{ width: "14rem" }}
-              style={{ minWidth: "12rem" }}
-              body={statusBodyTemplate}
             ></Column>
 
             <Column
@@ -259,7 +224,7 @@ function ReceiptEntrySearch() {
               sortable
               header="Total Reciept Amount"
               filter
-              filterPlaceholder="Search by receipt amount"
+              filterPlaceholder="Search by DebitNote amount"
             ></Column>
           </DataTable>
           {EditModal}
@@ -273,13 +238,13 @@ function ReceiptEntrySearch() {
 const defaultValues = {
   VoucherDate: new Date(),
   Description: "",
-  receiptDetail: [],
+  DebitNoteDetail: [],
 };
 
-export function ReceiptEntryForm({ pagesTitle, mode }) {
-  document.title = "Receipt Voucher Entry";
+export function DebitNoteEntryForm({ pagesTitle, mode }) {
+  document.title = "Debit Note Entry";
   const queryClient = useQueryClient();
-  const { ReceiptVoucherID } = useParams();
+  const { DebitNoteID } = useParams();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
@@ -291,10 +256,10 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
     defaultValues,
   });
 
-  const { data: ReceiptVoucherData } = useQuery({
-    queryKey: [QUERY_KEYS.RECEIPT_VOUCHER_INFO_QUERY_KEY, +ReceiptVoucherID],
-    queryFn: () => fetchReceiptVoucherById(ReceiptVoucherID, user.userID),
-    enabled: ReceiptVoucherID !== undefined,
+  const { data: DebitNoteData } = useQuery({
+    queryKey: [QUERY_KEYS.DEBIT_Note_QUERY_KEY, +DebitNoteID],
+    queryFn: () => fetchDebitNoteById(DebitNoteID, user.userID),
+    enabled: DebitNoteID !== undefined,
     initialData: [],
   });
 
@@ -305,8 +270,8 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
     enabled: mode !== "",
   });
 
-  const receiptVoucherMutation = useMutation({
-    mutationFn: addNewReceiptVoucher,
+  const DebitNoteMutation = useMutation({
+    mutationFn: addNewDebitNote,
     onSuccess: ({ success, RecordID }) => {
       if (success) {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
@@ -316,75 +281,47 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteReceiptVoucherByID,
+    mutationFn: deleteDebitNoteByID,
     onSuccess: (success) => {
       if (success) {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
       }
     },
   });
-
   useEffect(() => {
-    if (+ReceiptVoucherID !== null && ReceiptVoucherData?.Master?.length > 0) {
+    if (+DebitNoteID !== null && DebitNoteData?.Master?.length > 0) {
       // Setting Values
-      method.setValue("SessionID", ReceiptVoucherData?.Master[0]?.SessionID);
+      method.setValue("SessionID", DebitNoteData?.Master[0]?.SessionID);
       method.setValue(
         "BusinessUnitID",
-        ReceiptVoucherData?.Master[0]?.BusinessUnitID
+        DebitNoteData?.Master[0]?.BusinessUnitID
       );
-      method.setValue("Customer", ReceiptVoucherData?.Master[0]?.CustomerID);
+      method.setValue("Customer", DebitNoteData?.Master[0]?.CustomerID);
 
       customerCompRef.current.setCustomerID(
-        ReceiptVoucherData?.Master[0]?.CustomerID
+        DebitNoteData?.Master[0]?.CustomerID
       );
 
-      method.setValue(
-        "CustomerLedgers",
-        ReceiptVoucherData?.Master[0]?.AccountID
-      );
-      method.setValue("DocumentNo", ReceiptVoucherData?.Master[0]?.DocumentNo);
-      method.setValue("VoucherNo", ReceiptVoucherData?.Master[0]?.VoucherNo);
+      method.setValue("CustomerLedgers", DebitNoteData?.Master[0]?.AccountID);
+      method.setValue("DocumentNo", DebitNoteData?.Master[0]?.DocumentNo);
+      method.setValue("VoucherNo", DebitNoteData?.Master[0]?.VoucherNo);
       method.setValue(
         "SessionBasedVoucherNo",
-        ReceiptVoucherData?.Master[0]?.SessionBasedVoucherNo
+        DebitNoteData?.Master[0]?.SessionBasedVoucherNo
       );
       method.setValue(
         "SessionBasedVoucherNo",
-        ReceiptVoucherData?.Master[0]?.SessionBasedVoucherNo
+        DebitNoteData?.Master[0]?.SessionBasedVoucherNo
       );
-      method.setValue(
-        "ReceiptMode",
-        ReceiptVoucherData?.Master[0]?.ReceiptMode
-      );
-      method.setValue(
-        "InstrumentType",
-        ReceiptVoucherData?.Master[0]?.InstrumentType
-      );
-      method.setValue(
-        "Description",
-        ReceiptVoucherData?.Master[0]?.Description
-      );
-      method.setValue("FromBank", ReceiptVoucherData?.Master[0]?.FromBank);
-      method.setValue(
-        "TransactionID",
-        ReceiptVoucherData?.Master[0]?.TransactionID
-      );
-      method.setValue(
-        "ReceivedInBankID",
-        ReceiptVoucherData?.Master[0]?.ReceivedInBankID
-      );
-      method.setValue(
-        "InstrumentDate",
-        new Date(ReceiptVoucherData?.Master[0]?.InstrumentDate)
-      );
+      method.setValue("DebitNoteMode", DebitNoteData?.Master[0]?.DebitNoteMode);
+      method.setValue("Description", DebitNoteData?.Master[0]?.Description);
       method.setValue(
         "VoucherDate",
-        new Date(ReceiptVoucherData?.Master[0]?.VoucherDate)
+        new Date(DebitNoteData?.Master[0]?.VoucherDate)
       );
-
       method.setValue(
-        "receiptDetail",
-        ReceiptVoucherData.Detail?.map((item) => {
+        "DebitNoteDetail",
+        DebitNoteData.Detail?.map((item) => {
           return {
             BusinessUnitID: item.DetailBusinessUnitID,
             Amount: item.Amount,
@@ -394,10 +331,10 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
         })
       );
     }
-  }, [+ReceiptVoucherID, ReceiptVoucherData]);
+  }, [+DebitNoteID, DebitNoteData]);
 
   function handleEdit() {
-    navigate(`${editRoute}${ReceiptVoucherID}`);
+    navigate(`${editRoute}${DebitNoteID}`);
   }
 
   function handleAddNew() {
@@ -409,23 +346,23 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
     if (mode === "new") {
       navigate(parentRoute);
     } else if (mode === "edit") {
-      navigate(`${parentRoute}/${ReceiptVoucherID}`);
+      navigate(`${parentRoute}/${DebitNoteID}`);
     }
   }
 
   function handleDelete() {
     deleteMutation.mutate({
-      ReceiptVoucherID: ReceiptVoucherID,
+      DebitNoteID: DebitNoteID,
       LoginUserID: user.userID,
     });
     navigate(parentRoute);
   }
 
   function onSubmit(data) {
-    receiptVoucherMutation.mutate({
+    DebitNoteMutation.mutate({
       formData: data,
       userID: user.userID,
-      ReceiptVoucherID: ReceiptVoucherID,
+      DebitNoteID: DebitNoteID,
     });
   }
 
@@ -461,12 +398,12 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
                 handleAddNew();
               }}
               handleSave={() => method.handleSubmit(onSubmit)()}
-              GoBackLabel="Receipts"
-              saveLoading={receiptVoucherMutation.isPending}
+              GoBackLabel="DebitNotes"
+              saveLoading={DebitNoteMutation.isPending}
               handleDelete={handleDelete}
             />
           </div>
-          <form id="receiptVoucher" className="mt-4">
+          <form id="DebitNote" className="mt-4">
             <FormProvider {...method}>
               <Row>
                 <SessionSelect mode={mode} />
@@ -488,10 +425,10 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
                   removeAllRows={detailTableRef.current?.removeAllRows}
                   ref={customerCompRef}
                 />
-                <ReceiptModeDependantFields
+                {/* <DebitNoteModeDependantFields
                   mode={mode}
                   removeAllRows={detailTableRef.current?.removeAllRows}
-                />
+                /> */}
               </Row>
             </FormProvider>
 
@@ -516,7 +453,7 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
           {mode !== "view" && (
             <>
               <div className="card p-2 bg-light mt-2 ">
-                <ReceiptDetailHeaderForm
+                <DebitNoteDetailHeaderForm
                   appendSingleRow={detailTableRef.current?.appendSingleRow}
                 />
               </div>
@@ -524,7 +461,7 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
           )}
 
           <FormProvider {...method}>
-            <ReceiptDetailTable
+            <DebitNoteDetailTable
               mode={mode}
               BusinessUnitSelectData={BusinessUnitSelectData}
               ref={detailTableRef}
@@ -532,9 +469,9 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
           </FormProvider>
           <hr />
           <FormProvider {...method}>
-            <ReceiptDetailTotal />
+            <DebitNoteDetailTotal />
           </FormProvider>
-          <Form.Group as={Col}>
+          <Form.Group as={Col} style={{ marginBottom: "1rem" }}>
             <Form.Label>Total</Form.Label>
 
             <Form.Control
@@ -548,8 +485,6 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
     </>
   );
 }
-
-export default ReceiptEntry;
 
 // New Master Fields
 function SessionSelect({ mode }) {
@@ -578,12 +513,12 @@ function SessionSelect({ mode }) {
           <CDropdown
             control={method.control}
             name={`SessionID`}
+            filter={false}
             optionLabel="SessionTitle"
             optionValue="SessionID"
             placeholder="Select a session"
             options={data}
             required={true}
-            filter={false}
             disabled={mode === "view"}
             focusOptions={() => method.setFocus("BusinessUnitID")}
           />
@@ -662,7 +597,7 @@ const CustomerDependentFields = React.forwardRef(
               onChange={() => {
                 removeAllRows();
               }}
-              focusOptions={() => method.setFocus("ReceiptMode")}
+              focusOptions={() => method.setFocus("Description")}
             />
           </div>
         </Form.Group>
@@ -691,8 +626,8 @@ function BusinessUnitDependantFields({ mode }) {
   }, [BusinessUnitSelectData]);
 
   useEffect(() => {
-    async function fetchReceiptNo() {
-      const data = await fetchMonthlyMaxReceiptNo(BusinesssUnitID);
+    async function fetchDebitNoteNo() {
+      const data = await fetchMonthlyMaxDebitNoteNo(BusinesssUnitID);
       method.setValue("BusinessUnitID", BusinesssUnitID);
       method.setValue("VoucherNo", data.data[0]?.VoucherNo);
       method.setValue(
@@ -702,7 +637,7 @@ function BusinessUnitDependantFields({ mode }) {
     }
 
     if (BusinesssUnitID !== 0 && mode === "new") {
-      fetchReceiptNo();
+      fetchDebitNoteNo();
     }
   }, [BusinesssUnitID, mode]);
 
@@ -726,7 +661,7 @@ function BusinessUnitDependantFields({ mode }) {
             options={BusinessUnitSelectData}
             disabled={mode === "view"}
             required={true}
-            focusOptions={() => method.setFocus("Customer")}
+            focusOptions={() => method.setFocus("DocumentNo")}
             onChange={(e) => {
               setBusinessUnitID(e.value);
             }}
@@ -734,7 +669,7 @@ function BusinessUnitDependantFields({ mode }) {
         </div>
       </Form.Group>
       <Form.Group as={Col} className="col-sm-2">
-        <Form.Label>Receipt No(Monthly)</Form.Label>
+        <Form.Label>Debit Note No(Monthly)</Form.Label>
 
         <div>
           <TextInput
@@ -745,7 +680,7 @@ function BusinessUnitDependantFields({ mode }) {
         </div>
       </Form.Group>
       <Form.Group as={Col} className="col-sm-2">
-        <Form.Label>Receipt No(Yearly)</Form.Label>
+        <Form.Label>Debit Note No(Yearly)</Form.Label>
 
         <div>
           <TextInput
@@ -770,19 +705,19 @@ function BusinessUnitDependantFields({ mode }) {
   );
 }
 
-function ReceiptModeDependantFields({ mode, removeAllRows }) {
-  const [receiptMode, setReceiptMode] = useState("");
+function DebitNoteModeDependantFields({ mode, removeAllRows }) {
+  const [DebitNoteMode, setDebitNoteMode] = useState("");
 
   const method = useFormContext();
 
   function ShowSection() {
-    if (receiptMode === "Online") {
+    if (DebitNoteMode === "Online") {
       return (
         <>
           <MasterBankFields mode={mode} />
         </>
       );
-    } else if (receiptMode === "DD" || receiptMode === "Cheque") {
+    } else if (DebitNoteMode === "DD" || DebitNoteMode === "Cheque") {
       return (
         <>
           <MasterBankFields
@@ -808,7 +743,7 @@ function ReceiptModeDependantFields({ mode, removeAllRows }) {
     }
   }
 
-  function emptyAllFieldsOnReceiptModeChange() {
+  function emptyAllFieldsOnDebitNoteModeChange() {
     method.resetField("FromBank");
     method.resetField("InstrumentDate");
     method.resetField("ReceivedInBankID");
@@ -819,22 +754,22 @@ function ReceiptModeDependantFields({ mode, removeAllRows }) {
     <>
       <Form.Group className="col-xl-2 " as={Col}>
         <Form.Label>
-          Receipt Mode
+          DebitNote Mode
           <span className="text-danger fw-bold ">*</span>
         </Form.Label>
         <div>
           <CDropdown
             control={method.control}
-            options={receiptModeOptions}
+            options={DebitNoteModeOptions}
             optionValue="value"
             optionLabel="label"
-            name={`ReceiptMode`}
-            placeholder="Select receipt mode"
+            name={`DebitNoteMode`}
+            placeholder="Select DebitNote mode"
             onChange={(e) => {
-              setReceiptMode(e.value);
+              setDebitNoteMode(e.value);
               method.setValue("InstrumentType", []);
               removeAllRows();
-              emptyAllFieldsOnReceiptModeChange();
+              emptyAllFieldsOnDebitNoteModeChange();
             }}
             showOnFocus={true}
             disabled={mode === "view"}
@@ -857,17 +792,17 @@ function ReceiptModeDependantFields({ mode, removeAllRows }) {
             name={`InstrumentType`}
             placeholder="Select a type"
             options={instrumentTypeOptions}
-            required={receiptMode === "Instrument"}
+            required={DebitNoteMode === "Instrument"}
             disabled={
               mode === "view" ||
-              receiptMode === "Cash" ||
-              receiptMode === "Online"
+              DebitNoteMode === "Cash" ||
+              DebitNoteMode === "Online"
             }
             focusOptions={() => method.setFocus("Description")}
             onChange={(e) => {
-              setReceiptMode(e.value);
+              setDebitNoteMode(e.value);
               removeAllRows();
-              emptyAllFieldsOnReceiptModeChange();
+              emptyAllFieldsOnDebitNoteModeChange();
             }}
           />
         </div>
@@ -941,7 +876,7 @@ const MasterBankFields = ({
 };
 
 // New Detail Header Form
-function ReceiptDetailHeaderForm({ appendSingleRow }) {
+function DebitNoteDetailHeaderForm({ appendSingleRow }) {
   const method = useForm({
     defaultValues: {
       BalanceAmount: "",
@@ -1049,13 +984,13 @@ function DetailHeaderBusinessUnitDependents() {
   );
 }
 
-const ReceiptDetailTable = React.forwardRef(
+const DebitNoteDetailTable = React.forwardRef(
   ({ mode, BusinessUnitSelectData }, ref) => {
     const method = useFormContext();
 
     const { fields, append, remove } = useFieldArray({
       control: method.control,
-      name: "receiptDetail",
+      name: "DebitNoteDetail",
       rules: {
         required: true,
       },
@@ -1077,40 +1012,40 @@ const ReceiptDetailTable = React.forwardRef(
             <tr>
               <th
                 className="p-2 text-white text-center "
-                style={{ width: "2%", background: chequeDetailColor }}
+                style={{ width: "2%", background: cashDetailColor }}
               >
                 Sr No.
               </th>
               <th
                 className="p-2 text-white text-center "
-                style={{ width: "5%", background: chequeDetailColor }}
+                style={{ width: "5%", background: cashDetailColor }}
               >
                 Business Unit
               </th>
 
               <th
                 className="p-2 text-white text-center "
-                style={{ width: "4%", background: chequeDetailColor }}
+                style={{ width: "4%", background: cashDetailColor }}
               >
                 Balance
               </th>
 
               <th
                 className="p-2 text-white text-center "
-                style={{ width: "4%", background: chequeDetailColor }}
+                style={{ width: "4%", background: cashDetailColor }}
               >
                 Amount
               </th>
 
               <th
                 className="p-2 text-white text-center "
-                style={{ width: "10%", background: chequeDetailColor }}
+                style={{ width: "10%", background: cashDetailColor }}
               >
                 Description
               </th>
               <th
                 className="p-2 text-white text-center "
-                style={{ width: "4%", background: chequeDetailColor }}
+                style={{ width: "4%", background: cashDetailColor }}
               >
                 Actions
               </th>
@@ -1120,7 +1055,7 @@ const ReceiptDetailTable = React.forwardRef(
             <FormProvider {...method}>
               {fields.map((item, index) => {
                 return (
-                  <ReceiptDetailTableRow
+                  <DebitNoteDetailTableRow
                     key={item.id}
                     item={item}
                     index={index}
@@ -1138,7 +1073,7 @@ const ReceiptDetailTable = React.forwardRef(
   }
 );
 
-function ReceiptDetailTableRow({
+function DebitNoteDetailTableRow({
   item,
   index,
   BusinessUnitSelectData,
@@ -1164,7 +1099,7 @@ function ReceiptDetailTableRow({
           <CDropdown
             control={method.control}
             options={BusinessUnitSelectData}
-            name={`receiptDetail.${index}.BusinessUnitID`}
+            name={`DebitNoteDetail.${index}.BusinessUnitID`}
             placeholder="Select a business unit"
             optionLabel="BusinessUnitName"
             optionValue="BusinessUnitID"
@@ -1176,20 +1111,20 @@ function ReceiptDetailTableRow({
 
         <td>
           <CNumberInput
-            name={`receiptDetail.${index}.Balance`}
+            name={`DebitNoteDetail.${index}.Balance`}
             control={method.control}
             enterKeyOptions={() =>
-              method.setFocus(`receiptDetail.${index}.Amount`)
+              method.setFocus(`DebitNoteDetail.${index}.Amount`)
             }
             disabled={disable}
           />
         </td>
         <td>
           <CNumberInput
-            name={`receiptDetail.${index}.Amount`}
+            name={`DebitNoteDetail.${index}.Amount`}
             control={method.control}
             enterKeyOptions={() =>
-              method.setFocus(`receiptDetail.${index}.Description`)
+              method.setFocus(`DebitNoteDetail.${index}.Description`)
             }
             required={true}
             disabled={disable}
@@ -1202,7 +1137,7 @@ function ReceiptDetailTableRow({
             rows={1}
             disabled={disable}
             className="form-control"
-            {...method.register(`receiptDetail.${index}.Description`)}
+            {...method.register(`DebitNoteDetail.${index}.Description`)}
             style={{
               fontSize: "0.8em",
             }}
@@ -1228,12 +1163,12 @@ function ReceiptDetailTableRow({
 }
 
 // Total
-function ReceiptDetailTotal() {
+function DebitNoteDetailTotal() {
   const method = useFormContext();
 
   const details = useWatch({
     control: method.control,
-    name: "receiptDetail",
+    name: "DebitNoteDetail",
   });
 
   useEffect(() => {

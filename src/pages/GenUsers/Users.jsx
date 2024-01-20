@@ -230,7 +230,6 @@ export function UserForm({ pagesTitle, user, mode }) {
     if (!isDirty) {
       if (+UserID !== undefined && UserData?.data?.length > 0) {
         try {
-          console.log(UserData);
           setValue("FirstName", UserData?.data[0]?.FirstName);
           setValue("LastName", UserData?.data[0]?.LastName);
           setValue("Email", UserData?.data[0]?.Email);
