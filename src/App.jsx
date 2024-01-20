@@ -35,7 +35,6 @@ import {
   KBarSearch,
 } from "kbar";
 import { ReceiptEntryForm } from "./pages/RecieptEntry/RecieptEntry";
-import DP, { DPForm } from "./pages/dp/DP";
 import { CountryDetail, CountryForm } from "./pages/Country/Country";
 import { useUserData } from "./context/AuthContext";
 import { TehsilDetail, TehsilForm } from "./pages/Tehsil/Tehsil";
@@ -203,20 +202,7 @@ const App = () => {
                 <ReceiptEntryForm pageTitles={pageTitles} mode={"new"} />
               }
             />
-            {/* DP */}
-            <Route path="/customers/dp" element={<DP />} />
-            <Route
-              path="/customers/dp/:ReceiptVoucherID"
-              element={<DPForm pageTitles={pageTitles} mode={"view"} />}
-            />
-            <Route
-              path="/customers/dp/edit/:ReceiptVoucherID"
-              element={<DPForm pageTitles={pageTitles} mode={"edit"} />}
-            />
-            <Route
-              path="/customers/dp/new"
-              element={<DPForm pageTitles={pageTitles} mode={"new"} />}
-            />
+
             <Route
               path={`${ROUTE_URLS.ACCOUNTS.CUSTOMER_INVOICE}/:CustomerInvoiceID`}
               element={
