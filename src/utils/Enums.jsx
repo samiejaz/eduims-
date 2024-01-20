@@ -36,6 +36,7 @@ export const ROUTE_URLS = {
     RECIEPT_VOUCHER_ROUTE: "/customer/reciepts",
     DEBIT_NODE_ROUTE: "/customer/debitnote",
     CREDIT_NODE_ROUTE: "/customer/creditnote",
+    NEW_CUSTOMER_INVOICE: "/customer/newcustomerinvoice",
   },
   LEADS: {
     LEADS_DASHBOARD: "/leads/dashboard",
@@ -77,4 +78,8 @@ export const SELECT_QUERY_KEYS = {
   USERS_SELECT_QUERY_KEY: "usersSelect",
   SESSION_SELECT_QUERY_KEY: "sessionsSelect",
   BANKS_SELECT_QUERY_KEY: "bankAccountsSelect",
+  CUSTOMER_BRANCHES_SELECT_QUERY_KEY: "customerBranchesSelect",
+  PRODUCTS_INFO_SELECT_QUERY_KEY: "productsInfoSelect",
+  SERVICES_SELECT_QUERY_KEY: "servicesInfoSelect",
+  BUSINESS_UNIT_SELECT_QUERY_KEY: "businessUnitsSelect",
 };

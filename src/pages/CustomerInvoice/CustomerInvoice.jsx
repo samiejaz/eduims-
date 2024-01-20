@@ -59,12 +59,19 @@ import { useNavigate, useParams } from "react-router-dom";
 import ButtonToolBar from "./CustomerInvoiceToolbar";
 import TextInput from "../../components/Forms/TextInput";
 import CDropdown from "../../components/Forms/CDropdown";
-import { QUERY_KEYS } from "../../utils/enums";
+import { QUERY_KEYS, ROUTE_URLS } from "../../utils/enums";
 
-let parentRoute = "/customer/customerInvoice";
+let parentRoute = ROUTE_URLS.ACCOUNTS.CUSTOMER_INVOICE;
+let editRoute = `${parentRoute}/edit/`;
+let newRoute = `${parentRoute}/new`;
+let cashDetailColor = "#22C55E";
+let onlineDetailColor = "#F59E0B";
+let chequeDetailColor = "#3B82F6";
+let ddDetailColor = "#8f48d2";
 let queryKey = QUERY_KEYS.CUSTOMER_INVOICE_QUERY_KEY;
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
+
 function CustomerInvoice() {
   const { pageTitles } = useContext(AppConfigurationContext);
   document.title = "Customer Invoice";
@@ -76,16 +83,6 @@ function CustomerInvoice() {
     </>
   );
 }
-
-/*
-  Pending
-
-  1) Add validation to each cell in datatable
-
-
-
-
-*/
 
 function CustomerInvoiceSearch() {
   const queryClient = useQueryClient();
@@ -546,6 +543,10 @@ function CustomerInvoiceForm({ pageTitles, mode }) {
       // Master Values
       method.setValue("InvoiceTitle", CustomerInvoice?.Master[0]?.InvoiceTitle);
       method.setValue("InvoiceNo", CustomerInvoice?.Master[0]?.InvoiceNo);
+      method.setValue(
+        "BusinessUnitID",
+        CustomerInvoice?.Master[0]?.BusinessUnitID
+      );
       method.setValue(
         "SessionBasedInvoiceNo",
         CustomerInvoice?.Master[0]?.SessionBasedVoucherNo

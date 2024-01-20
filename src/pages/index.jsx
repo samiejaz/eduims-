@@ -1,6 +1,5 @@
 export { default as AppConfiguration } from "./AppConfiguration/AppConfguration";
 export { default as BankAccountOpening } from "./BankAccountOpening/BankAccountOpening";
-export { default as BusinessUnits } from "./BusinessUnits/BusinessUnits";
 export { default as CompanyInfo } from "./CompanyInfo/CompanyInfo";
 export { default as CustomerBranch } from "./CustomerBranch/CustomerBranch";
 export { default as GenCustomerEntry } from "./CustomerEntry/GenCustomerEntry";

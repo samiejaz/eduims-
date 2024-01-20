@@ -75,3 +75,102 @@ export async function deleteCustomerInvoiceByID({
     return false;
   }
 }
+
+export async function addNewCustomerInvoice({
+  formData,
+  userID,
+  CustomerInvoiceID = 0,
+}) {
+  debugger;
+  try {
+    let InvoiceDetail = formData?.CustomerInvoiceDetail?.map((item, index) => {
+      return {
+        RowID: index + 1,
+        InvoiceType: item.InvoiceType,
+        BusinessUnitID: item.BusinessUnitID,
+        BranchID: item.CustomerBranch,
+        ProductToInvoiceID: item.ProductInfoID,
+        ServiceToInvoiceID:
+          item.ServiceInfoID === null ? null : item.ServiceInfoID,
+        Quantity: item.Qty,
+        Rate: item.Rate,
+        CGS: item.CGS,
+        Amount: item.Amount,
+        Discount: item.Discount,
+        NetAmount: item.NetAmount,
+        DetailDescription: item.DetailDescription,
+        IsFree: item.IsFree ? 1 : 0,
+      };
+    });
+
+    let InstallmentDetail = [];
+
+    let DataToSend = {
+      SessionID: formData?.SessionID,
+      InvoiceNo: formData?.VoucherNo,
+      SessionBasedVoucherNo: formData?.SessionBasedVoucherNo,
+      InvoiceDate: formData?.InvoiceDate || new Date(),
+      InvoiceDueDate: formData?.DueDate || new Date(),
+      CustomerID: formData?.Customer,
+      AccountID: formData?.CustomerLedgers,
+      BusinessUnitID: formData?.BusinessUnitID,
+      InvoiceTitle: formData?.InvoiceTitle,
+      Description: formData?.Description,
+      EntryUserID: userID,
+      TotalRate: formData?.TotalRate,
+      TotalCGS: formData?.TotalAmount,
+      TotalDiscount: formData?.TotalDiscount,
+      TotalNetAmount: formData?.TotalNetAmount,
+      DocumentNo: formData?.DocumentNo,
+      EntryUserID: userID,
+      InvoiceDetail: JSON.stringify(InvoiceDetail),
+    };
+
+    if (InstallmentDetail.length > 0) {
+      DataToSend.InvoiceInstallmentDetail = JSON.stringify(InstallmentDetail);
+    }
+
+    if (
+      CustomerInvoiceID !== 0 ||
+      CustomerInvoiceID !== undefined ||
+      CustomerInvoiceID !== null
+    ) {
+      DataToSend.CustomerInvoiceID = CustomerInvoiceID;
+    } else {
+      DataToSend.CustomerInvoiceID = 0;
+    }
+
+    const { data } = await axios.post(
+      apiUrl + `/CustomerInvoice/CustomerInvoiceInsertUpdate`,
+      DataToSend
+    );
+
+    if (data.success === true) {
+      if (CustomerInvoiceID !== 0) {
+        toast.success("Business Type updated successfully!");
+      } else {
+        toast.success("Business Type created successfully!");
+      }
+      return { success: true, RecordID: data?.CustomerInvoiceID };
+    } else {
+      toast.error(data.message);
+      return { success: false, RecordID: CustomerInvoiceID };
+    }
+  } catch (e) {
+    console.log(e.message);
+  }
+}
+export async function fetchMonthlyMaxCustomerInvoiceNo(BusinessUnitID) {
+  if (BusinessUnitID !== 0) {
+    try {
+      const { data } = await axios.post(
+        `${apiUrl}/${CONTROLLER}/GetInvoiceNo?BusinessUnitID=${BusinessUnitID}`
+      );
+      return data.data;
+    } catch (error) {
+      toast.error(error.messahe);
+    }
+  } else {
+    return [];
+  }
+}

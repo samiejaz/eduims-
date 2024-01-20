@@ -23,7 +23,7 @@ const ImageContainer = ({ imageRef, hideButtons = false }) => {
     <div
       style={{
         padding: "0",
-        width: "15%",
+        width: "100%",
         margin: "0px 10px",
       }}
     >
@@ -90,13 +90,13 @@ const ImageContainer = ({ imageRef, hideButtons = false }) => {
             style={{
               overflowClipMargin: "content-box",
               overflow: "clip",
-              width: "100px",
-              height: "100px",
-              objectFit: "fill",
+              width: "50%",
+              height: "50%",
+              objectFit: "contain",
             }}
             ref={imageRef}
             src=""
-            alt="Profile Pic"
+            alt=""
           />
         </div>
       </div>
