@@ -27,7 +27,6 @@ export async function fetchAllSessionsForSelect() {
 }
 
 export async function fetchAllCustomerAccountsForSelect(CustomerID) {
-  console.log(CustomerID);
   if (CustomerID === undefined) {
     CustomerID = 0;
   }

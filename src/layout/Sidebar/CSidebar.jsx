@@ -188,6 +188,11 @@ const CSidebar = ({ sideBarRef }) => {
                   Credit Note
                 </Link>
               </li>
+              <li>
+                <Link to={ROUTE_URLS.ACCOUNTS.NEW_CUSTOMER_INVOICE}>
+                  New Customer Invoice
+                </Link>
+              </li>
             </ul>
           </li>
 

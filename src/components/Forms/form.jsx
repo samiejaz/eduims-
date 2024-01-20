@@ -4,3 +4,4 @@ export { default as NumberInput } from "./NumberInput";
 export { default as CMaskInput } from "./CMaskInput";
 export { default as CDatePicker } from "./CDatePicker";
 export { default as CNumberInput } from "./CNumberInput";
+export { default as CRefDropdown } from "./CRefDropdown";

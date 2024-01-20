@@ -8,7 +8,6 @@ import GenNewCustomerView from "./pages/CustomerEntry/CustomerEntryView";
 import {
   AppConfiguration,
   BankAccountOpening,
-  BusinessUnits,
   SessionInfo,
   GenUsers,
   GenOldCustomers,
@@ -26,7 +25,10 @@ import {
 import { CustomerInvoiceFormMaster } from "./pages/CustomerInvoice/CustomerInvoice";
 import { useContext } from "react";
 import { AppConfigurationContext } from "./context/AppConfigurationContext";
-import { BusinessUnitsForm } from "./pages/BusinessUnits/BusinessUnits";
+import {
+  BusinessUnitDetail,
+  BusinessUnitForm,
+} from "./pages/BusinessUnits/BusinessUnits";
 import {
   KBarProvider,
   KBarPortal,
@@ -80,6 +82,10 @@ import {
   CreditNoteEntry,
   CreditNoteEntryForm,
 } from "./pages/CreditNote/CreditNote";
+import {
+  NewCustomerInvoiceEntry,
+  NewCustomerInvoiceEntryForm,
+} from "./pages/CustomerInvoice/NewCustomerInvoice";
 
 const App = () => {
   const { pageTitles } = useContext(AppConfigurationContext);
@@ -166,25 +172,25 @@ const App = () => {
               element={<CustomerInvoice />}
             />
             <Route
-              path="/customers/businessUnits"
-              element={<BusinessUnits />}
+              path={`${ROUTE_URLS.GENERAL.BUSINESS_UNITS}`}
+              element={<BusinessUnitDetail />}
             />
             <Route
-              path="/customers/businessUnits/:BusinessUnitID"
+              path={`${`${ROUTE_URLS.GENERAL.BUSINESS_UNITS}`}/:BusinessUnitID`}
               element={
-                <BusinessUnitsForm pageTitles={pageTitles} mode={"view"} />
+                <BusinessUnitForm pageTitles={pageTitles} mode={"view"} />
               }
             />
             <Route
-              path="/customers/businessUnits/edit/:BusinessUnitID"
+              path={`${`${ROUTE_URLS.GENERAL.BUSINESS_UNITS}`}/edit/:BusinessUnitID`}
               element={
-                <BusinessUnitsForm pageTitles={pageTitles} mode={"edit"} />
+                <BusinessUnitForm pageTitles={pageTitles} mode={"edit"} />
               }
             />
             <Route
-              path="/customers/businessUnits/new"
+              path={`${ROUTE_URLS.GENERAL.BUSINESS_UNITS}/new`}
               element={
-                <BusinessUnitsForm pageTitles={pageTitles} mode={"new"} />
+                <BusinessUnitForm pageTitles={pageTitles} mode={"new"} />
               }
             />
             {/* Receipt Routes */}
@@ -645,6 +651,39 @@ const App = () => {
               }
             />
             {/* Debit Note END */}
+            {/* New Customer Invoice Note */}
+            <Route
+              path={ROUTE_URLS.ACCOUNTS.NEW_CUSTOMER_INVOICE}
+              element={<NewCustomerInvoiceEntry />}
+            />
+            <Route
+              path={`${ROUTE_URLS.ACCOUNTS.NEW_CUSTOMER_INVOICE}/:CustomerInvoiceID`}
+              element={
+                <NewCustomerInvoiceEntryForm
+                  pageTitles={pageTitles}
+                  mode={"view"}
+                />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.ACCOUNTS.NEW_CUSTOMER_INVOICE}/edit/:CustomerInvoiceID`}
+              element={
+                <NewCustomerInvoiceEntryForm
+                  pageTitles={pageTitles}
+                  mode={"edit"}
+                />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.ACCOUNTS.NEW_CUSTOMER_INVOICE}/new`}
+              element={
+                <NewCustomerInvoiceEntryForm
+                  pageTitles={pageTitles}
+                  mode={"new"}
+                />
+              }
+            />
+            {/* New Customer Invoice END */}
             {/* <Route path={`/chat`} element={<ChatRoom />} /> */}
             {/* Leads */}
             <Route
