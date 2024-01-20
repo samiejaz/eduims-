@@ -15,7 +15,7 @@ const CDropdown = ({
   required = false,
   showOnFocus = true,
   showClear = false,
-  filter = false,
+  filter = true,
   disabled = false,
   ...moreOptions
 }) => {

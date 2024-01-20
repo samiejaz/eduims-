@@ -55,6 +55,7 @@ const NumberInput = ({
               }
             }}
             disabled={disabled}
+            aria-autocomplete="off"
             {...options}
           />
         </>

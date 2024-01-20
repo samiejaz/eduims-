@@ -178,6 +178,16 @@ const CSidebar = ({ sideBarRef }) => {
                   Receipt Voucher
                 </Link>
               </li>
+              <li>
+                <Link to={ROUTE_URLS.ACCOUNTS.DEBIT_NODE_ROUTE}>
+                  Debit Note
+                </Link>
+              </li>
+              <li>
+                <Link to={ROUTE_URLS.ACCOUNTS.CREDIT_NODE_ROUTE}>
+                  Credit Note
+                </Link>
+              </li>
             </ul>
           </li>
 

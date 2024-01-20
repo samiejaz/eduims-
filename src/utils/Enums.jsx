@@ -34,6 +34,8 @@ export const ROUTE_URLS = {
     BANK_ACCOUNT_OPENING: "/accounts/bankaccountopening",
     CUSTOMER_INVOICE: "/customer/customerinvoice",
     RECIEPT_VOUCHER_ROUTE: "/customer/reciepts",
+    DEBIT_NODE_ROUTE: "/customer/debitnote",
+    CREDIT_NODE_ROUTE: "/customer/creditnote",
   },
   LEADS: {
     LEADS_DASHBOARD: "/leads/dashboard",
@@ -56,6 +58,9 @@ export const QUERY_KEYS = {
   LEADS_DEMO_DATA: "leadsDemoData",
   SESSION_INFO_QUERY_KEY: "sessions",
   RECEIPT_VOUCHER_INFO_QUERY_KEY: "receiptVouchers",
+  DEBIT_NODE_QUERY_KEY: "debitNotes",
+  CREDIT_NODE_QUERY_KEY: "creditNotes",
+  CUSTOMER_INVOICE_QUERY_KEY: "customerInvoices",
   // Select
   ALL_CUSTOMER_QUERY_KEY: "oldcustomers",
   CUSTOMER_ACCOUNTS_QUERY_KEY: "customerAccounts",

@@ -18,10 +18,18 @@ export async function fetchAllReceiptVoucheres(LoginUserID) {
 
 // URL: /data_ReceiptVoucher/GetReceiptVoucherWhere?ReceiptVoucherID=??&LoginUserID=??
 export async function fetchReceiptVoucherById(ReceiptVoucherID, LoginUserID) {
-  const { data } = await axios.post(
-    `${apiUrl}/${CONTROLLER}/GetReceiptVoucherWhere?ReceiptVoucherID=${ReceiptVoucherID}&LoginUserID=${LoginUserID}`
-  );
-  return data ?? [];
+  if (ReceiptVoucherID === undefined || ReceiptVoucherID === 0) {
+    return [];
+  } else {
+    try {
+      const { data } = await axios.post(
+        `${apiUrl}/${CONTROLLER}/GetReceiptVoucherWhere?ReceiptVoucherID=${ReceiptVoucherID}&LoginUserID=${LoginUserID}`
+      );
+      return data ?? [];
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
 }
 // URL: /data_ReceiptVoucher/ReceiptVoucherDelete?ReceiptVoucherID=??&LoginUserID=??
 export async function deleteReceiptVoucherByID(serviceInfo) {
@@ -30,7 +38,7 @@ export async function deleteReceiptVoucherByID(serviceInfo) {
   );
 
   if (data.success === true) {
-    toast.success("Branch sucessfully deleted!");
+    toast.success("Receipt sucessfully deleted!");
     return true;
   } else {
     toast.error(data.message);
@@ -55,7 +63,6 @@ export async function addNewReceiptVoucher({
   userID,
   ReceiptVoucherID = 0,
 }) {
-  console.log(formData);
   if (formData.receiptDetail.length > 0) {
     try {
       let ReceiptVoucherDetail = formData.receiptDetail.map((item, index) => {
@@ -73,6 +80,7 @@ export async function addNewReceiptVoucher({
         VoucherNo: formData.VoucherNo,
         VoucherDate: formData.VoucherDate,
         ReceiptMode: formData.ReceiptMode,
+        DocumentNo: formData.DocumentNo,
         InstrumentType:
           formData.InstrumentType?.length > 0 ? formData.InstrumentType : null,
         CustomerID: formData.Customer,
@@ -86,7 +94,11 @@ export async function addNewReceiptVoucher({
         ReceiptVoucherDetail: JSON.stringify(ReceiptVoucherDetail),
       };
 
-      if (ReceiptVoucherID === 0 || ReceiptVoucherID === undefined) {
+      if (
+        ReceiptVoucherID === 0 ||
+        ReceiptVoucherID === undefined ||
+        ReceiptVoucherID === null
+      ) {
         DataToSend.ReceiptVoucherID = 0;
       } else {
         DataToSend.ReceiptVoucherID = ReceiptVoucherID;
@@ -103,10 +115,10 @@ export async function addNewReceiptVoucher({
         } else {
           toast.success("ReceiptVoucher created successfully!");
         }
-        return true;
+        return { success: true, RecordID: data?.ReceiptVoucherID };
       } else {
         toast.error(data.message);
-        return false;
+        return { success: false, RecordID: ReceiptVoucherID };
       }
     } catch (error) {
       toast.error(error.message);

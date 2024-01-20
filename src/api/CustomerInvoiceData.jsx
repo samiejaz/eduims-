@@ -6,7 +6,7 @@ const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 const CONTROLLER = "CustomerInvoice";
 const WHEREMETHOD = "GetCustomerInvoiceWhere";
-const DELETEMETHOD = "InvoiceDescriptionDelete";
+const DELETEMETHOD = "CustomerInvoiceDelete";
 
 // URL: /CustomerInvoice/GetCustomerInvoicesData?LoginUserID=??
 export async function fetchAllCustomerInvoices(LoginUserID) {
@@ -58,16 +58,17 @@ export async function fetchMaxSessionBasedVoucherNo(LoginUserID) {
     toast.error(error);
   }
 }
-// URL: /EduIMS/CustomerBranchDelete?CustomerInvoiceID=??&LoginUserID=??
-export async function deleteInvoiceDeafultDescriptionsByID(
-  invoiceDefaultDescription
-) {
+// URL: /CustomerInvoice/CustomerInvoiceDelete?CustomerInvoiceID=??&LoginUserID=??
+export async function deleteCustomerInvoiceByID({
+  CustomerInvoiceID,
+  LoginUserID,
+}) {
   const { data } = await axios.post(
-    `${apiUrl}/${CONTROLLER}/${DELETEMETHOD}?CustomerInvoiceID=${invoiceDefaultDescription.DescriptionID}&LoginUserID=${invoiceDefaultDescription.LoginUserID}`
+    `${apiUrl}/${CONTROLLER}/${DELETEMETHOD}?CustomerInvoiceID=${CustomerInvoiceID}&LoginUserID=${LoginUserID}`
   );
 
   if (data.success === true) {
-    toast.success("Description sucessfully deleted!");
+    toast.success("Invoice sucessfully deleted!");
     return true;
   } else {
     toast.error(data.message);
