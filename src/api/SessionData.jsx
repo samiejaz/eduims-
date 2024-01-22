@@ -31,20 +31,29 @@ export async function fetchAllSessions(LoginUserID) {
 }
 
 export async function fetchSessionById(SessionID, LoginUserID) {
-  try {
-    const { data } = await axios.post(
-      apiUrl +
-        `/EduIMS/GetSessionWhere?SessionID=${SessionID}&LoginUserID=${LoginUserID}`
-    );
-    return data;
-  } catch (error) {}
+  if (SessionID !== undefined) {
+    try {
+      const { data } = await axios.post(
+        apiUrl +
+          `/EduIMS/GetSessionWhere?SessionID=${SessionID}&LoginUserID=${LoginUserID}`
+      );
+      return data.data;
+    } catch (error) {}
+  } else {
+    return [];
+  }
 }
 
 export async function deleteSessionByID(session) {
-  await axios.post(
+  const { data } = await axios.post(
     apiUrl +
       `/EduIMS/SessionDelete?SessionID=${session.SessionID}&LoginUserID=${session.LoginUserID}`
   );
+  if (data.success === true) {
+    toast.success("Session deleted successfully!");
+  } else {
+    toast.error(data.message);
+  }
 }
 
 export async function addNewSession({ formData, userID, SessionID = 0 }) {

@@ -1,4 +1,4 @@
-import { Row, Form, Col, Spinner } from "react-bootstrap";
+import { Row, Form, Col, Spinner, Table } from "react-bootstrap";
 import { DataTable } from "primereact/datatable";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
@@ -9,6 +9,7 @@ import {
   useFormContext,
   FormProvider,
   useWatch,
+  Controller,
 } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import ActionButtons from "../../components/ActionButtons";
@@ -52,6 +53,9 @@ import CNumberInput from "../../components/Forms/CNumberInput";
 import CSwitchInput from "../../components/Forms/CSwitchInput";
 import { useUserData } from "../../context/AuthContext";
 import { CustomerEntryForm } from "../../components/CustomerEntryFormComponent";
+import { PrintReportInNewTab } from "../../utils/CommonFunctions";
+import { classNames } from "primereact/utils";
+import { InputSwitch } from "primereact/inputswitch";
 
 const CustomerInvoiceModeOptions = [
   { value: "Cash", label: "Cash" },
@@ -71,7 +75,7 @@ let cashDetailColor = "#22C55E";
 let onlineDetailColor = "#F59E0B";
 let chequeDetailColor = "#3B82F6";
 let ddDetailColor = "#8f48d2";
-let queryKey = QUERY_KEYS.COUNTRIES_QUERY_KEY;
+let queryKey = QUERY_KEYS.CUSTOMER_INVOICE_QUERY_KEY;
 
 export function NewCustomerInvoiceEntry() {
   document.title = "Reciept Vouchers";
@@ -281,7 +285,12 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
   });
 
   const { data: CustomerInvoiceData } = useQuery({
-    queryKey: [QUERY_KEYS.CUSTOMER_INVOICE_QUERY_KEY, +CustomerInvoiceID],
+    queryKey: [
+      QUERY_KEYS.CUSTOMER_INVOICE_QUERY_KEY,
+      {
+        CustomerInvoiceID: +CustomerInvoiceID,
+      },
+    ],
     queryFn: () => fetchCustomerInvoiceById(CustomerInvoiceID, user.userID),
     enabled: CustomerInvoiceID !== undefined,
     initialData: [],
@@ -292,6 +301,16 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
     queryFn: fetchAllBusinessUnitsForSelect,
     initialData: [],
     enabled: mode !== "",
+  });
+
+  const { data: BranchSelectData } = useQuery({
+    queryKey: [
+      SELECT_QUERY_KEYS.CUSTOMER_BRANCHES_SELECT_QUERY_KEY,
+      customerBranchRef.current?.getAccountID(),
+    ],
+    queryFn: () => fetchAllCustomerBranchesData(AccountID),
+    enabled: customerBranchRef.current?.getAccountID() !== 0,
+    initialData: [],
   });
 
   const CustomerInvoiceMutation = useMutation({
@@ -318,7 +337,6 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
       +CustomerInvoiceID !== null &&
       CustomerInvoiceData?.Master?.length > 0
     ) {
-      console.log(CustomerInvoiceData);
       // Setting Values
       method.setValue("SessionID", CustomerInvoiceData?.Master[0]?.SessionID);
       method.setValue(
@@ -374,6 +392,8 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
           };
         })
       );
+
+      DispatchDetailEvents(CustomerInvoiceData.Detail);
 
       method.setValue("TotalAmount", CustomerInvoiceData?.Master[0]?.TotalCGS);
       method.setValue(
@@ -458,6 +478,12 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
               GoBackLabel="CustomerInvoices"
               saveLoading={CustomerInvoiceMutation.isPending}
               handleDelete={handleDelete}
+              showPrint={true}
+              handlePrint={() =>
+                PrintReportInNewTab(
+                  `InvoicePrint?CustomerInvoiceID=${CustomerInvoiceID}`
+                )
+              }
             />
           </div>
           <form id="CustomerInvoice" className="mt-4">
@@ -545,7 +571,7 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
             <CustomerInvoiceDetailTable
               mode={mode}
               BusinessUnitSelectData={BusinessUnitSelectData}
-              CustomerBranchSelectData={customerBranchRef.current?.getBranchesData()}
+              CustomerBranchSelectData={BranchSelectData}
               ref={detailTableRef}
             />
           </FormProvider>
@@ -555,7 +581,7 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
           </FormProvider>
           <Row>
             <Form.Group as={Col}>
-              <Form.Label>Total Rate</Form.Label>
+              <Form.Label>Total Amount</Form.Label>
 
               <Form.Control
                 type="number"
@@ -1179,7 +1205,7 @@ const CustomerInvoiceDetailTable = React.forwardRef(
 
     return (
       <>
-        <table className="table table-responsive mt-2">
+        <Table responsive className="table table-responsive mt-2">
           <thead>
             <tr>
               <th
@@ -1293,7 +1319,7 @@ const CustomerInvoiceDetailTable = React.forwardRef(
               })}
             </FormProvider>
           </tbody>
-        </table>
+        </Table>
       </>
     );
   }
@@ -1345,7 +1371,7 @@ function CustomerInvoiceDetailTableRow({
           />
         </td>
         <td>
-          <CSwitchInput
+          {/* <CSwitchInput
             control={method.control}
             name={`CustomerInvoiceDetail.${index}.IsFree`}
             disabled={disable}
@@ -1360,6 +1386,43 @@ function CustomerInvoiceDetailTableRow({
                 setIsFree(false);
               }
             }}
+          /> */}
+          <Controller
+            control={method.control}
+            name={`CustomerInvoiceDetail.${index}.IsFree`}
+            render={({ field, fieldState }) => (
+              <>
+                <InputSwitch
+                  inputId={field.name}
+                  checked={field.value}
+                  inputRef={field.ref}
+                  disabled={disable}
+                  className={classNames({ "p-invalid": fieldState.error })}
+                  onChange={(e) => {
+                    field.onChange(e.value);
+
+                    if (e.value) {
+                      method.setValue(`CustomerInvoiceDetail.${index}.Rate`, 0);
+                      method.setValue(
+                        `CustomerInvoiceDetail.${index}.Amount`,
+                        0
+                      );
+                      method.setValue(
+                        `CustomerInvoiceDetail.${index}.Discount`,
+                        0
+                      );
+                      method.setValue(
+                        `CustomerInvoiceDetail.${index}.NetAmount`,
+                        0
+                      );
+                      setIsFree(true);
+                    } else {
+                      setIsFree(false);
+                    }
+                  }}
+                />
+              </>
+            )}
           />
         </td>
         <td>
@@ -1622,8 +1685,9 @@ function CustomerInvoiceDetailTotal() {
       const cgs = parseFloat(item.CGS || 0);
       const discount = parseFloat(item.Discount || 0);
       const amount = parseFloat(item.NetAmount || 0);
+      const qty = parseFloat(item.Qty || 0);
 
-      rateSum += rate;
+      rateSum += rate * qty;
       cgsSum += cgs;
       discountSum += discount;
       amountSum += amount;
@@ -1650,8 +1714,8 @@ const BranchSelectField = React.forwardRef((props, ref) => {
 
   React.useImperativeHandle(ref, () => ({
     setAccountID,
-    getBranchesData() {
-      return data;
+    getAccountID() {
+      return AccountID;
     },
   }));
 
@@ -1679,3 +1743,16 @@ const BranchSelectField = React.forwardRef((props, ref) => {
     </>
   );
 });
+
+function DispatchDetailEvents(details) {
+  if (details.length > 0) {
+    // details.forEach((item, index) => {
+    //   document
+    //     .getElementById(`CustomerInvoiceDetail.${index}.IsFree`)
+    //     ?.dispatchEvent(new Event("change"));
+    // });
+    document
+      .getElementById(`CustomerInvoiceDetail.2.BusinessUnitID`)
+      ?.dispatchEvent(new Event("change"));
+  }
+}

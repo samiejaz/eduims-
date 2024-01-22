@@ -96,7 +96,7 @@ export function SessionDetail() {
       ) : (
         <>
           <div className="d-flex text-dark  mb-4 ">
-            <h2 className="text-center my-auto">Session Infos</h2>
+            <h2 className="text-center my-auto">Session Info</h2>
             <div className="text-end my-auto" style={{ marginLeft: "10px" }}>
               <Button
                 label="Add New Session Info"
@@ -183,7 +183,7 @@ export function SessionForm({ pagesTitle, user, mode }) {
   });
 
   useEffect(() => {
-    if (SessionID !== undefined && SessionData.data.length > 0) {
+    if (+SessionID !== 0 && SessionData.data.length > 0) {
       setValue("SessionTitle", SessionData?.data[0]?.SessionTitle);
       setValue(
         "SessionOpeningDate",
@@ -194,7 +194,7 @@ export function SessionForm({ pagesTitle, user, mode }) {
         parseISO(SessionData?.data[0]?.SessionClosingDate)
       );
     }
-  }, [SessionID, SessionData]);
+  }, [SessionID, SessionData.data]);
 
   const mutation = useMutation({
     mutationFn: addNewSession,

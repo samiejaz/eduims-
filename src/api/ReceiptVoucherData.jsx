@@ -86,13 +86,19 @@ export async function addNewReceiptVoucher({
         CustomerID: formData.Customer,
         AccountID: formData.CustomerLedgers,
         ReceivedInBankID: formData.ReceivedInBankID,
-        InstrumentNo: formData.InstrumentNo,
         InstrumentDate: formData.InstrumentDate,
         TotalNetAmount: formData.TotalNetAmount,
         Description: formData.Description,
+        FromBank: formData.FromBank,
         EntryUserID: userID,
         ReceiptVoucherDetail: JSON.stringify(ReceiptVoucherDetail),
       };
+
+      if (DataToSend.ReceiptMode === "Online") {
+        DataToSend.TransactionID = formData.TransactionID;
+      } else if (DataToSend.ReceiptMode === "Instrument") {
+        DataToSend.InstrumentNo = formData.TransactionID;
+      }
 
       if (
         ReceiptVoucherID === 0 ||
