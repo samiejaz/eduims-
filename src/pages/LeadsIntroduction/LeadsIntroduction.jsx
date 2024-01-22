@@ -31,7 +31,6 @@ import {
   useProductsInfoSelectData,
 } from "../../hooks/SelectData/useSelectData";
 import CDropdown from "../../components/Forms/CDropdown";
-
 import NumberInput from "../../components/Forms/NumberInput";
 import { Calendar } from "primereact/calendar";
 import { classNames } from "primereact/utils";
@@ -255,20 +254,33 @@ export function LeadIntroductionDetail({ ShowMetaDeta = true, Rows = 10 }) {
               style={{ minWidth: "12rem" }}
               body={statusBodyTemplate}
             ></Column>
-
             <Column
-              field="CompanyName"
+              field="VoucherDate"
               filter
               filterPlaceholder="Search by company"
               sortable
-              header="Company Name"
+              header="Date"
             ></Column>
             <Column
-              field="LeadSourceTitle"
+              field="CompanyName"
               filter
-              filterPlaceholder="Search by lead source"
+              filterPlaceholder="Search by firm"
               sortable
-              header="Lead Source"
+              header="Firm Name"
+            ></Column>
+            <Column
+              field="ContactPersonName"
+              filter
+              filterPlaceholder="Search by contact person name"
+              sortable
+              header="Contact Person Name"
+            ></Column>
+            <Column
+              field="ContactPersonMobileNo"
+              filter
+              filterPlaceholder="Search by mobile"
+              sortable
+              header="Contact Person Mobile No"
             ></Column>
             <Column
               body={actionBodyTemplate}
@@ -719,7 +731,7 @@ function ForwardDialog({ visible = true, setVisible, LeadIntroductionID }) {
         </Form.Group>
         <Form.Group as={Col} controlId="MeetingTime">
           <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
-            Meeting Date
+            Meeting Date & Time
             <span className="text-danger fw-bold ">*</span>
           </Form.Label>
           <div>
@@ -733,7 +745,7 @@ function ForwardDialog({ visible = true, setVisible, LeadIntroductionID }) {
                     inputId={field.name}
                     value={field.value}
                     onChange={field.onChange}
-                    dateFormat="dd/mm/yy"
+                    dateFormat="dd-M-yy"
                     style={{ width: "100%" }}
                     className={classNames({ "p-invalid": fieldState.error })}
                     showTime
@@ -765,8 +777,8 @@ function ForwardDialog({ visible = true, setVisible, LeadIntroductionID }) {
         </Form.Group>
       </Row>
       <Row>
-        <Form.Group as={Col} controlId="Description" className="col-12">
-          <Form.Label>Description</Form.Label>
+        <Form.Group as={Col} className="col-12">
+          <Form.Label>Instructions</Form.Label>
           <Form.Control
             as={"textarea"}
             rows={1}
@@ -939,7 +951,7 @@ function QuoteDialog({ visible = true, setVisible, LeadIntroductionID }) {
     <>
       <Dialog
         footer={footerContent}
-        header="Quote To"
+        header="Quoted"
         visible={visible}
         draggable={false}
         onHide={() => setVisible(false)}

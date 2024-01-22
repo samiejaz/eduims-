@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { QUERY_KEYS, ROUTE_URLS } from "../../utils/enums";
 import { Timeline } from "primereact/timeline";
 import { Card } from "primereact/card";
@@ -126,20 +126,24 @@ const LeadsIntroductionViewer = () => {
     return (
       <Card title={item.Status} subTitle={item.Date}>
         <p>{item.Detail}</p>
-        <Button
-          label="View More"
-          className="p-button-text"
-          type="button"
-          onClick={() =>
-            navigate(
-              `${
-                ROUTE_URLS.GENERAL.LEADS_INTROUDCTION_DETAIL_VIEWER_ROUTE
-              }/${LeadIntroductionID}/${
-                item.Status === "Meeting Done" ? "MeetingDone" : item.Status
-              }/${item.LeadIntroductionDetailID}`
-            )
-          }
-        ></Button>
+        {item.Status !== "Acknowledged" && (
+          <>
+            <Button
+              label="View More"
+              className="p-button-text"
+              type="button"
+              onClick={() =>
+                navigate(
+                  `${
+                    ROUTE_URLS.GENERAL.LEADS_INTROUDCTION_DETAIL_VIEWER_ROUTE
+                  }/${LeadIntroductionID}/${
+                    item.Status === "Meeting Done" ? "MeetingDone" : item.Status
+                  }/${item.LeadIntroductionDetailID}`
+                )
+              }
+            ></Button>
+          </>
+        )}
       </Card>
     );
   };
@@ -404,7 +408,7 @@ function ForwardedFieldsContainer({
         </Form.Group>
         <Form.Group as={Col} controlId="MeetingTime">
           <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
-            Meeting Date
+            Meeting Date & Time
             <span className="text-danger fw-bold ">*</span>
           </Form.Label>
           <div>
@@ -418,7 +422,7 @@ function ForwardedFieldsContainer({
                     inputId={field.name}
                     value={field.value}
                     onChange={field.onChange}
-                    dateFormat="dd/mm/yy"
+                    dateFormat="dd-M-yy"
                     style={{ width: "100%" }}
                     className={classNames({ "p-invalid": fieldState.error })}
                     showTime
@@ -452,8 +456,8 @@ function ForwardedFieldsContainer({
         </Form.Group>
       </Row>
       <Row>
-        <Form.Group as={Col} controlId="Description" className="col-12">
-          <Form.Label>Description</Form.Label>
+        <Form.Group as={Col} className="col-12">
+          <Form.Label>Instructions</Form.Label>
           <Form.Control
             as={"textarea"}
             rows={1}
@@ -520,6 +524,7 @@ function QuotedFieldsContainer({
   Type,
 }) {
   const method = useForm();
+  const fileInputRef = useRef();
   const [isEnable, setIsEnable] = useState(false);
   const [filePath, setFilePath] = useState("");
   const [fileType, setFileType] = useState("");
@@ -554,7 +559,7 @@ function QuotedFieldsContainer({
       setFilePath(
         data[0]?.FileName === null
           ? null
-          : "http://192.168.9.110:90/api/data_LeadIntroduction/DownloadLeadProposal?filename=" +
+          : "http://110.39.141.170:90/api/data_LeadIntroduction/DownloadLeadProposal?filename=" +
               data[0]?.FileName
       );
       setFileType(
@@ -602,6 +607,13 @@ function QuotedFieldsContainer({
       userID: user.userID,
       LeadIntroductionID: LeadIntroductionID,
       LeadIntroductionDetailID: LeadIntroductionDetailID,
+      fileData: {
+        FileType: data[0]?.FileType ?? "",
+        FilePath: data[0]?.FilePath ?? "",
+        FileName: data[0]?.FileName ?? "",
+        FullFilePath: data[0]?.FullFilePath ?? "",
+      },
+      file: fileInputRef.current?.children[0].files[0],
     });
   }
 
@@ -615,15 +627,13 @@ function QuotedFieldsContainer({
         isLoading={mutation.isPending}
         isEnable={isEnable}
       />
-
       {QuotedFields}
-
       {isEnable ? (
         <>
           <Row>
             <Form.Group as={Col} controlId="AttachmentFile">
               <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
-                File
+                Choose File
                 <span className="text-danger fw-bold ">*</span>
               </Form.Label>
               <Form.Control
@@ -636,17 +646,24 @@ function QuotedFieldsContainer({
       ) : (
         <></>
       )}
-
       {filePath !== null && fileType !== "" ? (
         <>
-          {isEnable === false && (
+          <Form.Label>File</Form.Label>
+          {isEnable && (
             <>
-              <Form.Label>File</Form.Label>
-              <div className="mt-5">
-                <FileViewer fileType={fileType} filePath={filePath} />
+              <div>
+                <Button icon="pi pi-plus" type="button" className="rounded" />
+                <Button icon="pi pi-trash" type="button" className="rounded" />
               </div>
             </>
           )}
+          <div className="mt-5">
+            <FileViewer
+              fileType={getFileType(fileType)}
+              filePath={filePath}
+              ref={fileInputRef}
+            />
+          </div>
         </>
       ) : (
         <></>
@@ -815,4 +832,15 @@ export function LeadsViewerButtonToolBar({
       </div>
     </div>
   );
+}
+
+function getFileType(fileType) {
+  switch (fileType) {
+    case "xlsx":
+      return "microsoftxlsx";
+    case "docx":
+      return "microsoftdoc";
+    default:
+      return fileType;
+  }
 }

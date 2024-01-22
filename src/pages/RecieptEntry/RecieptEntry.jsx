@@ -46,6 +46,7 @@ import {
 } from "../../api/SelectData";
 import CDatePicker from "../../components/Forms/CDatePicker";
 import CNumberInput from "../../components/Forms/CNumberInput";
+import { PrintReportInNewTab } from "../../utils/CommonFunctions";
 
 const receiptModeOptions = [
   { value: "Cash", label: "Cash" },
@@ -222,12 +223,20 @@ function ReceiptEntrySearch() {
               style={{ minWidth: "7rem", maxWidth: "7rem", width: "7rem" }}
             ></Column>
             <Column
+              field="BusinessUnitName"
+              filter
+              filterPlaceholder="Search by business unit"
+              sortable
+              header="Business Unit"
+            ></Column>
+            <Column
               field="VoucherNo"
               filter
               filterPlaceholder="Search by voucher no"
               sortable
               header="Voucher No"
             ></Column>
+
             <Column
               field="ReceiptMode"
               filter
@@ -235,8 +244,7 @@ function ReceiptEntrySearch() {
               sortable
               header="Receipt Mode"
               showFilterMenu={false}
-              filterMenuStyle={{ width: "14rem" }}
-              style={{ minWidth: "12rem" }}
+              filterMenuStyle={{ width: "4rem" }}
               body={statusBodyTemplate}
             ></Column>
 
@@ -259,7 +267,8 @@ function ReceiptEntrySearch() {
               sortable
               header="Total Reciept Amount"
               filter
-              filterPlaceholder="Search by receipt amount"
+              filterPlaceholder="Search by amount"
+              style={{ maxWidth: "13rem" }}
             ></Column>
           </DataTable>
           {EditModal}
@@ -286,6 +295,7 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
   // Ref
   const detailTableRef = useRef();
   const customerCompRef = useRef();
+  const receiptModeRef = useRef();
   // Form
   const method = useForm({
     defaultValues,
@@ -356,6 +366,11 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
         "ReceiptMode",
         ReceiptVoucherData?.Master[0]?.ReceiptMode
       );
+      receiptModeRef.current?.setReceiptMode(
+        ReceiptVoucherData?.Master[0]?.ReceiptMode === "Instrument"
+          ? ReceiptVoucherData?.Master[0]?.InstrumentType
+          : ReceiptVoucherData?.Master[0]?.ReceiptMode
+      );
       method.setValue(
         "InstrumentType",
         ReceiptVoucherData?.Master[0]?.InstrumentType
@@ -367,7 +382,9 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
       method.setValue("FromBank", ReceiptVoucherData?.Master[0]?.FromBank);
       method.setValue(
         "TransactionID",
-        ReceiptVoucherData?.Master[0]?.TransactionID
+        ReceiptVoucherData?.Master[0]?.TransactionID === null
+          ? ReceiptVoucherData?.Master[0]?.InstrumentNo
+          : ReceiptVoucherData?.Master[0]?.TransactionID
       );
       method.setValue(
         "ReceivedInBankID",
@@ -464,6 +481,12 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
               GoBackLabel="Receipts"
               saveLoading={receiptVoucherMutation.isPending}
               handleDelete={handleDelete}
+              showPrint={true}
+              handlePrint={() =>
+                PrintReportInNewTab(
+                  "ReceiptVoucherPrint?ReceiptVoucherID=" + ReceiptVoucherID
+                )
+              }
             />
           </div>
           <form id="receiptVoucher" className="mt-4">
@@ -491,6 +514,7 @@ export function ReceiptEntryForm({ pagesTitle, mode }) {
                 <ReceiptModeDependantFields
                   mode={mode}
                   removeAllRows={detailTableRef.current?.removeAllRows}
+                  ref={receiptModeRef}
                 />
               </Row>
             </FormProvider>
@@ -770,115 +794,121 @@ function BusinessUnitDependantFields({ mode }) {
   );
 }
 
-function ReceiptModeDependantFields({ mode, removeAllRows }) {
-  const [receiptMode, setReceiptMode] = useState("");
+const ReceiptModeDependantFields = React.forwardRef(
+  ({ mode, removeAllRows }, ref) => {
+    const [receiptMode, setReceiptMode] = useState("");
 
-  const method = useFormContext();
+    React.useImperativeHandle(ref, () => ({
+      setReceiptMode,
+    }));
 
-  function ShowSection() {
-    if (receiptMode === "Online") {
-      return (
-        <>
-          <MasterBankFields mode={mode} />
-        </>
-      );
-    } else if (receiptMode === "DD" || receiptMode === "Cheque") {
-      return (
-        <>
-          <MasterBankFields
-            mode={mode}
-            FromBankTitle="Instrument Of"
-            ReceivedInBankTitle="In Bank"
-            TranstactionIDTitle="Instrument No"
-          />
-          <Form.Group as={Col}>
-            <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
-              Instrument Date
-            </Form.Label>
-            <div>
-              <CDatePicker
-                control={method.control}
-                name="InstrumentDate"
-                disabled={mode === "view"}
-              />
-            </div>
-          </Form.Group>
-        </>
-      );
+    const method = useFormContext();
+
+    function ShowSection() {
+      if (receiptMode === "Online") {
+        return (
+          <>
+            <MasterBankFields mode={mode} />
+          </>
+        );
+      } else if (receiptMode === "DD" || receiptMode === "Cheque") {
+        return (
+          <>
+            <MasterBankFields
+              mode={mode}
+              FromBankTitle="Instrument Of"
+              ReceivedInBankTitle="In Bank"
+              TranstactionIDTitle="Instrument No"
+            />
+            <Form.Group as={Col}>
+              <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
+                Instrument Date
+              </Form.Label>
+              <div>
+                <CDatePicker
+                  control={method.control}
+                  name="InstrumentDate"
+                  disabled={mode === "view"}
+                />
+              </div>
+            </Form.Group>
+          </>
+        );
+      }
     }
+
+    function emptyAllFieldsOnReceiptModeChange() {
+      method.resetField("FromBank");
+      method.resetField("InstrumentDate");
+      method.resetField("ReceivedInBankID");
+      method.resetField("TransactionID");
+    }
+
+    return (
+      <>
+        <Form.Group className="col-xl-2 " as={Col}>
+          <Form.Label>
+            Receipt Mode
+            <span className="text-danger fw-bold ">*</span>
+          </Form.Label>
+          <div>
+            <CDropdown
+              control={method.control}
+              options={receiptModeOptions}
+              optionValue="value"
+              optionLabel="label"
+              name={`ReceiptMode`}
+              placeholder="Select receipt mode"
+              onChange={(e) => {
+                setReceiptMode(e.value);
+                method.setValue("InstrumentType", []);
+                removeAllRows();
+                emptyAllFieldsOnReceiptModeChange();
+              }}
+              showOnFocus={true}
+              disabled={mode === "view"}
+              focusOptions={(e) => {
+                method.setFocus(
+                  e.value === "Instrument" ? "InstrumentType" : "Description"
+                );
+              }}
+            />
+          </div>
+        </Form.Group>
+
+        <Form.Group className="col-xl-2 " as={Col}>
+          <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
+            Instrument Type
+          </Form.Label>
+          <div>
+            <CDropdown
+              control={method.control}
+              name={`InstrumentType`}
+              placeholder="Select a type"
+              options={instrumentTypeOptions}
+              required={receiptMode === "Instrument"}
+              disabled={
+                mode === "view" ||
+                receiptMode === "Cash" ||
+                receiptMode === "Online"
+              }
+              focusOptions={() => method.setFocus("Description")}
+              onChange={(e) => {
+                setReceiptMode(e.value);
+                removeAllRows();
+                emptyAllFieldsOnReceiptModeChange();
+              }}
+            />
+          </div>
+        </Form.Group>
+
+        <Row>
+          <ShowSection />
+        </Row>
+      </>
+    );
   }
-
-  function emptyAllFieldsOnReceiptModeChange() {
-    method.resetField("FromBank");
-    method.resetField("InstrumentDate");
-    method.resetField("ReceivedInBankID");
-    method.resetField("TransactionID");
-  }
-
-  return (
-    <>
-      <Form.Group className="col-xl-2 " as={Col}>
-        <Form.Label>
-          Receipt Mode
-          <span className="text-danger fw-bold ">*</span>
-        </Form.Label>
-        <div>
-          <CDropdown
-            control={method.control}
-            options={receiptModeOptions}
-            optionValue="value"
-            optionLabel="label"
-            name={`ReceiptMode`}
-            placeholder="Select receipt mode"
-            onChange={(e) => {
-              setReceiptMode(e.value);
-              method.setValue("InstrumentType", []);
-              removeAllRows();
-              emptyAllFieldsOnReceiptModeChange();
-            }}
-            showOnFocus={true}
-            disabled={mode === "view"}
-            focusOptions={(e) => {
-              method.setFocus(
-                e.value === "Instrument" ? "InstrumentType" : "Description"
-              );
-            }}
-          />
-        </div>
-      </Form.Group>
-
-      <Form.Group className="col-xl-2 " as={Col}>
-        <Form.Label style={{ fontSize: "14px", fontWeight: "bold" }}>
-          Instrument Type
-        </Form.Label>
-        <div>
-          <CDropdown
-            control={method.control}
-            name={`InstrumentType`}
-            placeholder="Select a type"
-            options={instrumentTypeOptions}
-            required={receiptMode === "Instrument"}
-            disabled={
-              mode === "view" ||
-              receiptMode === "Cash" ||
-              receiptMode === "Online"
-            }
-            focusOptions={() => method.setFocus("Description")}
-            onChange={(e) => {
-              setReceiptMode(e.value);
-              removeAllRows();
-              emptyAllFieldsOnReceiptModeChange();
-            }}
-          />
-        </div>
-      </Form.Group>
-
-      <Row>
-        <ShowSection />
-      </Row>
-    </>
-  );
-}
+);
 
 const MasterBankFields = ({
   mode,

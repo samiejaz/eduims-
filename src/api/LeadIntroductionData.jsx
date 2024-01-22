@@ -106,6 +106,8 @@ export async function addLeadIntroductionOnAction({
   userID,
   LeadIntroductionID,
   LeadIntroductionDetailID = 0,
+  fileData,
+  file,
 }) {
   try {
     let Status = "";
@@ -114,7 +116,9 @@ export async function addLeadIntroductionOnAction({
     if (from === "Forward") {
       newFormData.append(
         "UserID",
-        formData.UserID === undefined ? "" : formData.UserID
+        formData.UserID === undefined || formData.UserID === null
+          ? ""
+          : formData.UserID
       );
       newFormData.append("MeetingPlace", formData.MeetingPlace);
       newFormData.append(
@@ -126,14 +130,24 @@ export async function addLeadIntroductionOnAction({
       newFormData.append("Description", formData.Description ?? "");
       Status = "Forwarded";
     } else if (from === "Quoted" || from === "Finalized") {
-      newFormData.append(
-        "AttachmentFile",
-        formData?.AttachmentFile !== undefined
-          ? formData?.AttachmentFile[0]
-          : ""
-      );
+      if (file) {
+        newFormData.append("AttachmentFile", file);
+      } else {
+        newFormData.append(
+          "AttachmentFile",
+          formData?.AttachmentFile !== undefined
+            ? formData?.AttachmentFile[0]
+            : ""
+        );
+      }
       newFormData.append("Amount", formData.Amount ?? 1900);
       newFormData.append("Description", formData.Description);
+      if (fileData) {
+        newFormData.append("FileType", formData.Description);
+        newFormData.append("FileName", formData.FileName);
+        newFormData.append("FilePath", formData.FilePath);
+        newFormData.append("FullFilePath", formData.FullFilePath);
+      }
       Status = from === "Quoted" ? "Quoted" : "Finalized";
     } else if (from === "Closed") {
       newFormData.append("Amount", formData.Amount ?? 100);
@@ -147,8 +161,8 @@ export async function addLeadIntroductionOnAction({
     } else if (from === "Pending") {
       newFormData.append("Description", formData.Description ?? "");
       Status = "Pending";
-    } else if (from === "Acknowledge") {
-      Status = "Acknowledge";
+    } else if (from === "Acknowledged") {
+      Status = "Acknowledged";
     }
 
     if (LeadIntroductionDetailID !== 0) {

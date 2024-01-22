@@ -8,7 +8,6 @@ import GenNewCustomerView from "./pages/CustomerEntry/CustomerEntryView";
 import {
   AppConfiguration,
   BankAccountOpening,
-  SessionInfo,
   GenUsers,
   GenOldCustomers,
   ProductCategory,
@@ -68,7 +67,6 @@ import {
 // import ChatRoom from "./test/Chat";
 import { UserDetail, UserForm } from "./pages/GenUsers/Users";
 import signalRConnectionManager from "./services/SignalRService";
-import FileViewer from "./pages/FileViewer";
 import LeadsIntroductionViewer, {
   LeadsIntroductionViewerDetail,
 } from "./pages/LeadsIntroductionViewer/LeadsIntroductionViewer";
@@ -577,7 +575,7 @@ const App = () => {
               element={<SessionDetail />}
             />
             <Route
-              path={`${ROUTE_URLS.GENERAL.SESSION_INFO}/:UserID`}
+              path={`${ROUTE_URLS.GENERAL.SESSION_INFO}/:SessionID`}
               element={
                 <SessionForm
                   pageTitles={pageTitles}
@@ -587,7 +585,7 @@ const App = () => {
               }
             />
             <Route
-              path={`${ROUTE_URLS.GENERAL.SESSION_INFO}/edit/:UserID`}
+              path={`${ROUTE_URLS.GENERAL.SESSION_INFO}/edit/:SessionID`}
               element={
                 <SessionForm
                   pageTitles={pageTitles}
@@ -691,7 +689,6 @@ const App = () => {
               element={<LeadsDashboard />}
             />
             {/* Leads End */}
-            <Route path="/fileviewer" element={<FileViewer />} />
           </Route>
         </Routes>
         <ToastContainer

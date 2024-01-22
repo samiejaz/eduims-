@@ -4,23 +4,21 @@ import { DataTable } from "primereact/datatable";
 import React, { useState } from "react";
 import ReactDatePicker from "react-datepicker";
 import { useUserData } from "../../context/AuthContext";
-import { QUERY_KEYS, ROUTE_URLS } from "../../utils/enums";
+import { QUERY_KEYS } from "../../utils/enums";
 import {
   addLeadIntroductionOnAction,
   fetchAllDemonstrationLeadsData,
-  fetchAllLeadIntroductions,
 } from "../../api/LeadIntroductionData";
 import { Button } from "primereact/button";
 import { Tag } from "primereact/tag";
 import { FilterMatchMode } from "primereact/api";
 import { useLeadsIntroductionModalHook } from "../../hooks/ModalHooks/useLeadsIntroductionModalHook";
-import { InputSwitch } from "primereact/inputswitch";
-import { Controller, useForm } from "react-hook-form";
 import { useMeetingDoneModalHook } from "../../components/Modals/MeetingDoneModal";
 import { CIconButton } from "../../components/Buttons/CButtons";
 import { useRevertBackModalHook } from "../../components/Modals/RevertBackModal";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { toast } from "react-toastify";
+import { parseISO } from "date-fns";
 
 function Dashboard() {
   document.title = "Dashboard";
@@ -186,7 +184,7 @@ function LeadsIntroductionDemonstratorTable() {
         mutation.mutate({
           userID: user.userID,
           LeadIntroductionID,
-          from: "Acknowledge",
+          from: "Acknowledged",
         });
       },
       reject: () => {},
@@ -250,7 +248,14 @@ function LeadsIntroductionDemonstratorTable() {
               icon={"pi pi-check"}
               severity="success"
               tooltip="Complete"
-              disabled={rowData.Status === "Meeting Done"}
+              disabled={
+                rowData.Status === "Meeting Done" ||
+                rowData.Status === "Finalized" ||
+                rowData.Status === "Quoted" ||
+                rowData.Status === "Closed" ||
+                rowData.Status === "Meeting Done" ||
+                rowData.Status === "Pending"
+              }
             />
             <CIconButton
               onClick={() => {
@@ -263,14 +268,28 @@ function LeadsIntroductionDemonstratorTable() {
               icon={"pi pi-arrow-left"}
               severity="danger"
               tooltip="Return"
-              disabled={rowData.Status === "Pending"}
+              disabled={
+                rowData.Status === "Pending" ||
+                rowData.Status === "Finalized" ||
+                rowData.Status === "Quoted" ||
+                rowData.Status === "Closed" ||
+                rowData.Status === "Meeting Done" ||
+                rowData.Status === "Pending"
+              }
             />
             <CIconButton
               onClick={() => confirmAcknowledge(rowData.LeadIntroductionID)}
               icon={"pi pi-star"}
               severity="warning"
-              tooltip="Acknowledge"
-              disabled={rowData.Status === "Acknowledge"}
+              tooltip="Acknowledged"
+              disabled={
+                rowData.Status === "Acknowledged" ||
+                rowData.Status === "Finalized" ||
+                rowData.Status === "Quoted" ||
+                rowData.Status === "Closed" ||
+                rowData.Status === "Meeting Done" ||
+                rowData.Status === "Pending"
+              }
             />
           </div>
         </div>
@@ -339,32 +358,32 @@ function LeadsIntroductionDemonstratorTable() {
         ></Column>
 
         <Column
-          field="CompanyName"
+          field="EntryDate"
           filter
           filterPlaceholder="Search by company"
           sortable
-          header="Company Name"
+          header="Date"
+        ></Column>
+        <Column
+          field="CompanyName"
+          filter
+          filterPlaceholder="Search by firm"
+          sortable
+          header="Firm Name"
         ></Column>
         <Column
           field="ContactPersonName"
           filter
-          filterPlaceholder="Search by contact person"
+          filterPlaceholder="Search by contact person name"
           sortable
-          header="Contact Person"
+          header="Contact Person Name"
         ></Column>
         <Column
           field="ContactPersonMobileNo"
           filter
-          filterPlaceholder="Search by contact person no"
+          filterPlaceholder="Search by mobile"
           sortable
           header="Contact Person Mobile No"
-        ></Column>
-        <Column
-          field="ProductInfoTitle"
-          filter
-          filterPlaceholder="Search by product"
-          sortable
-          header="Product"
         ></Column>
       </DataTable>
       {render}
