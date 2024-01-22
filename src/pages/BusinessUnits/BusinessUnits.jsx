@@ -233,46 +233,44 @@ export function BusinessUnitForm({ pagesTitle, mode }) {
   });
 
   useEffect(() => {
-    if (!isDirty) {
-      if (+BusinessUnitID !== undefined && BusinessUnitData?.data?.length > 0) {
-        try {
-          setValue(
-            "BusinessUnitName",
-            BusinessUnitData?.data[0]?.BusinessUnitName
-          );
-          setValue("Address", BusinessUnitData?.data[0]?.Address);
-          setValue("LandlineNo", BusinessUnitData?.data[0]?.LandlineNo);
-          setValue("MobileNo", BusinessUnitData?.data[0]?.MobileNo);
-          setValue("Email", BusinessUnitData?.data[0]?.Email);
-          setValue("Website", BusinessUnitData?.data[0]?.Website);
-          setValue(
-            "AuthorityPersonName",
-            BusinessUnitData?.data[0]?.AuthorityPersonName
-          );
-          setValue(
-            "AuthorityPersonNo",
-            BusinessUnitData?.data[0]?.AuthorityPersonNo
-          );
-          setValue(
-            "AuthorityPersonEmail",
-            BusinessUnitData?.data[0]?.AuthorityPersonEmail
-          );
-          setValue("NTNno", BusinessUnitData?.data[0]?.NTNno);
-          setValue("STRNo", BusinessUnitData?.data[0]?.STRNo);
-          setValue("Description", BusinessUnitData?.data[0]?.Description);
-          setValue("InActive", BusinessUnitData?.data[0]?.InActive);
+    if (+BusinessUnitID !== undefined && BusinessUnitData?.data?.length > 0) {
+      try {
+        setValue(
+          "BusinessUnitName",
+          BusinessUnitData?.data[0]?.BusinessUnitName
+        );
+        setValue("Address", BusinessUnitData?.data[0]?.Address);
+        setValue("LandlineNo", BusinessUnitData?.data[0]?.LandlineNo);
+        setValue("MobileNo", BusinessUnitData?.data[0]?.MobileNo);
+        setValue("Email", BusinessUnitData?.data[0]?.Email);
+        setValue("Website", BusinessUnitData?.data[0]?.Website);
+        setValue(
+          "AuthorityPersonName",
+          BusinessUnitData?.data[0]?.AuthorityPersonName
+        );
+        setValue(
+          "AuthorityPersonNo",
+          BusinessUnitData?.data[0]?.AuthorityPersonNo
+        );
+        setValue(
+          "AuthorityPersonEmail",
+          BusinessUnitData?.data[0]?.AuthorityPersonEmail
+        );
+        setValue("NTNno", BusinessUnitData?.data[0]?.NTNno);
+        setValue("STRNo", BusinessUnitData?.data[0]?.STRNo);
+        setValue("Description", BusinessUnitData?.data[0]?.Description);
+        setValue("InActive", BusinessUnitData?.data[0]?.InActive);
 
-          setValue("PrimaryColor", {
-            r: BusinessUnitData?.data[0]?.RedColor,
-            g: BusinessUnitData?.data[0]?.GreenColor,
-            b: BusinessUnitData?.data[0]?.BlueColor,
-          });
-          imageRef.current.src =
-            "data:image/png;base64," + BusinessUnitData?.data[0]?.Logo;
-        } catch (error) {}
-      }
+        setValue("PrimaryColor", {
+          r: BusinessUnitData?.data[0]?.RedColor,
+          g: BusinessUnitData?.data[0]?.GreenColor,
+          b: BusinessUnitData?.data[0]?.BlueColor,
+        });
+        imageRef.current.src =
+          "data:image/png;base64," + BusinessUnitData?.data[0]?.Logo;
+      } catch (error) {}
     }
-  }, [BusinessUnitID, BusinessUnitData]);
+  }, [BusinessUnitID, BusinessUnitData.data]);
 
   const mutation = useMutation({
     mutationFn: addNewBusinessUnit,
