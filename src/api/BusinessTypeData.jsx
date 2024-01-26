@@ -37,7 +37,9 @@ export async function deleteBusinessTypeByID(serviceInfo) {
     toast.success("Business Type sucessfully deleted!");
     return true;
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return false;
   }
 }
@@ -72,7 +74,9 @@ export async function addNewBusinessType({
     }
     return { success: true, RecordID: data?.BusinessTypeID };
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return { success: false, RecordID: BusinessTypeID };
   }
 }

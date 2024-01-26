@@ -27,7 +27,9 @@ export async function fetchReceiptVoucherById(ReceiptVoucherID, LoginUserID) {
       );
       return data ?? [];
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message, {
+        autoClose: false,
+      });
     }
   }
 }
@@ -41,7 +43,9 @@ export async function deleteReceiptVoucherByID(serviceInfo) {
     toast.success("Receipt sucessfully deleted!");
     return true;
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return false;
   }
 }
@@ -123,13 +127,19 @@ export async function addNewReceiptVoucher({
         }
         return { success: true, RecordID: data?.ReceiptVoucherID };
       } else {
-        toast.error(data.message);
+        toast.error(data.message, {
+          autoClose: false,
+        });
         return { success: false, RecordID: ReceiptVoucherID };
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message, {
+        autoClose: false,
+      });
     }
   } else {
-    toast.error("Please add atleast 1 row!");
+    toast.error("Please add atleast 1 row!", {
+      autoClose: false,
+    });
   }
 }

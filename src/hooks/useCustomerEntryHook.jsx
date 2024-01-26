@@ -195,6 +195,7 @@ const useCustomerEntryHook = () => {
                 customerEntryFrom.handleSubmit(customerHandleSubmit)();
               }
             }}
+            loading={customerMutaion.isPending}
             className="p-button-p text-center"
             disabled={dialogIndex === dialogs.length - 1}
           />

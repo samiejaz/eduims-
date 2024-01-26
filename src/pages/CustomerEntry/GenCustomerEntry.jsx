@@ -6,49 +6,27 @@ import { AuthContext } from "../../context/AuthContext";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import ActionButtons from "../../components/ActionButtons";
-import { ActiveKeyContext } from "../../context/ActiveKeyContext";
 import useDeleteModal from "../../hooks/useDeleteModalHook";
 import useEditModal from "../../hooks/useEditModalHook";
 import { FilterMatchMode } from "primereact/api";
-import {
-  GenCustomerDataContext,
-  GenCustomerDataProivder,
-} from "./CustomerEntryDataContext";
+
 import {
   deleteNewCustomerByID,
   fetchAllNewCustomers,
 } from "../../api/NewCustomerData";
 import { CustomerEntryForm } from "../../components/CustomerEntryFormComponent";
 import { useNavigate } from "react-router";
-import { Button as PrimeButton } from "primereact/button";
+import { ROUTE_URLS } from "../../utils/enums";
 
-function GenCustomerEntry() {
-  document.title = "Customers";
-  return (
-    <GenCustomerDataProivder>
-      <div className="bg__image mt-5">
-        <div className=" px-md-5 bg__image">
-          <div className=" px-md-4">
-            <GenOldCustomerEntrySearch />
-            {/* <TabHeader
-        Search={<GenOldCustomerEntrySearch />}
-        Entry={<GenOldCustomerEntryForm />}
-        SearchTitle={"Old Customers"}
-        EntryTitle={"Old Customer Entry"}
-      /> */}
-            {/* <GenNewCustomerView /> */}
-          </div>
-        </div>
-      </div>
-    </GenCustomerDataProivder>
-  );
-}
-function GenOldCustomerEntrySearch() {
+const parentRoute = ROUTE_URLS.CUSTOMERS.CUSTOMER_ENTRY;
+const editRoute = `${parentRoute}/edit/`;
+const viewRoute = `${parentRoute}/`;
+
+export default function GenCustomerEntry() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   // Hooks
   const { user } = useContext(AuthContext);
-  const { setKey } = useContext(ActiveKeyContext);
 
   const [filters, setFilters] = useState({
     CustomerName: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -73,8 +51,6 @@ function GenOldCustomerEntrySearch() {
     setIdToDelete,
   } = useDeleteModal(handleDelete);
 
-  // Contexts
-  const { setIsEnable, setCustomerID } = useContext(GenCustomerDataContext);
   // Queries
   const {
     data: Customers,
@@ -97,10 +73,7 @@ function GenOldCustomerEntrySearch() {
   });
 
   function handleEdit(CustomerID) {
-    // setCustomerID(CustomerID);
-    navigate("/customers/customerEntry/" + CustomerID + "?viewMode=edit");
-    // setIsEnable(true);
-    // setKey("entry");
+    navigate(viewRoute + CustomerID + "?viewMode=edit");
     handleEditClose();
     setIdToEdit(0);
   }
@@ -108,14 +81,14 @@ function GenOldCustomerEntrySearch() {
     deleteMutation.mutate({ CustomerID, LoginUserID: user.userID });
     handleDeleteClose();
     setIdToDelete(0);
-    setCustomerID(0);
   }
   function handleView(CustomerID) {
-    navigate("/customers/customerEntry/" + CustomerID + "?viewMode=view");
+    console.log(CustomerID);
+    navigate(viewRoute + CustomerID + "?viewMode=view");
   }
 
   return (
-    <>
+    <div className="mt-4">
       {isLoading || isFetching ? (
         <>
           <div className="h-100 w-100">
@@ -131,7 +104,7 @@ function GenOldCustomerEntrySearch() {
         </>
       ) : (
         <>
-          <div className="d-flex text-dark p-3 mb-4 ">
+          <div className="d-flex text-dark mb-4">
             <h2 className="text-center my-auto">Customer Entry</h2>
 
             <div className="text-end my-auto">
@@ -201,358 +174,6 @@ function GenOldCustomerEntrySearch() {
           {EditModal}
         </>
       )}
-    </>
+    </div>
   );
 }
-
-// const defaultValues = {
-//   CustomerName: "",
-//   CustomerBusinessName: "",
-//   CustomerBusinessAddress: "",
-//   ContactPerson1Name: "",
-//   ContactPerson1Email: "",
-//   ContactPerson1No: "",
-//   Description: "",
-//   InActive: false,
-// };
-
-// function GenOldCustomerEntryForm() {
-//   const queryClient = useQueryClient();
-//   const [CustomerData, setCustomerData] = useState();
-//   const [isLoading, setIsLoading] = useState(false);
-
-//   // Hooks
-//   const {
-//     handleSubmit,
-//     register,
-//     reset,
-//     setValue,
-//     formState: { errors, isDirty, isValid },
-//   } = useForm();
-
-//   const { user } = useContext(AuthContext);
-//   const { isEnable, setIsEnable, setCustomerID, CustomerID } = useContext(
-//     GenCustomerDataContext
-//   );
-//   const { setKey } = useContext(ActiveKeyContext);
-//   const { setVisible, render } = useCustomerEntryHook();
-
-//   useEffect(() => {
-//     async function fetchOldCustomer() {
-//       if (CustomerID !== undefined && CustomerID !== 0 && CustomerID !== null) {
-//         setIsLoading(true);
-//         const data = await fetchNewCustomerById(CustomerID, user.userID);
-//         if (!data) {
-//           setKey("search");
-//           toast.error("Network Error Occured!", {
-//             position: "bottom-left",
-//           });
-//         }
-//         setCustomerData(data);
-//         setIsLoading(false);
-//       } else {
-//         setTimeout(() => {
-//           reset(defaultValues);
-//           setIsEnable(true);
-//         }, 200);
-//       }
-//     }
-//     if (CustomerID !== 0) {
-//       fetchOldCustomer();
-//     } else {
-//       setTimeout(() => {
-//         reset(defaultValues);
-//         setIsEnable(true);
-//       }, 200);
-//     }
-//   }, [CustomerID]);
-
-//   const oldCustomerMutation = useMutation({
-//     mutationFn: async (formData) => {
-//       let DataToSend = {
-//         ContactPerson1Email: formData?.ContactPerson1Email,
-//         ContactPerson1Name: formData?.ContactPerson1Name,
-//         ContactPerson1No: formData?.ContactPerson1No,
-//         CustomerBusinessAddress: formData?.CustomerBusinessAddress,
-//         CustomerBusinessName: formData.CustomerBusinessName,
-//         CustomerName: formData.CustomerName,
-//         Description: formData?.Description,
-//         InActive: formData?.InActive === false ? 0 : 1,
-//         EntryUserID: user.userID,
-//         EntryDate: "",
-//       };
-
-//       if (CustomerData?.data[0]?.CustomerID !== 0) {
-//         DataToSend.CustomerID = CustomerData?.data[0]?.CustomerID;
-//       } else {
-//         DataToSend.CustomerID = 0;
-//       }
-//       const { data } = await axios.post(
-//         apiUrl + "/EduIMS/NewCustomerInsert",
-//         DataToSend
-//       );
-
-//       if (data.success === true) {
-//         setCustomerID(0);
-//         reset();
-//         setIsEnable(true);
-//         setKey("search");
-//         queryClient.invalidateQueries({ queryKey: ["Customers"] });
-
-//         if (CustomerData?.data[0]?.CustomerID !== undefined) {
-//           toast.success("Customer updated successfully!");
-//         } else {
-//           toast.success("Customer saved successfully!");
-//         }
-//       } else {
-//         toast.error(data.message, {
-//           autoClose: 1500,
-//         });
-//       }
-//     },
-//     onError: () => {
-//       toast.error("Error while saving data!!");
-//     },
-//   });
-
-//   const deleteMutation = useMutation({
-//     mutationFn: deleteNewCustomerByID,
-//     onSuccess: (response) => {
-//       if (response) {
-//         queryClient.invalidateQueries({ queryKey: ["Customers"] });
-//         setCustomerID(null);
-//         setIsEnable(true);
-//         setKey("search");
-//       }
-//     },
-//   });
-
-//   // Data For Edit & View
-
-//   useEffect(() => {
-//     if (CustomerID !== 0 && CustomerData?.data) {
-//       setValue("CustomerName", CustomerData?.data[0]?.CustomerName);
-//       setValue(
-//         "CustomerBusinessName",
-//         CustomerData?.data[0]?.CustomerBusinessName
-//       );
-//       setValue(
-//         "CustomerBusinessAddress",
-//         CustomerData?.data[0]?.CustomerBusinessAddress
-//       );
-//       setValue("ContactPerson1Name", CustomerData?.data[0]?.ContactPerson1Name);
-//       setValue("ContactPerson1No", CustomerData?.data[0]?.ContactPerson1No);
-//       setValue(
-//         "ContactPerson1Email",
-//         CustomerData?.data[0]?.ContactPerson1Email
-//       );
-//       setValue("Description", CustomerData?.data[0]?.Description);
-//       setValue("InActive", CustomerData?.data[0]?.InActive);
-//     }
-//   }, [CustomerID, CustomerData]);
-
-//   // Mutations
-//   function onSubmit(data) {
-//     oldCustomerMutation.mutate(data);
-//   }
-
-//   // Custom Functions
-//   function handleEdit() {
-//     setIsEnable(true);
-//   }
-
-//   function handleAddNew() {
-//     setCustomerData(undefined);
-//     setCustomerID(0);
-//     reset();
-//     setIsEnable(true);
-//   }
-
-//   function handleCancel() {
-//     setCustomerData(undefined);
-//     setCustomerID(0);
-//     reset();
-//     setIsEnable(true);
-//   }
-
-//   function handleDelete() {
-//     deleteMutation.mutate({
-//       CustomerID: CustomerID,
-//       LoginUserID: user.userID,
-//     });
-//   }
-
-//   return (
-//     <>
-//       {isLoading ? (
-//         <>
-//           <div className="d-flex align-content-center justify-content-center h-100 w-100 m-auto">
-//             <Spinner
-//               animation="border"
-//               size="lg"
-//               role="status"
-//               aria-hidden="true"
-//             />
-//           </div>
-//         </>
-//       ) : (
-//         <>
-//           <button className="btn btn-primary " onClick={() => setVisible(true)}>
-//             Add
-//           </button>
-//           {render}
-//           <h4 className="p-3 mb-4 bg-light text-dark text-center  ">
-//             New Customer Entry
-//           </h4>
-
-//           <form
-//             onSubmit={handleSubmit(onSubmit)}
-//             onKeyDown={preventFormByEnterKeySubmission}
-//           >
-//             <Row className="p-3" style={{ marginTop: "-25px" }}>
-//               <Form.Group as={Col} controlId="CustomerName">
-//                 <Form.Label>Customer Name</Form.Label>
-//                 <span className="text-danger fw-bold ">*</span>
-//                 <Form.Control
-//                   type="text"
-//                   required
-//                   placeholder=""
-//                   className="form-control"
-//                   {...register("CustomerName", {
-//                     disabled: !isEnable,
-//                   })}
-//                 />
-//                 <p className="text-danger">{errors?.CustomerName?.message}</p>
-//               </Form.Group>
-//               <Form.Group as={Col} controlId="CustomerBusinessName">
-//                 <Form.Label>Customer Business Name</Form.Label>
-//                 <span className="text-danger fw-bold ">*</span>
-//                 <Form.Control
-//                   type="text"
-//                   required
-//                   placeholder=""
-//                   {...register("CustomerBusinessName", {
-//                     disabled: !isEnable,
-//                   })}
-//                 />
-//                 <p className="text-danger">
-//                   {errors?.CustomerBusinessName?.message}
-//                 </p>
-//               </Form.Group>
-//             </Row>
-
-//             <Row className="p-3" style={{ marginTop: "-25px" }}>
-//               <Form.Group controlId="CustomerBusinessAddress">
-//                 <Form.Label>Customer Business Address</Form.Label>
-//                 <Form.Control
-//                   type="text"
-//                   placeholder=""
-//                   {...register("CustomerBusinessAddress", {
-//                     disabled: !isEnable,
-//                   })}
-//                 />
-//               </Form.Group>
-//             </Row>
-
-//             <Row className="p-3" style={{ marginTop: "-25px" }}>
-//               <Form.Group as={Col} controlId="ContactPerson1Name">
-//                 <Form.Label>Contact Name</Form.Label>
-//                 <Form.Control
-//                   type="text"
-//                   placeholder=""
-//                   {...register("ContactPerson1Name", {
-//                     disabled: !isEnable,
-//                   })}
-//                 />
-//               </Form.Group>
-
-//               <Form.Group as={Col} controlId="ContactPerson1No">
-//                 <Form.Label>Contact No</Form.Label>
-//                 <Form.Control
-//                   type="text"
-//                   placeholder=""
-//                   {...register("ContactPerson1No", {
-//                     disabled: !isEnable,
-//                   })}
-//                 />
-//               </Form.Group>
-
-//               <Form.Group as={Col} controlId="ContactPerson1Email">
-//                 <Form.Label> Email</Form.Label>
-//                 <Form.Control
-//                   type="email"
-//                   placeholder=""
-//                   {...register("ContactPerson1Email", {
-//                     disabled: !isEnable,
-//                   })}
-//                 />
-//               </Form.Group>
-//             </Row>
-
-//             <Row className="p-3" style={{ marginTop: "-25px" }}>
-//               <Form.Group as={Col} controlId="Description">
-//                 <Form.Label>Descripiton</Form.Label>
-//                 <Form.Control
-//                   type="text"
-//                   placeholder=""
-//                   name="email"
-//                   {...register("Description", {
-//                     disabled: !isEnable,
-//                   })}
-//                 />
-//               </Form.Group>
-//             </Row>
-//             <Row className="p-3" style={{ marginTop: "-25px" }}>
-//               <Form.Group as={Col} controlId="InActive">
-//                 <Form.Check
-//                   aria-label="Inactive"
-//                   label="Inactive"
-//                   {...register("InActive", {
-//                     disabled: !isEnable,
-//                   })}
-//                 />
-//               </Form.Group>
-//             </Row>
-
-//             <ButtonRow
-//               isDirty={isDirty}
-//               isValid={isValid}
-//               editMode={isEnable}
-//               isSubmitting={oldCustomerMutation.isPending}
-//               handleAddNew={handleAddNew}
-//               handleCancel={handleCancel}
-//               viewRecord={!isEnable}
-//               editRecord={isEnable && (CustomerData ? true : false)}
-//               newRecord={CustomerData ? false : true}
-//               handleEdit={handleEdit}
-//               handleDelete={handleDelete}
-//             />
-//           </form>
-//         </>
-//       )}
-//     </>
-//   );
-// }
-
-// export function GenNewCustomerView() {
-//   const methods = useForm();
-//   return (
-//     <>
-//       <FormProvider {...methods}>
-//         <div className="d-flex flex-column gap-2">
-//           <div className="p-2 bg-light shadow">
-//             <CustomerEntry />
-//           </div>
-//           <div className="p-2 bg-light shadow">
-//             <CustomerAccountEntry />
-//           </div>
-//           <div className="p-2 bg-light shadow">
-//             <CustomerBranchEntry />
-//           </div>
-//         </div>
-//       </FormProvider>
-//     </>
-//   );
-// }
-
-export default GenCustomerEntry;

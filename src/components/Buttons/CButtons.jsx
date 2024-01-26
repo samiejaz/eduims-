@@ -6,6 +6,8 @@ export const CIconButton = ({
   icon = "pi pi-eye",
   severity = "secondary",
   disabled = false,
+  tooltip = "",
+  toolTipPostion = "right",
   ...options
 }) => {
   return (
@@ -24,6 +26,10 @@ export const CIconButton = ({
         }}
         onClick={onClick}
         disabled={disabled}
+        tooltip={tooltip}
+        tooltipOptions={{
+          position: toolTipPostion,
+        }}
         {...options}
       />
     </>

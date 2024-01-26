@@ -41,7 +41,9 @@ export async function deleteLeadIntroductionByID(serviceInfo) {
     toast.success("Lead sucessfully deleted!");
     return true;
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return false;
   }
 }
@@ -94,10 +96,16 @@ export async function addNewLeadIntroduction({
       }
       return { success: true, RecordID: data?.LeadIntroductionID };
     } else {
-      toast.error(data.message);
+      toast.error(data.message, {
+        autoClose: false,
+      });
       return { success: false, RecordID: LeadIntroductionID };
     }
-  } catch (e) {}
+  } catch (e) {
+    toast.error(e.message, {
+      autoClose: false,
+    });
+  }
 }
 
 export async function addLeadIntroductionOnAction({
@@ -187,11 +195,15 @@ export async function addLeadIntroductionOnAction({
     if (data.success === true) {
       return { success: true };
     } else {
-      toast.error(data.message);
+      toast.error(data.message, {
+        autoClose: false,
+      });
       return { success: false };
     }
   } catch (error) {
-    toast.error(error.message);
+    toast.error(error.message, {
+      autoClose: false,
+    });
   }
 }
 

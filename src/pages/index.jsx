@@ -1,13 +1,10 @@
 export { default as AppConfiguration } from "./AppConfiguration/AppConfguration";
-export { default as BankAccountOpening } from "./BankAccountOpening/BankAccountOpening";
 export { default as CompanyInfo } from "./CompanyInfo/CompanyInfo";
 export { default as CustomerBranch } from "./CustomerBranch/CustomerBranch";
 export { default as GenCustomerEntry } from "./CustomerEntry/GenCustomerEntry";
 export { default as CustomerInvoice } from "./CustomerInvoice/CustomerInvoice";
-export { default as GenOldCustomers } from "./GenOldCustomers/GenOldCustomerEntry";
 export { default as GenUsers } from "./GenUsers/GenUsers";
 export { default as InvoiceDefaultDescriptions } from "./InvoiceDefaultDescriptions/InvoiceDefaultDescriptions";
-export { default as ProductCategory } from "./ProductCategory/ProductCategory";
 export { default as ProductInfo } from "./ProductInfo/ProductInfo";
 export { default as ServiceCategory } from "./ServiceCategory/GenServiceCategory";
 export { default as ServiceInfo } from "./ServiceInfo/ServiceInfo";

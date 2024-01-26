@@ -1,6 +1,7 @@
 import axios from "axios";
 import { toast } from "react-toastify";
 import { convertBase64StringToFile } from "../utils/CommonFunctions";
+import { TOAST_CONTAINER_IDS } from "../utils/enums";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
@@ -38,7 +39,9 @@ export async function deleteUserByID({ UserID, LoginUserID }) {
     toast.success("User sucessfully deleted!");
     return true;
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return false;
   }
 }
@@ -88,13 +91,19 @@ export async function addNewUser({ formData, userID, UserID = 0, UserImage }) {
             })
           );
         }
-        toast.success("User updated successfully!");
+        toast.success("User updated successfully!", {
+          containerId: TOAST_CONTAINER_IDS.AUTO_CLOSE,
+        });
       } else {
-        toast.success("User created successfully!");
+        toast.success("User created successfully!", {
+          containerId: TOAST_CONTAINER_IDS.AUTO_CLOSE,
+        });
       }
       return { success: true, RecordID: data?.LoginUserID };
     } else {
-      toast.error(data.message);
+      toast.error(data.message, {
+        autoClose: false,
+      });
       return { success: false, RecordID: UserID };
     }
   } catch (err) {}

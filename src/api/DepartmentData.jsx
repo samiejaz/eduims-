@@ -36,38 +36,48 @@ export async function deleteDepartmentByID({ DepartmentID, LoginUserID }) {
     toast.success("Department sucessfully deleted!");
     return true;
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return false;
   }
 }
 
 export async function addNewDepartment({ formData, userID, DepartmentID = 0 }) {
-  let DataToSend = {
-    DepartmentName: formData.DepartmentName,
-    InActive: formData.InActive === true ? 1 : 0,
-    EntryUserID: userID,
-  };
+  try {
+    let DataToSend = {
+      DepartmentName: formData.DepartmentName,
+      InActive: formData.InActive === true ? 1 : 0,
+      EntryUserID: userID,
+    };
 
-  if (DepartmentID === 0 || DepartmentID === undefined) {
-    DataToSend.DepartmentID = 0;
-  } else {
-    DataToSend.DepartmentID = DepartmentID;
-  }
-
-  const { data } = await axios.post(
-    apiUrl + `/${CONTROLLER}/DepartmentsInsertUpdate`,
-    DataToSend
-  );
-
-  if (data.success === true) {
-    if (DepartmentID !== 0) {
-      toast.success("Department updated successfully!");
+    if (DepartmentID === 0 || DepartmentID === undefined) {
+      DataToSend.DepartmentID = 0;
     } else {
-      toast.success("Department created successfully!");
+      DataToSend.DepartmentID = DepartmentID;
     }
-    return { success: true, RecordID: data?.DepartmentID };
-  } else {
-    toast.error(data.message);
-    return { success: false, RecordID: DepartmentID };
+
+    const { data } = await axios.post(
+      apiUrl + `/${CONTROLLER}/DepartmentsInsertUpdate`,
+      DataToSend
+    );
+
+    if (data.success === true) {
+      if (DepartmentID !== 0) {
+        toast.success("Department updated successfully!");
+      } else {
+        toast.success("Department created successfully!");
+      }
+      return { success: true, RecordID: data?.DepartmentID };
+    } else {
+      toast.error(data.message, {
+        autoClose: false,
+      });
+      return { success: false, RecordID: DepartmentID };
+    }
+  } catch (e) {
+    toast.error(e.message, {
+      autoClose: false,
+    });
   }
 }

@@ -23,6 +23,7 @@ export const ROUTE_URLS = {
     COMPANY_INFO_ROUTE: "/general/companyinfo",
     LEADS_INTROUDCTION_VIEWER_ROUTE: "/general/leadsview",
     LEADS_INTROUDCTION_DETAIL_VIEWER_ROUTE: "/general/leadsview/detail",
+    LEADS_INTROUDCTION_COMMENT_ROUTE: "/general/leadcomments",
   },
   UTILITIES: {
     PRODUCT_CATEGORY_ROUTE: "/utilities/productcategory",
@@ -62,6 +63,10 @@ export const QUERY_KEYS = {
   DEBIT_NODE_QUERY_KEY: "debitNotes",
   CREDIT_NODE_QUERY_KEY: "creditNotes",
   CUSTOMER_INVOICE_QUERY_KEY: "customerInvoices",
+  BANK_ACCOUNTS_QUERY_KEY: "bankAccountOpenings",
+  OLD_CUSTOMERS_QUERY_KEY: "oldcustomers",
+  PRODUCT_CATEGORIES_QUERY_KEY: "productCategories",
+  PRODUCT_INFO_QUERY_KEY: "productsInfo",
   // Select
   ALL_CUSTOMER_QUERY_KEY: "oldcustomers",
   CUSTOMER_ACCOUNTS_QUERY_KEY: "customerAccounts",
@@ -82,4 +87,12 @@ export const SELECT_QUERY_KEYS = {
   PRODUCTS_INFO_SELECT_QUERY_KEY: "productsInfoSelect",
   SERVICES_SELECT_QUERY_KEY: "servicesInfoSelect",
   BUSINESS_UNIT_SELECT_QUERY_KEY: "businessUnitsSelect",
+  ACTIVATION_CLIENTS_SELECT_QUERY_KEY: "activationClientsSelect",
+  SOFTWARE_CLIENTS_SELECT_QUERY_KEY: "softwareClientsSelect",
+  PRODUCT_CATEGORIES_SELECT_QUERY_KEY: "productCategoriesSelect",
+};
+
+export const TOAST_CONTAINER_IDS = {
+  CLOSE_ON_CLICK: "closeOnClick",
+  AUTO_CLOSE: "autoClose",
 };

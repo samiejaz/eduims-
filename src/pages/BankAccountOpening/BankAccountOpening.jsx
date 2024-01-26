@@ -1,53 +1,50 @@
-import TabHeader from "../../components/TabHeader";
-import { Controller, useForm } from "react-hook-form";
-import {
-  BankAccountOpeningDataContext,
-  BankAccountOpeningDataProivder,
-} from "./BankAccountOpeningDataContext";
-import { Form, Row, Col, Spinner } from "react-bootstrap";
-import Select from "react-select";
-import { useContext, useRef } from "react";
-import { AuthContext } from "../../context/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import ButtonRow from "../../components/ButtonRow";
-import { toast } from "react-toastify";
-import axios from "axios";
-import { ActiveKeyContext } from "../../context/ActiveKeyContext";
+import { useNavigate, useParams } from "react-router-dom";
 import useEditModal from "../../hooks/useEditModalHook";
 import useDeleteModal from "../../hooks/useDeleteModalHook";
+import { FilterMatchMode } from "primereact/api";
+import { useEffect, useState } from "react";
+import { CustomSpinner } from "../../components/CustomSpinner";
+import { Button } from "primereact/button";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import ActionButtons from "../../components/ActionButtons";
-import { FilterMatchMode } from "primereact/api";
-import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import ButtonToolBar from "../CustomerInvoice/CustomerInvoiceToolbar";
+import { Col, Form, Row } from "react-bootstrap";
+import TextInput from "../../components/Forms/TextInput";
+import CheckBox from "../../components/Forms/CheckBox";
+import { useUserData } from "../../context/AuthContext";
 import {
+  addNewBankAccount,
   deleteBankAccountByID,
   fetchAllBankAccounts,
   fetchBankAccountById,
 } from "../../api/BankAccountData";
-import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
-import { useBusinessUnitsSelectData } from "../../hooks/SelectData/useSelectData";
+import { ROUTE_URLS, QUERY_KEYS } from "../../utils/enums";
+import { fetchAllBusinessUnitsForSelect } from "../../api/SelectData";
+import CDropdown from "../../components/Forms/CDropdown";
 
-const apiUrl = import.meta.env.VITE_APP_API_URL;
+let parentRoute = ROUTE_URLS.ACCOUNTS.BANK_ACCOUNT_OPENING;
+let editRoute = `${parentRoute}/edit/`;
+let newRoute = `${parentRoute}/new`;
+let viewRoute = `${parentRoute}/`;
+let detail = "#22C55E";
+let queryKey = QUERY_KEYS.BANK_ACCOUNTS_QUERY_KEY;
 
-function BankAccountOpening() {
-  document.title = "Bank Account Opening";
-  return (
-    <BankAccountOpeningDataProivder>
-      <TabHeader
-        Search={<BankAccountOpeningSearch />}
-        Entry={<BankAccountOpeningEntry />}
-        SearchTitle={"Bank Account Openings"}
-        EntryTitle={"Add new opening"}
-      />
-    </BankAccountOpeningDataProivder>
-  );
-}
-function BankAccountOpeningSearch() {
+export function BankAccountDetail() {
+  document.title = "Bank Accounts";
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const {
+    render: EditModal,
+    handleShow: handleEditShow,
+    handleClose: handleEditClose,
+    setIdToEdit,
+  } = useEditModal(handleEdit);
 
-  const { user } = useContext(AuthContext);
-  const { setKey } = useContext(ActiveKeyContext);
+  const { render: DeleteModal, handleShow: handleDeleteShow } =
+    useDeleteModal(handleDelete);
 
   const [filters, setFilters] = useState({
     BankAccountTitle: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -55,29 +52,10 @@ function BankAccountOpeningSearch() {
     IbanNo: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
-  const {
-    render: EditModal,
-    handleShow: handleEditShow,
-    handleClose: handleEditClose,
-    setIdToEdit,
-  } = useEditModal(handleEdit);
-  const {
-    render: DeleteModal,
-    handleShow: handleDeleteShow,
-    handleClose: handleDeleteClose,
-    setIdToDelete,
-  } = useDeleteModal(handleDelete);
+  const user = useUserData();
 
-  const { setIsEnable, setBankAccountID } = useContext(
-    BankAccountOpeningDataContext
-  );
-
-  const {
-    data: BankAccounts,
-    isLoading,
-    isFetching,
-  } = useQuery({
-    queryKey: ["bankAccountOpenings"],
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: [queryKey],
     queryFn: () => fetchAllBankAccounts(user.userID),
     initialData: [],
   });
@@ -85,74 +63,82 @@ function BankAccountOpeningSearch() {
   const deleteMutation = useMutation({
     mutationFn: deleteBankAccountByID,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["bankAccountOpenings"] });
-      toast.success("Bank account successfully deleted!");
+      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      navigate(parentRoute);
     },
   });
-  function handleEdit(BankAccountID) {
-    setBankAccountID(BankAccountID);
-    setIsEnable(true);
-    setKey("entry");
+
+  function handleDelete(id) {
+    deleteMutation.mutate({
+      BankAccountID: id,
+      LoginUserID: user.userID,
+    });
+  }
+
+  function handleEdit(id) {
+    navigate(editRoute + id);
     handleEditClose();
     setIdToEdit(0);
   }
-  function handleDelete(BankAccountID) {
-    deleteMutation.mutate({ BankAccountID, LoginUserID: user.userID });
-    handleDeleteClose();
-    setIdToDelete(0);
-    setBankAccountID(0);
-  }
-  function handleView(BankAccountID) {
-    setKey("entry");
-    setBankAccountID(BankAccountID);
-    setIsEnable(false);
+
+  function handleView(id) {
+    navigate(parentRoute + "/" + id);
   }
 
   return (
-    <>
+    <div className="mt-4">
       {isLoading || isFetching ? (
         <>
           <div className="h-100 w-100">
             <div className="d-flex align-content-center justify-content-center ">
-              <Spinner
-                animation="border"
-                size="lg"
-                role="status"
-                aria-hidden="true"
-              />
+              <CustomSpinner />
             </div>
           </div>
         </>
       ) : (
         <>
+          <div className="d-flex text-dark  mb-4 ">
+            <h2 className="text-center my-auto">Bank Accounts</h2>
+            <div className="text-end my-auto" style={{ marginLeft: "10px" }}>
+              <Button
+                label="Add New Bank Account"
+                icon="pi pi-plus"
+                type="button"
+                className="rounded"
+                onClick={() => navigate(newRoute)}
+              />
+            </div>
+          </div>
           <DataTable
             showGridlines
-            value={BankAccounts}
+            value={data}
             dataKey="BankAccountID"
             paginator
             rows={10}
             rowsPerPageOptions={[5, 10, 25, 50]}
             removableSort
-            emptyMessage="No bank account found!"
+            emptyMessage="No Bank Accounts found!"
             filters={filters}
             filterDisplay="row"
             resizableColumns
             size="small"
             selectionMode="single"
+            style={{ backgroundColor: "red" }}
+            className={"thead"}
             tableStyle={{ minWidth: "50rem" }}
           >
             <Column
               body={(rowData) =>
                 ActionButtons(
                   rowData.BankAccountID,
-                  handleDeleteShow,
+                  () => handleDeleteShow(rowData.BankAccountID),
                   handleEditShow,
                   handleView
                 )
               }
               header="Actions"
               resizeable={false}
-              style={{ minWidth: "7rem", maxWidth: "7rem", width: "7rem" }}
+              style={{ minWidth: "7rem", maxWidth: "10rem", width: "7rem" }}
             ></Column>
             <Column
               field="BankAccountTitle"
@@ -183,114 +169,53 @@ function BankAccountOpeningSearch() {
           {DeleteModal}
         </>
       )}
-    </>
+    </div>
   );
 }
-
-const defaultValues = {
-  BankAccountTitle: "",
-  BusinessUnit: [],
-  BranchName: "",
-  BranchCode: "",
-  AccountNo: "",
-  IbanNo: "",
-};
-let renderCount = 0;
-function BankAccountOpeningEntry() {
-  renderCount++;
+export function BankAccountForm({ pagesTitle, mode }) {
+  document.title = "Bank Account Entry";
   const queryClient = useQueryClient();
-  const [BankAccount, setBankAccount] = useState();
-  const [isLoading, setIsLoading] = useState(false);
-  const {
-    handleSubmit,
-    register,
-    control,
-    reset,
-    setValue,
-    formState: { isDirty, isValid },
-  } = useForm(defaultValues);
+  const navigate = useNavigate();
+  const user = useUserData();
+  const { BankAccountID } = useParams();
+  const { control, handleSubmit, setFocus, setValue, reset } = useForm({
+    defaultValues: {
+      BankAccountTitle: "",
+      BankTitle: "",
+      BusinessUnit: null,
+      BranchName: "",
+      BranchCode: "",
+      AccountNo: "",
+      IbanNo: "",
+      InActive: false,
+    },
+  });
 
-  const { user } = useContext(AuthContext);
-  const { isEnable, setIsEnable, setBankAccountID, BankAccountID } = useContext(
-    BankAccountOpeningDataContext
-  );
-  const { setKey } = useContext(ActiveKeyContext);
-  const formRef = useRef();
+  const BankAccountData = useQuery({
+    queryKey: [queryKey, +BankAccountID],
+    queryFn: () => fetchBankAccountById(BankAccountID, user.userID),
+
+    initialData: [],
+  });
 
   useEffect(() => {
-    async function fetchBankAccount() {
-      if (
-        BankAccountID !== undefined &&
-        BankAccountID !== null &&
-        BankAccountID !== 0
-      ) {
-        setIsLoading(true);
-        const data = await fetchBankAccountById(BankAccountID, user.userID);
-        if (!data) {
-          setKey("search");
-          toast.error("Network Error Occured!", {
-            position: "bottom-left",
-          });
-        }
-        setBankAccount(data);
-        setIsLoading(false);
-      } else {
-        setBankAccount(null);
-        setIsEnable(true);
-        reset(defaultValues);
-        setTimeout(() => {
-          resetSelectValues();
-        }, 200);
-      }
+    if (BankAccountID !== undefined && BankAccountData.data.length > 0) {
+      setValue("BankAccountTitle", BankAccountData?.data[0]?.BankAccountTitle);
+      setValue("BranchName", BankAccountData?.data[0]?.BranchName);
+      setValue("BranchCode", BankAccountData?.data[0]?.BranchCode);
+      setValue("AccountNo", BankAccountData?.data[0]?.AccountNo);
+      setValue("IbanNo", BankAccountData?.data[0]?.IbanNo);
+      setValue("BankTitle", BankAccountData?.data[0]?.BankTitle);
+      setValue("InActive", BankAccountData?.data[0]?.InActive);
     }
-    if (BankAccountID !== 0) {
-      fetchBankAccount();
-    }
-  }, [BankAccountID]);
+  }, [BankAccountID, BankAccountData.data]);
 
-  const businessUnits = useBusinessUnitsSelectData();
-
-  const bankAccountMutation = useMutation({
-    mutationFn: async (formData) => {
-      const dataToSend = {
-        BankAccountID: 0,
-        BankAccountTitle: formData.BankAccountTitle,
-        BusinessUnitID: formData.BusinessUnit.BusinessUnitID,
-        BranchName: formData.BranchName || "",
-        BranchCode: formData.BranchCode || "",
-        AccountNo: formData.AccountNo || "",
-        IbanNo: formData.IbanNo || "",
-        InActive: formData.InActive ? 1 : 0,
-        EntryUserID: user.userID,
-      };
-
-      if (BankAccountID !== 0) {
-        dataToSend.BankAccountID = BankAccount?.data[0]?.BankAccountID;
-      } else {
-        dataToSend.BankAccountID = 0;
-      }
-
-      const { data } = await axios.post(
-        apiUrl + `/EduIMS/BankAccountInsertUpdate`,
-        dataToSend
-      );
-
-      if (data.success === true) {
-        if (BankAccountID !== 0) {
-          toast.success("BankAccount Info updated successfully!");
-        } else {
-          toast.success("BankAccount Info saved successfully!");
-        }
-        setBankAccountID(0);
-        reset();
-        resetSelectValues();
-        setIsEnable(true);
-        setKey("search");
-        queryClient.invalidateQueries({ queryKey: ["bankAccountOpenings"] });
-      } else {
-        toast.error(data.message, {
-          autoClose: 1500,
-        });
+  const mutation = useMutation({
+    mutationFn: addNewBankAccount,
+    onSuccess: ({ success, RecordID }) => {
+      if (success) {
+        queryClient.invalidateQueries({ queryKey: [queryKey] });
+        navigate(`${parentRoute}/${RecordID}`);
       }
     },
   });
@@ -298,63 +223,10 @@ function BankAccountOpeningEntry() {
   const deleteMutation = useMutation({
     mutationFn: deleteBankAccountByID,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["bankAccountOpenings"] });
-      toast.success("Bank account successfully deleted!");
-      setBankAccount(undefined);
-      setBankAccountID(0);
-      reset();
-      setIsEnable(true);
-      setKey("search");
+      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      navigate(parentRoute);
     },
   });
-
-  useEffect(() => {
-    if (BankAccountID !== 0 && BankAccount?.data) {
-      () => resetSelectValues();
-      if (BankAccount?.data[0]?.BusinessUnitID !== 0) {
-        setValue("BusinessUnit", {
-          BusinessUnitID: BankAccount?.data[0]?.BusinessUnitID,
-          BusinessUnitName: BankAccount?.data[0]?.BusinessUnitName,
-        });
-      }
-      setValue("BankAccountTitle", BankAccount?.data[0]?.BankAccountTitle);
-      setValue("BranchName", BankAccount?.data[0]?.BranchName);
-      setValue("BranchCode", BankAccount?.data[0]?.BranchCode);
-      setValue("AccountNo", BankAccount?.data[0]?.AccountNo);
-      setValue("IbanNo", BankAccount?.data[0]?.IbanNo);
-      setValue("InActive", BankAccount?.data[0]?.InActive === 1 ? true : false);
-    }
-  }, [BankAccountID, BankAccount]);
-
-  function onSubmit(data) {
-    bankAccountMutation.mutate(data);
-  }
-
-  function handleEdit() {
-    setIsEnable(true);
-  }
-
-  function handleAddNew() {
-    setBankAccount(undefined);
-    setBankAccountID(0);
-    setTimeout(() => {
-      resetSelectValues();
-    }, 200);
-    reset();
-    setIsEnable(true);
-  }
-
-  function handleCancel() {
-    setBankAccount(undefined);
-    setBankAccountID(0);
-    setTimeout(() => {
-      resetSelectValues();
-    }, 200);
-    setValue("BusinessUnit", []);
-    reset();
-    setIsEnable(true);
-    //formRef.current.reset();
-  }
 
   function handleDelete() {
     deleteMutation.mutate({
@@ -363,154 +235,158 @@ function BankAccountOpeningEntry() {
     });
   }
 
-  function resetSelectValues() {
-    setValue("BusinessUnit", []);
+  function handleAddNew() {
+    reset();
+    navigate(newRoute);
   }
-  const [g, setG] = useState(0);
+  function handleCancel() {
+    if (mode === "new") {
+      navigate(parentRoute);
+    } else if (mode === "edit") {
+      navigate(viewRoute + BankAccountID);
+    }
+  }
+  function handleEdit() {
+    navigate(editRoute + BankAccountID);
+  }
+  function onSubmit(data) {
+    mutation.mutate({
+      formData: data,
+      userID: user.userID,
+      BankAccountID: BankAccountID,
+    });
+  }
+
   return (
     <>
-      {isLoading ? (
+      {BankAccountData.isLoading ? (
         <>
-          <div className="d-flex align-content-center justify-content-center h-100 w-100 m-auto">
-            <Spinner
-              animation="border"
-              size="lg"
-              role="status"
-              aria-hidden="true"
-            />
-          </div>
+          <CustomSpinner />
         </>
       ) : (
         <>
-          <h4 className="p-3 mb-4 bg-light text-dark text-center  ">
-            Bank Account Opening
-          </h4>
+          <div className="mt-4">
+            <ButtonToolBar
+              editDisable={mode !== "view"}
+              cancelDisable={mode === "view"}
+              addNewDisable={mode === "edit" || mode === "new"}
+              deleteDisable={mode === "edit" || mode === "new"}
+              saveDisable={mode === "view"}
+              saveLabel={mode === "edit" ? "Update" : "Save"}
+              saveLoading={mutation.isPending}
+              handleGoBack={() => navigate(parentRoute)}
+              handleEdit={() => handleEdit()}
+              handleCancel={() => {
+                handleCancel();
+              }}
+              handleAddNew={() => {
+                handleAddNew();
+              }}
+              handleDelete={handleDelete}
+              handleSave={() => handleSubmit(onSubmit)()}
+              GoBackLabel="Bank Accounts"
+            />
+          </div>
+          <form className="mt-4">
+            <Row>
+              <Form.Group as={Col}>
+                <Form.Label>
+                  Bank Name
+                  <span className="text-danger fw-bold ">*</span>
+                </Form.Label>
 
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            ref={formRef}
-            onKeyDown={preventFormByEnterKeySubmission}
-          >
-            <Row className="p-3" style={{ marginTop: "-25px" }}>
-              <Form.Group as={Col} controlId="BankAccountTitle">
-                <Form.Label>Bank Account Title</Form.Label>
-                <span className="text-danger fw-bold ">*</span>
-                <Form.Control
-                  type="text"
-                  placeholder=""
-                  required
-                  className="form-control"
-                  {...register("BankAccountTitle", {
-                    disabled: !isEnable,
-                  })}
-                />
+                <div>
+                  <TextInput
+                    control={control}
+                    ID={"BankTitle"}
+                    required={true}
+                    focusOptions={() => setFocus("BankAccountTitle")}
+                    isEnable={mode !== "view"}
+                  />
+                </div>
               </Form.Group>
-              <Form.Group as={Col} controlId="BusinessUnit">
-                <Form.Label>Business Unit</Form.Label>
-                <span className="text-danger fw-bold ">*</span>
-                <Controller
-                  control={control}
-                  name="BusinessUnit"
-                  render={({ field: { onChange, value } }) => (
-                    <Select
-                      isDisabled={!isEnable}
-                      options={businessUnits.data}
-                      required
-                      getOptionValue={(option) => option.BusinessUnitID}
-                      getOptionLabel={(option) => option.BusinessUnitName}
-                      value={value}
-                      onChange={(selectedOption) => {
-                        onChange(selectedOption);
-                        setG(selectedOption);
-                      }}
-                      placeholder="Select a business unit"
-                      noOptionsMessage={() => "No business units found!"}
-                      isClearable
-                    />
-                  )}
-                />
+              <Form.Group as={Col}>
+                <Form.Label>
+                  Bank Account Title
+                  <span className="text-danger fw-bold ">*</span>
+                </Form.Label>
+
+                <div>
+                  <TextInput
+                    control={control}
+                    ID={"BankAccountTitle"}
+                    required={true}
+                    focusOptions={() => setFocus("BusinessUnitID")}
+                    isEnable={mode !== "view"}
+                  />
+                </div>
               </Form.Group>
-            </Row>
-            <p>{renderCount}</p>
-            <Row className="p-3" style={{ marginTop: "-25px" }}>
-              <Form.Group as={Col} controlId="BranchName">
+              <Form.Group as={Col}>
                 <Form.Label>Branch Name</Form.Label>
 
-                <Form.Control
-                  type="text"
-                  placeholder=""
-                  className="form-control"
-                  {...register("BranchName", {
-                    disabled: !isEnable,
-                  })}
-                />
+                <div>
+                  <TextInput
+                    control={control}
+                    ID={"BranchName"}
+                    focusOptions={() => setFocus("BranchCode")}
+                    isEnable={mode !== "view"}
+                  />
+                </div>
               </Form.Group>
-              <Form.Group as={Col} controlId="BranchCode">
+            </Row>
+            <Row>
+              <Form.Group as={Col}>
                 <Form.Label>Branch Code</Form.Label>
 
-                <Form.Control
-                  type="text"
-                  placeholder=""
-                  className="form-control"
-                  {...register("BranchCode", {
-                    disabled: !isEnable,
-                  })}
-                />
+                <div>
+                  <TextInput
+                    control={control}
+                    ID={"BranchCode"}
+                    focusOptions={() => setFocus("AccountNo")}
+                    isEnable={mode !== "view"}
+                  />
+                </div>
               </Form.Group>
-              <Form.Group as={Col} controlId="AccountNo">
+              <Form.Group as={Col}>
                 <Form.Label>Account No</Form.Label>
 
-                <Form.Control
-                  type="text"
-                  placeholder=""
-                  className="form-control"
-                  {...register("AccountNo", {
-                    disabled: !isEnable,
-                  })}
-                />
+                <div>
+                  <TextInput
+                    control={control}
+                    ID={"AccountNo"}
+                    focusOptions={() => setFocus("IbanNo")}
+                    isEnable={mode !== "view"}
+                  />
+                </div>
               </Form.Group>
-              <Form.Group as={Col} controlId="IbanNo">
+              <Form.Group as={Col}>
                 <Form.Label>IBAN No</Form.Label>
 
-                <Form.Control
-                  type="text"
-                  placeholder=""
-                  className="form-control"
-                  {...register("IbanNo", {
-                    disabled: !isEnable,
-                  })}
-                />
+                <div>
+                  <TextInput
+                    control={control}
+                    ID={"IbanNo"}
+                    focusOptions={() => setFocus("InActive")}
+                    isEnable={mode !== "view"}
+                  />
+                </div>
               </Form.Group>
             </Row>
-            <Row className="p-3" style={{ marginTop: "-25px" }}>
+            <Row>
               <Form.Group as={Col} controlId="InActive">
-                <Form.Check
-                  aria-label="Inactive"
-                  label="Inactive"
-                  {...register("InActive", {
-                    disabled: !isEnable,
-                  })}
-                />
+                <div className="mt-2">
+                  <CheckBox
+                    control={control}
+                    ID={"InActive"}
+                    Label={"InActive"}
+                    isEnable={mode !== "view"}
+                  />
+                </div>
               </Form.Group>
             </Row>
-
-            <ButtonRow
-              isDirty={isDirty}
-              isValid={isValid}
-              editMode={isEnable}
-              isSubmitting={bankAccountMutation.isPending}
-              handleAddNew={handleAddNew}
-              handleCancel={handleCancel}
-              viewRecord={!isEnable}
-              editRecord={isEnable && (BankAccountID > 0 ? true : false)}
-              newRecord={BankAccountID === 0 ? true : false}
-              handleEdit={handleEdit}
-              handleDelete={handleDelete}
-            />
           </form>
         </>
       )}
     </>
   );
 }
-export default BankAccountOpening;

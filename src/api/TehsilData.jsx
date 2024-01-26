@@ -36,39 +36,49 @@ export async function deleteTehsilByID(serviceInfo) {
     toast.success("Tehsil sucessfully deleted!");
     return true;
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return false;
   }
 }
 
 export async function addNewTehsil({ formData, userID, TehsilID = 0 }) {
-  let DataToSend = {
-    TehsilTitle: formData.TehsilTitle,
-    CountryID: formData?.Country,
-    InActive: formData.InActive === true ? 1 : 0,
-    EntryUserID: userID,
-  };
+  try {
+    let DataToSend = {
+      TehsilTitle: formData.TehsilTitle,
+      CountryID: formData?.Country,
+      InActive: formData.InActive === true ? 1 : 0,
+      EntryUserID: userID,
+    };
 
-  if (TehsilID === 0 || TehsilID === undefined) {
-    DataToSend.TehsilID = 0;
-  } else {
-    DataToSend.TehsilID = TehsilID;
-  }
-
-  const { data } = await axios.post(
-    apiUrl + `/${CONTROLLER}/TehsilInsertUpdate`,
-    DataToSend
-  );
-
-  if (data.success === true) {
-    if (TehsilID !== 0) {
-      toast.success("Tehsil updated successfully!");
+    if (TehsilID === 0 || TehsilID === undefined) {
+      DataToSend.TehsilID = 0;
     } else {
-      toast.success("Tehsil created successfully!");
+      DataToSend.TehsilID = TehsilID;
     }
-    return { success: true, RecordID: data?.TehsilID };
-  } else {
-    toast.error(data.message);
-    return { success: false, RecordID: TehsilID };
+
+    const { data } = await axios.post(
+      apiUrl + `/${CONTROLLER}/TehsilInsertUpdate`,
+      DataToSend
+    );
+
+    if (data.success === true) {
+      if (TehsilID !== 0) {
+        toast.success("Tehsil updated successfully!");
+      } else {
+        toast.success("Tehsil created successfully!");
+      }
+      return { success: true, RecordID: data?.TehsilID };
+    } else {
+      toast.error(data.message, {
+        autoClose: false,
+      });
+      return { success: false, RecordID: TehsilID };
+    }
+  } catch (e) {
+    toast.error(e.message, {
+      autoClose: false,
+    });
   }
 }

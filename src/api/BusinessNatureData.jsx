@@ -44,7 +44,9 @@ export async function deleteBusinessNatureByID({
       toast.success("Business Nature sucessfully deleted!");
       return true;
     } else {
-      toast.error(data.message);
+      toast.error(data.message, {
+        autoClose: false,
+      });
       return false;
     }
   }
@@ -80,7 +82,9 @@ export async function addNewBusinessNature({
     }
     return { success: true, RecordID: data?.BusinessNatureID };
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return { success: false, RecordID: BusinessNatureID };
   }
 }

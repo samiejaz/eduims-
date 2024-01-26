@@ -41,7 +41,7 @@ function RootLayout() {
               <NotificationOverlay />
             </div>
           </div>
-          <div className="px-3">
+          <div className="px-3 mt-4">
             <Outlet />
           </div>
         </section>

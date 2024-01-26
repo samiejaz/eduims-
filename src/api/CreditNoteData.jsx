@@ -27,7 +27,9 @@ export async function fetchCreditNoteById(CreditNoteID, LoginUserID) {
       );
       return data ?? [];
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message, {
+        autoClose: false,
+      });
     }
   }
 }
@@ -41,7 +43,9 @@ export async function deleteCreditNoteByID({ CreditNoteID, LoginUserID }) {
     toast.success("Credit Note sucessfully deleted!");
     return true;
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return false;
   }
 }
@@ -53,7 +57,9 @@ export async function fetchMonthlyMaxCreditNoteNo(BusinesssUnitID) {
     );
     return data;
   } catch (error) {
-    toast.error(error);
+    toast.error(error, {
+      autoClose: false,
+    });
   }
 }
 
@@ -112,7 +118,9 @@ export async function addNewCreditNote({ formData, userID, CreditNoteID = 0 }) {
         return { success: false, RecordID: CreditNoteID };
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message, {
+        autoClose: false,
+      });
     }
   } else {
     toast.error("Please add atleast 1 row!");

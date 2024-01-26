@@ -7,19 +7,12 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import GenNewCustomerView from "./pages/CustomerEntry/CustomerEntryView";
 import {
   AppConfiguration,
-  BankAccountOpening,
-  GenUsers,
-  GenOldCustomers,
-  ProductCategory,
   ProductInfo,
-  ServiceCategory,
-  ServiceInfo,
-  CustomerBranch,
   CustomerInvoice,
   InvoiceDefaultDescriptions,
   CompanyInfo,
-  GenCustomerEntry,
   ReceiptVoucher,
+  GenCustomerEntry,
 } from "./pages";
 import { CustomerInvoiceFormMaster } from "./pages/CustomerInvoice/CustomerInvoice";
 import { useContext } from "react";
@@ -84,6 +77,23 @@ import {
   NewCustomerInvoiceEntry,
   NewCustomerInvoiceEntryForm,
 } from "./pages/CustomerInvoice/NewCustomerInvoice";
+import {
+  BankAccountForm,
+  BankAccountDetail,
+} from "./pages/BankAccountOpening/BankAccountOpening";
+import {
+  GenOldCustomerDetail,
+  GenOldCustomerForm,
+} from "./pages/GenOldCustomers/GenOldCustomerEntry";
+import {
+  ProductCategoryDetail,
+  ProductCategoryForm,
+} from "./pages/ProductCategory/ProductCategory";
+import {
+  ProductInfoDetail,
+  ProductInfoForm,
+} from "./pages/ProductInfo/ProductInfo";
+import LeadsComments from "./pages/LeadsIntroduction/LeadsComments";
 
 const App = () => {
   const { pageTitles } = useContext(AppConfigurationContext);
@@ -143,10 +153,7 @@ const App = () => {
           <Route path="auth" element={<SignUp />} />
           <Route path="/" element={<ProtectedRoutes />}>
             <Route index element={<Dashboard />} />
-            <Route
-              path={ROUTE_URLS.CUSTOMERS.OLD_CUSTOMER_ENTRY}
-              element={<GenOldCustomers />}
-            />
+
             <Route
               path={ROUTE_URLS.CUSTOMERS.CUSTOMER_ENTRY}
               element={<GenCustomerEntry />}
@@ -161,10 +168,7 @@ const App = () => {
               path="/customers/customerBranch"
               element={<CustomerBranch />}
             /> */}
-            <Route
-              path={`${ROUTE_URLS.ACCOUNTS.BANK_ACCOUNT_OPENING}`}
-              element={<BankAccountOpening />}
-            />
+
             <Route
               path={`${ROUTE_URLS.ACCOUNTS.CUSTOMER_INVOICE}`}
               element={<CustomerInvoice />}
@@ -242,18 +246,12 @@ const App = () => {
                 />
               }
             />
-            <Route
-              path={`${ROUTE_URLS.GENERAL.PRODUCT_CATEGORY_ROUTE}`}
-              element={<ProductCategory />}
-            />
+
             <Route
               path={`${ROUTE_URLS.UTILITIES.INVOICE_DESCRIPTIONS}`}
               element={<InvoiceDefaultDescriptions />}
             />
-            <Route
-              path={`${ROUTE_URLS.GENERAL.PRODUCT_INFO_ROUTE}`}
-              element={<ProductInfo />}
-            />
+
             {/* <Route
               path="/general/serviceCategories"
               element={<ServiceCategory />}
@@ -547,6 +545,10 @@ const App = () => {
               path={`${ROUTE_URLS.GENERAL.LEADS_INTROUDCTION_DETAIL_VIEWER_ROUTE}/:LeadIntroductionID/:Type/:LeadIntroductionDetailID`}
               element={<LeadsIntroductionViewerDetail />}
             />
+            <Route
+              path={`${ROUTE_URLS.GENERAL.LEADS_INTROUDCTION_COMMENT_ROUTE}/:LeadIntroductionID`}
+              element={<LeadsComments />}
+            />
             {/* Leads Introduction END */}
             {/* Users */}
             <Route path={ROUTE_URLS.USER_ROUTE} element={<UserDetail />} />
@@ -682,6 +684,98 @@ const App = () => {
               }
             />
             {/* New Customer Invoice END */}
+            {/* New Customer Invoice Note */}
+            <Route
+              path={ROUTE_URLS.ACCOUNTS.BANK_ACCOUNT_OPENING}
+              element={<BankAccountDetail />}
+            />
+            <Route
+              path={`${ROUTE_URLS.ACCOUNTS.BANK_ACCOUNT_OPENING}/:BankAccountID`}
+              element={
+                <BankAccountForm pageTitles={pageTitles} mode={"view"} />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.ACCOUNTS.BANK_ACCOUNT_OPENING}/edit/:BankAccountID`}
+              element={
+                <BankAccountForm pageTitles={pageTitles} mode={"edit"} />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.ACCOUNTS.BANK_ACCOUNT_OPENING}/new`}
+              element={<BankAccountForm pageTitles={pageTitles} mode={"new"} />}
+            />
+            {/* New Customer Invoice END */}
+            {/*  Old Customer */}
+            <Route
+              path={ROUTE_URLS.CUSTOMERS.OLD_CUSTOMER_ENTRY}
+              element={<GenOldCustomerDetail />}
+            />
+            <Route
+              path={`${ROUTE_URLS.CUSTOMERS.OLD_CUSTOMER_ENTRY}/:CustomerID`}
+              element={
+                <GenOldCustomerForm pageTitles={pageTitles} mode={"view"} />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.CUSTOMERS.OLD_CUSTOMER_ENTRY}/edit/:CustomerID`}
+              element={
+                <GenOldCustomerForm pageTitles={pageTitles} mode={"edit"} />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.CUSTOMERS.OLD_CUSTOMER_ENTRY}/new`}
+              element={
+                <GenOldCustomerForm pageTitles={pageTitles} mode={"new"} />
+              }
+            />
+            {/* Old Customer END */}
+            {/*  Old Customer */}
+            <Route
+              path={ROUTE_URLS.UTILITIES.PRODUCT_CATEGORY_ROUTE}
+              element={<ProductCategoryDetail />}
+            />
+            <Route
+              path={`${ROUTE_URLS.UTILITIES.PRODUCT_CATEGORY_ROUTE}/:ProductCategoryID`}
+              element={
+                <ProductCategoryForm pageTitles={pageTitles} mode={"view"} />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.UTILITIES.PRODUCT_CATEGORY_ROUTE}/edit/:ProductCategoryID`}
+              element={
+                <ProductCategoryForm pageTitles={pageTitles} mode={"edit"} />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.UTILITIES.PRODUCT_CATEGORY_ROUTE}/new`}
+              element={
+                <ProductCategoryForm pageTitles={pageTitles} mode={"new"} />
+              }
+            />
+            {/* Old Customer END */}
+            {/*  Old Customer */}
+            <Route
+              path={ROUTE_URLS.UTILITIES.PRODUCT_INFO_ROUTE}
+              element={<ProductInfoDetail />}
+            />
+            <Route
+              path={`${ROUTE_URLS.UTILITIES.PRODUCT_INFO_ROUTE}/:ProductInfoID`}
+              element={
+                <ProductInfoForm pageTitles={pageTitles} mode={"view"} />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.UTILITIES.PRODUCT_INFO_ROUTE}/edit/:ProductInfoID`}
+              element={
+                <ProductInfoForm pageTitles={pageTitles} mode={"edit"} />
+              }
+            />
+            <Route
+              path={`${ROUTE_URLS.UTILITIES.PRODUCT_INFO_ROUTE}/new`}
+              element={<ProductInfoForm pageTitles={pageTitles} mode={"new"} />}
+            />
+            {/* Old Customer END */}
             {/* <Route path={`/chat`} element={<ChatRoom />} /> */}
             {/* Leads */}
             <Route
@@ -694,9 +788,10 @@ const App = () => {
         <ToastContainer
           position="top-center"
           pauseOnHover={false}
-          autoClose={1000}
           theme="light"
           closeOnClick
+          autoClose={1500}
+          containerId={"autoClose"}
         />
       </KBarProvider>
     </>

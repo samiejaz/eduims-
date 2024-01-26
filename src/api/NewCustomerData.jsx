@@ -10,7 +10,9 @@ export async function fetchAllNewCustomers(LoginUserID) {
     );
     return data.data ?? [];
   } catch (error) {
-    toast.error(error.message);
+    toast.error(error.message, {
+      autoClose: false,
+    });
   }
 }
 export async function fetchNewCustomerById(CustomerID, LoginUserID) {
@@ -20,7 +22,9 @@ export async function fetchNewCustomerById(CustomerID, LoginUserID) {
     );
     return data;
   } catch (error) {
-    toast.error(error.message);
+    toast.error(error.message, {
+      autoClose: false,
+    });
   }
 }
 
@@ -35,7 +39,7 @@ export async function deleteNewCustomerByID(newCustomer) {
     return true;
   } else {
     toast.error(data.message, {
-      autoClose: 1500,
+      autoClose: false,
     });
     return false;
   }

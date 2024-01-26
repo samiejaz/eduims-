@@ -85,13 +85,15 @@ const ImageContainer = ({ imageRef, hideButtons = false }) => {
           borderRadius: "5px",
         }}
       >
-        <div style={{ textAlign: "center" }}>
+        <div
+          style={{ textAlign: "center", maxHeight: "500px", maxWidth: "500px" }}
+        >
           <img
             style={{
               overflowClipMargin: "content-box",
               overflow: "clip",
-              width: "50%",
-              height: "50%",
+              width: "100%",
+              height: "100%",
               objectFit: "contain",
             }}
             ref={imageRef}

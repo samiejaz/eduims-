@@ -45,7 +45,9 @@ export async function fetchMaxInvoiceNo(LoginUserID) {
     );
     return data;
   } catch (error) {
-    toast.error(error);
+    toast.error(error, {
+      autoClose: false,
+    });
   }
 }
 export async function fetchMaxSessionBasedVoucherNo(LoginUserID) {
@@ -55,7 +57,9 @@ export async function fetchMaxSessionBasedVoucherNo(LoginUserID) {
     );
     return data;
   } catch (error) {
-    toast.error(error);
+    toast.error(error, {
+      autoClose: false,
+    });
   }
 }
 // URL: /CustomerInvoice/CustomerInvoiceDelete?CustomerInvoiceID=??&LoginUserID=??
@@ -71,7 +75,9 @@ export async function deleteCustomerInvoiceByID({
     toast.success("Invoice sucessfully deleted!");
     return true;
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return false;
   }
 }
@@ -81,7 +87,6 @@ export async function addNewCustomerInvoice({
   userID,
   CustomerInvoiceID = 0,
 }) {
-  debugger;
   try {
     let InvoiceDetail = formData?.CustomerInvoiceDetail?.map((item, index) => {
       return {
@@ -116,7 +121,6 @@ export async function addNewCustomerInvoice({
       BusinessUnitID: formData?.BusinessUnitID,
       InvoiceTitle: formData?.InvoiceTitle,
       Description: formData?.Description,
-      EntryUserID: userID,
       TotalRate: formData?.TotalRate,
       TotalCGS: formData?.TotalAmount,
       TotalDiscount: formData?.TotalDiscount,
@@ -157,7 +161,7 @@ export async function addNewCustomerInvoice({
       return { success: false, RecordID: CustomerInvoiceID };
     }
   } catch (e) {
-    console.log(e.message);
+    toast.error(e.message);
   }
 }
 export async function fetchMonthlyMaxCustomerInvoiceNo(BusinessUnitID) {
@@ -168,7 +172,9 @@ export async function fetchMonthlyMaxCustomerInvoiceNo(BusinessUnitID) {
       );
       return data.data;
     } catch (error) {
-      toast.error(error.messahe);
+      toast.error(error.message, {
+        autoClose: false,
+      });
     }
   } else {
     return [];

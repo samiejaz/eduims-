@@ -36,7 +36,9 @@ export async function deleteBusinessSegmentByID({
     toast.success("Businness Segment sucessfully deleted!");
     return true;
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return false;
   }
 }
@@ -71,7 +73,9 @@ export async function addNewBusinessSegment({
     }
     return { success: true, RecordID: data?.BusinessSegmentID };
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return { success: false, RecordID: BusinessSegmentID };
   }
 }
