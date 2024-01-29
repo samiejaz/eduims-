@@ -14,7 +14,6 @@ function CustomerEntry(props) {
   const {
     register,
     setValue,
-    reset,
     formState: { errors },
   } = useFormContext();
 

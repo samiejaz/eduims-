@@ -1,74 +1,40 @@
-import React, { useContext, useEffect, useState } from "react";
-import TabHeader from "../../components/TabHeader";
-import { Form, Row, Col, Spinner } from "react-bootstrap";
-import {
-  Controller,
-  FormProvider,
-  useForm,
-  useFormContext,
-} from "react-hook-form";
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import ButtonRow from "../../components/ButtonRow";
-import { AuthContext } from "../../context/AuthContext";
-import axios from "axios";
-import { ActiveKeyContext } from "../../context/ActiveKeyContext";
-import { toast } from "react-toastify";
+import { useNavigate, useParams } from "react-router-dom";
+import useEditModal from "../../hooks/useEditModalHook";
+import useDeleteModal from "../../hooks/useDeleteModalHook";
+import { FilterMatchMode } from "primereact/api";
+import { useEffect, useState } from "react";
+import { CustomSpinner } from "../../components/CustomSpinner";
+import { Button } from "primereact/button";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import ActionButtons from "../../components/ActionButtons";
-import useEditModal from "../../hooks/useEditModalHook";
-import useDeleteModal from "../../hooks/useDeleteModalHook";
-
-import { FilterMatchMode } from "primereact/api";
-
+import { useForm } from "react-hook-form";
+import ButtonToolBar from "../CustomerInvoice/CustomerInvoiceToolbar";
+import { Col, Form, Row } from "react-bootstrap";
+import TextInput from "../../components/Forms/TextInput";
+import CheckBox from "../../components/Forms/CheckBox";
 import {
-  ProductCategoryDataContext,
-  ProductCategoryDataProivder,
-} from "./ProductCategoryDataContext";
-import {
-  deleteProductCategory,
+  addNewProductCategory,
+  deleteProductCategoryByID,
   fetchAllProductCategories,
   fetchProductCategoryById,
 } from "../../api/ProductCategoryData";
-import { preventFormByEnterKeySubmission } from "../../utils/CommonFunctions";
-import Select from "react-select";
-import { AppConfigurationContext } from "../../context/AppConfigurationContext";
+import { ROUTE_URLS, QUERY_KEYS } from "../../utils/enums";
+import CDropdown from "../../components/Forms/CDropdown";
+import { useUserData } from "../../context/AuthContext";
 
-const apiUrl = import.meta.env.VITE_APP_API_URL;
-const defaultValues = {
-  ProductCategoryTitle: "",
-  ProductType: [],
-  InActive: false,
-};
+let parentRoute = ROUTE_URLS.UTILITIES.PRODUCT_CATEGORY_ROUTE;
+let editRoute = `${parentRoute}/edit/`;
+let newRoute = `${parentRoute}/new`;
+let viewRoute = `${parentRoute}/`;
+let detail = "#22C55E";
+let queryKey = QUERY_KEYS.PRODUCT_CATEGORIES_QUERY_KEY;
 
-function GenProductCategory() {
-  const { pageTitles } = useContext(AppConfigurationContext);
-  document.title = `${pageTitles?.product || "Product"} Category`;
-
-  return (
-    <ProductCategoryDataProivder>
-      <TabHeader
-        Search={<GenProductCategorySearch pageTitles={pageTitles} />}
-        Entry={<GenProductCategoryEntry pageTitles={pageTitles} />}
-        SearchTitle={"ProductCategory Info"}
-        EntryTitle={"Add New ProductCategory"}
-      />
-    </ProductCategoryDataProivder>
-  );
-}
-
-function GenProductCategorySearch() {
+export function ProductCategoryDetail() {
+  document.title = "Product Categories";
   const queryClient = useQueryClient();
-  const { pageTitles } = useContext(AppConfigurationContext);
-  const { user } = useContext(AuthContext);
-  const { setKey } = useContext(ActiveKeyContext);
-
-  const [filters, setFilters] = useState({
-    ProductCategoryTitle: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    ProductType: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  });
-
+  const navigate = useNavigate();
   const {
     render: EditModal,
     handleShow: handleEditShow,
@@ -76,119 +42,116 @@ function GenProductCategorySearch() {
     setIdToEdit,
   } = useEditModal(handleEdit);
 
-  const {
-    render: DeleteModal,
-    handleShow: handleDeleteShow,
-    handleClose: handleDeleteClose,
-    setIdToDelete,
-  } = useDeleteModal(handleDelete);
+  const { render: DeleteModal, handleShow: handleDeleteShow } =
+    useDeleteModal(handleDelete);
 
-  const { setIsEnable, setProductCategoryID } = useContext(
-    ProductCategoryDataContext
-  );
+  const [filters, setFilters] = useState({
+    ProductCategoryTitle: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    ProductType: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  });
 
-  const {
-    data: ProductCategories,
-    isLoading,
-    isFetching,
-  } = useQuery({
-    queryKey: ["productCategories"],
-    queryFn: () => fetchAllProductCategories(user.userID, pageTitles?.product),
+  const user = useUserData();
+
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: [queryKey],
+    queryFn: () => fetchAllProductCategories(user.userID),
     initialData: [],
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteProductCategory,
-    onSuccess: (data) => {
-      if (data === true) {
-        queryClient.invalidateQueries({ queryKey: ["productCategories"] });
-      }
+    mutationFn: deleteProductCategoryByID,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      navigate(parentRoute);
     },
   });
 
-  function handleEdit(ProductCategoryID) {
-    setProductCategoryID(ProductCategoryID);
-    setIsEnable(true);
-    setKey("entry");
+  function handleDelete(id) {
+    deleteMutation.mutate({
+      ProductCategoryID: id,
+      LoginUserID: user.userID,
+    });
+  }
+
+  function handleEdit(id) {
+    navigate(editRoute + id);
     handleEditClose();
     setIdToEdit(0);
   }
-  function handleDelete(ProductCategoryID) {
-    deleteMutation.mutate({ ProductCategoryID, LoginUserID: user.userID });
-    handleDeleteClose();
-    setIdToDelete(0);
-    setProductCategoryID(null);
-  }
-  function handleView(ProductCategoryID) {
-    setKey("entry");
-    setProductCategoryID(ProductCategoryID);
-    setIsEnable(false);
+
+  function handleView(id) {
+    navigate(parentRoute + "/" + id);
   }
 
   return (
-    <>
+    <div className="mt-4">
       {isLoading || isFetching ? (
         <>
           <div className="h-100 w-100">
             <div className="d-flex align-content-center justify-content-center ">
-              <Spinner
-                animation="border"
-                size="lg"
-                role="status"
-                aria-hidden="true"
-              />
+              <CustomSpinner />
             </div>
           </div>
         </>
       ) : (
         <>
+          <div className="d-flex text-dark  mb-4 ">
+            <h2 className="text-center my-auto">Product Categories</h2>
+            <div className="text-end my-auto" style={{ marginLeft: "10px" }}>
+              <Button
+                label="Add New Product Category"
+                icon="pi pi-plus"
+                type="button"
+                className="rounded"
+                onClick={() => navigate(newRoute)}
+              />
+            </div>
+          </div>
           <DataTable
             showGridlines
-            value={ProductCategories}
+            value={data}
             dataKey="ProductCategoryID"
             paginator
             rows={10}
             rowsPerPageOptions={[5, 10, 25, 50]}
             removableSort
-            emptyMessage={`No ${
-              pageTitles?.product?.toLowerCase() || "product"
-            } category found!`}
+            emptyMessage="No product categories found!"
             filters={filters}
             filterDisplay="row"
             resizableColumns
             size="small"
             selectionMode="single"
+            style={{ backgroundColor: "red" }}
+            className={"thead"}
             tableStyle={{ minWidth: "50rem" }}
           >
             <Column
               body={(rowData) =>
                 ActionButtons(
                   rowData.ProductCategoryID,
-                  handleDeleteShow,
+                  () => handleDeleteShow(rowData.ProductCategoryID),
                   handleEditShow,
                   handleView
                 )
               }
               header="Actions"
               resizeable={false}
-              style={{ minWidth: "7rem", maxWidth: "7rem", width: "7rem" }}
+              style={{ minWidth: "7rem", maxWidth: "10rem", width: "7rem" }}
             ></Column>
             <Column
               field="ProductCategoryTitle"
               filter
               filterPlaceholder="Search by category"
               sortable
-              header={`${pageTitles?.product || "Product"} Category`}
+              header={`${"Product"} Category`}
               style={{ minWidth: "20rem" }}
             ></Column>
             <Column
               field="ProductType"
               filter
-              filterPlaceholder={`Search by ${
-                pageTitles?.product?.toLowerCase() || "product"
-              } type`}
+              filterPlaceholder={`Search by ${"product"} type`}
               sortable
-              header={`${pageTitles?.product || "Product"} Type`}
+              header={`"Product" Type`}
               style={{ minWidth: "20rem" }}
             ></Column>
           </DataTable>
@@ -196,254 +159,181 @@ function GenProductCategorySearch() {
           {DeleteModal}
         </>
       )}
-    </>
+    </div>
   );
 }
 
-function GenProductCategoryEntry({ pageTitles }) {
+export function ProductCategoryForm({ pagesTitle, mode }) {
+  document.title = "Product Category Entry";
   const queryClient = useQueryClient();
-  const [ProductCategory, setProductCategory] = useState();
-  const [isLoading, setIsLoading] = useState(false);
-  const {
-    control,
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    formState: { isDirty, isValid },
-  } = useForm();
+  const navigate = useNavigate();
+  const { ProductCategoryID } = useParams();
+  const { control, handleSubmit, setFocus, setValue, reset, register } =
+    useForm({
+      defaultValues: {
+        ProductCategoryTitle: "",
+        InActive: false,
+      },
+    });
 
-  const { user } = useContext(AuthContext);
-  const { setKey } = useContext(ActiveKeyContext);
-  const { isEnable, ProductCategoryID, setProductCategoryID, setIsEnable } =
-    useContext(ProductCategoryDataContext);
+  const user = useUserData();
 
-  useEffect(() => {
-    async function fetchSession() {
-      if (
-        ProductCategoryID !== undefined &&
-        ProductCategoryID !== null &&
-        ProductCategoryID !== 0
-      ) {
-        setIsLoading(true);
-        const data = await fetchProductCategoryById(
-          ProductCategoryID,
-          user.userID
-        );
-        if (!data) {
-          setKey("search");
-          toast.error("Network Error Occured!");
-        }
-        setProductCategory(data);
-        setIsLoading(false);
-      } else {
-        setProductCategory(null);
-        setTimeout(() => {
-          reset(defaultValues);
-          setIsEnable(true);
-        }, 200);
-      }
-    }
-    if (ProductCategoryID !== 0) {
-      fetchSession();
-    }
-  }, [ProductCategoryID]);
-
-  const sessionMutation = useMutation({
-    mutationFn: async (formData) => {
-      const dataToSend = {
-        ProductCategoryID: 0,
-        ProductCategoryTitle: formData.ProductCategoryTitle,
-        ProductType: formData.ProductType.value,
-        InActive: formData.InActive ? 1 : 0,
-        EntryUserID: user.userID,
-      };
-
-      if (ProductCategory?.data[0]?.ProductCategoryID !== undefined) {
-        dataToSend.ProductCategoryID =
-          ProductCategory?.data[0]?.ProductCategoryID;
-      } else {
-        dataToSend.ProductCategoryID = 0;
-      }
-
-      const { data } = await axios.post(
-        apiUrl + `/EduIMS/ProductCategoryInsertUpdate`,
-        dataToSend
-      );
-
-      if (data.success === true) {
-        setProductCategoryID(0);
-        reset(defaultValues);
-        setIsEnable(true);
-        setKey("search");
-        queryClient.invalidateQueries({ queryKey: ["productCategories"] });
-        if (ProductCategory?.data[0]?.ProductCategoryID !== undefined) {
-          toast.success(
-            `${
-              pageTitles?.product || "Product"
-            } Category  updated successfully!`
-          );
-        } else {
-          toast.success(
-            `${pageTitles?.product || "Product"} Category  saved successfully!`
-          );
-        }
-      } else {
-        toast.error(data.message, {
-          autoClose: 1500,
-        });
-      }
-    },
-  });
-  const deleteMutation = useMutation({
-    mutationFn: deleteProductCategory,
-    onSuccess: (response) => {
-      if (response === true) {
-        queryClient.invalidateQueries({ queryKey: ["productCategories"] });
-        setProductCategory(undefined);
-        setProductCategoryID(0);
-        reset(defaultValues);
-        setIsEnable(true);
-        setKey("search");
-      }
-    },
+  const ProductCategoryData = useQuery({
+    queryKey: [queryKey, ProductCategoryID],
+    queryFn: () => fetchProductCategoryById(ProductCategoryID, user.userID),
+    initialData: [],
   });
 
   useEffect(() => {
-    if (ProductCategoryID !== 0 && ProductCategory?.data) {
+    if (
+      ProductCategoryID !== undefined &&
+      ProductCategoryData.data?.length > 0
+    ) {
       setValue(
         "ProductCategoryTitle",
-        ProductCategory?.data[0]?.ProductCategoryTitle
+        ProductCategoryData?.data[0]?.ProductCategoryTitle
       );
-      setValue("ProductType", {
-        label: ProductCategory?.data[0]?.ProductType,
-        value: ProductCategory?.data[0]?.ProductType,
-      });
+      setValue("ProductType", ProductCategoryData?.data[0]?.ProductType);
 
-      setValue("InActive", ProductCategory?.data[0]?.InActive);
+      setValue("InActive", ProductCategoryData?.data[0]?.InActive);
     }
-  }, [ProductCategoryID, ProductCategory]);
+  }, [ProductCategoryID, ProductCategoryData]);
 
-  function onSubmit(data) {
-    sessionMutation.mutate(data);
-  }
-  function handleEdit() {
-    setIsEnable(true);
-  }
+  const mutation = useMutation({
+    mutationFn: addNewProductCategory,
+    onSuccess: ({ success, RecordID }) => {
+      if (success) {
+        queryClient.invalidateQueries({ queryKey: [queryKey] });
+        navigate(`${parentRoute}/${RecordID}`);
+      }
+    },
+  });
 
-  function handleAddNew() {
-    setProductCategory(undefined);
-    setProductCategoryID(0);
-    reset(defaultValues);
-    setIsEnable(true);
-  }
-
-  function handleCancel() {
-    setProductCategory(undefined);
-    setProductCategoryID(0);
-    reset(defaultValues);
-    setIsEnable(true);
-  }
+  const deleteMutation = useMutation({
+    mutationFn: deleteProductCategoryByID,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      navigate(parentRoute);
+    },
+  });
 
   function handleDelete() {
     deleteMutation.mutate({
-      ProductCategoryID,
+      ProductCategoryID: ProductCategoryID,
       LoginUserID: user.userID,
     });
   }
 
+  function handleAddNew() {
+    reset();
+    navigate(newRoute);
+  }
+  function handleCancel() {
+    if (mode === "new") {
+      navigate(parentRoute);
+    } else if (mode === "edit") {
+      navigate(viewRoute + ProductCategoryID);
+    }
+  }
+  function handleEdit() {
+    navigate(editRoute + ProductCategoryID);
+  }
+  function onSubmit(data) {
+    mutation.mutate({
+      formData: data,
+      userID: user.userID,
+      ProductCategoryID: ProductCategoryID,
+    });
+  }
+
   const typesOptions = [
-    { label: pageTitles?.product || "Product", value: "Product" },
+    { label: "Product", value: "Product" },
     { label: "Service", value: "Service" },
   ];
 
   return (
     <>
-      {isLoading ? (
+      {ProductCategoryData.isLoading ? (
         <>
-          <div className="d-flex align-content-center justify-content-center h-100 w-100 m-auto">
-            <Spinner
-              animation="border"
-              size="lg"
-              role="status"
-              aria-hidden="true"
-            />
-          </div>
+          <CustomSpinner />
         </>
       ) : (
         <>
-          <h4 className="p-3 mb-2 bg-light text-dark text-center  ">
-            {pageTitles?.product || "Product"} Category Entry
-          </h4>
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            onKeyDown={preventFormByEnterKeySubmission}
-          >
-            <Row className="p-3">
-              <Form.Group as={Col} controlId="ProductCategoryTitle">
-                <Form.Label>
-                  {pageTitles?.product || "Product"} Category Title
-                </Form.Label>
-                <span className="text-danger fw-bold ">*</span>
-                <Form.Control
-                  type="text"
-                  required
-                  className="form-control"
-                  {...register("ProductCategoryTitle", {
-                    disabled: !isEnable,
-                  })}
-                />
-              </Form.Group>
-              <Form.Group as={Col} controlId="ProductType">
-                <Form.Label>{pageTitles?.product || "Product"} Type</Form.Label>
-                <span className="text-danger fw-bold ">*</span>
-                <Controller
-                  control={control}
-                  name="ProductType"
-                  render={({ field: { onChange, value } }) => (
-                    <Select
-                      required
-                      isDisabled={!isEnable}
-                      options={typesOptions}
-                      value={value}
-                      onChange={(selectedOption) => onChange(selectedOption)}
-                      placeholder="Select a type"
-                      noOptionsMessage={() => "No types found!"}
-                    />
-                  )}
-                />
-              </Form.Group>
-            </Row>
-            <Row className="p-3" style={{ marginTop: "-25px" }}>
-              <Form.Group as={Col} controlId="InActive">
-                <Form.Check
-                  aria-label="Inactive"
-                  label="Inactive"
-                  {...register("InActive", {
-                    disabled: !isEnable,
-                  })}
-                />
-              </Form.Group>
-            </Row>
-
-            <ButtonRow
-              isDirty={isDirty}
-              isValid={isValid}
-              editMode={isEnable}
-              isSubmitting={sessionMutation.isPending}
-              handleAddNew={handleAddNew}
-              handleCancel={handleCancel}
-              viewRecord={!isEnable}
-              editRecord={isEnable && (ProductCategory ? true : false)}
-              newRecord={ProductCategory ? false : true}
-              handleEdit={handleEdit}
+          <div className="mt-4">
+            <ButtonToolBar
+              editDisable={mode !== "view"}
+              cancelDisable={mode === "view"}
+              addNewDisable={mode === "edit" || mode === "new"}
+              deleteDisable={mode === "edit" || mode === "new"}
+              saveDisable={mode === "view"}
+              saveLabel={mode === "edit" ? "Update" : "Save"}
+              saveLoading={mutation.isPending}
+              handleGoBack={() => navigate(parentRoute)}
+              handleEdit={() => handleEdit()}
+              handleCancel={() => {
+                handleCancel();
+              }}
+              handleAddNew={() => {
+                handleAddNew();
+              }}
               handleDelete={handleDelete}
+              handleSave={() => handleSubmit(onSubmit)()}
+              GoBackLabel="Product Categorys"
             />
+          </div>
+          <form className="mt-4">
+            <Row>
+              <Form.Group as={Col}>
+                <Form.Label>
+                  Product Category
+                  <span className="text-danger fw-bold ">*</span>
+                </Form.Label>
+
+                <div>
+                  <TextInput
+                    control={control}
+                    ID={"ProductCategoryTitle"}
+                    required={true}
+                    focusOptions={() => setFocus("ProductType")}
+                    isEnable={mode !== "view"}
+                  />
+                </div>
+              </Form.Group>
+              <Form.Group as={Col}>
+                <Form.Label>
+                  Product Type
+                  <span className="text-danger fw-bold ">*</span>
+                </Form.Label>
+
+                <div>
+                  <CDropdown
+                    control={control}
+                    name="ProductType"
+                    options={typesOptions}
+                    required={true}
+                    focusOptions={() => setFocus("InActive")}
+                    disabled={mode === "view"}
+                    showOnFocus={true}
+                    filter={false}
+                  />
+                </div>
+              </Form.Group>
+            </Row>
+            <Row>
+              <Form.Group as={Col}>
+                <div className="mt-2">
+                  <CheckBox
+                    control={control}
+                    ID={"InActive"}
+                    Label={"InActive"}
+                    isEnable={mode !== "view"}
+                  />
+                </div>
+              </Form.Group>
+            </Row>
           </form>
         </>
       )}
     </>
   );
 }
-
-export default GenProductCategory;

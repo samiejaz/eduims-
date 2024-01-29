@@ -27,7 +27,9 @@ export async function fetchDebitNoteById(DebitNoteID, LoginUserID) {
       );
       return data ?? [];
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message, {
+        autoClose: false,
+      });
     }
   }
 }
@@ -41,7 +43,9 @@ export async function deleteDebitNoteByID(serviceInfo) {
     toast.success("Branch sucessfully deleted!");
     return true;
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return false;
   }
 }
@@ -53,7 +57,9 @@ export async function fetchMonthlyMaxDebitNoteNo(BusinesssUnitID) {
     );
     return data;
   } catch (error) {
-    toast.error(error);
+    toast.error(error, {
+      autoClose: false,
+    });
   }
 }
 
@@ -108,11 +114,15 @@ export async function addNewDebitNote({ formData, userID, DebitNoteID = 0 }) {
         }
         return { success: true, RecordID: data?.DebitNoteID };
       } else {
-        toast.error(data.message);
+        toast.error(data.message, {
+          autoClose: false,
+        });
         return { success: false, RecordID: DebitNoteID };
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message, {
+        autoClose: false,
+      });
     }
   } else {
     toast.error("Please add atleast 1 row!");

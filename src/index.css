@@ -680,3 +680,18 @@ a {
 {
  display: none;
 }
+
+.s-sb {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.s-fc {
+  display: flex;
+  flex-direction: column;
+}
+
+.s-w-100 {
+  width: 100%;
+}

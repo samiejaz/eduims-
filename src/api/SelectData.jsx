@@ -68,9 +68,8 @@ export async function fetchAllServicesForSelect(BusinessUnitID) {
   return data.data || [];
 }
 
-export async function fetchAllActivationCustomersForSelect(CustomerID) {
+export async function fetchAllActivationCustomersForSelect(CustomerID = 0) {
   let whereClause;
-
   if (CustomerID === undefined || CustomerID === 0) {
     whereClause = "?CustomerID=" + 0;
   } else {
@@ -81,7 +80,7 @@ export async function fetchAllActivationCustomersForSelect(CustomerID) {
   );
   return data.data;
 }
-export async function fetchAllSoftwareCustomersForSelect(CustomerID) {
+export async function fetchAllSoftwareCustomersForSelect(CustomerID = 0) {
   let whereClause;
   if (CustomerID === undefined || CustomerID === 0) {
     whereClause = "?CustomerID=" + 0;

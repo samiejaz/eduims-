@@ -56,6 +56,8 @@ import { CustomerEntryForm } from "../../components/CustomerEntryFormComponent";
 import { PrintReportInNewTab } from "../../utils/CommonFunctions";
 import { classNames } from "primereact/utils";
 import { InputSwitch } from "primereact/inputswitch";
+import NewCustomerInvoiceIntallmentsModal from "../../components/Modals/NewCustomerInvoiceInstallmentModal";
+import { CIconButton } from "../../components/Buttons/CButtons";
 
 const CustomerInvoiceModeOptions = [
   { value: "Cash", label: "Cash" },
@@ -279,6 +281,7 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
   const detailTableRef = useRef();
   const customerCompRef = useRef();
   const customerBranchRef = useRef();
+  const invoiceInstallmentRef = useRef();
   // Form
   const method = useForm({
     defaultValues,
@@ -359,8 +362,11 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
         new Date(CustomerInvoiceData?.Master[0]?.InvoiceDueDate)
       );
 
-      customerCompRef.current.setCustomerID(
+      customerCompRef.current?.setCustomerID(
         CustomerInvoiceData?.Master[0]?.CustomerID
+      );
+      customerCompRef.current?.setAccountID(
+        CustomerInvoiceData?.Master[0]?.AccountID
       );
 
       method.setValue(
@@ -435,12 +441,20 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
 
   function onSubmit(data) {
     console.log(data);
-    CustomerInvoiceMutation.mutate({
-      formData: data,
-      userID: user.userID,
-      CustomerInvoiceID: CustomerInvoiceID,
-    });
+    if (data?.CustomerInvoiceDetail.length > 0) {
+      console.log(data);
+      CustomerInvoiceMutation.mutate({
+        formData: data,
+        userID: user.userID,
+        CustomerInvoiceID: CustomerInvoiceID,
+      });
+    } else {
+      console.log("entered");
+      toast.error("Please add atleast 1 row!");
+    }
   }
+
+  console.log(invoiceInstallmentRef);
 
   return (
     <>
@@ -502,7 +516,24 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
                   </div>
                 </Form.Group>
                 <Form.Group as={Col}>
-                  <Form.Label>Invoice Due Date</Form.Label>
+                  <Form.Label>
+                    Invoice Due Date
+                    {/* <CIconButton
+                      icon="pi pi-cash"
+                      toolTipPostion="left"
+                      tooltip="Installments"
+                      onClick={() =>
+                        invoiceInstallmentRef.current?.openDialog(true)
+                      }
+                    /> */}
+                    <Button
+                      type="button"
+                      icon="pi pi-money"
+                      onClick={() =>
+                        invoiceInstallmentRef.current?.openDialog(true)
+                      }
+                    />
+                  </Form.Label>
                   <div>
                     <CDatePicker
                       control={method.control}
@@ -527,7 +558,6 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
                 <CustomerDependentFields
                   mode={mode}
                   removeAllRows={detailTableRef.current?.removeAllRows}
-                  setAccountID={customerBranchRef.current?.setAccountID}
                   ref={customerCompRef}
                 />
               </Row>
@@ -571,7 +601,7 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
             <CustomerInvoiceDetailTable
               mode={mode}
               BusinessUnitSelectData={BusinessUnitSelectData}
-              CustomerBranchSelectData={BranchSelectData}
+              CustomerBranchSelectData={customerCompRef.current?.getBranchesData()}
               ref={detailTableRef}
             />
           </FormProvider>
@@ -617,6 +647,12 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
               />
             </Form.Group>
           </Row>
+          <FormProvider {...method}>
+            <NewCustomerInvoiceIntallmentsModal
+              isEnable={mode !== "view"}
+              ref={invoiceInstallmentRef}
+            />
+          </FormProvider>
         </>
       )}
     </>
@@ -666,12 +702,9 @@ function SessionSelect({ mode }) {
 }
 
 const CustomerDependentFields = React.forwardRef(
-  ({ mode, removeAllRows, setAccountID }, ref) => {
+  ({ mode, removeAllRows }, ref) => {
     const [CustomerID, setCustomerID] = useState(0);
-
-    React.useImperativeHandle(ref, () => ({
-      setCustomerID,
-    }));
+    const [AccountID, setAccountID] = useState(0);
 
     const { data: customerSelectData } = useQuery({
       queryKey: [QUERY_KEYS.ALL_CUSTOMER_QUERY_KEY],
@@ -684,6 +717,24 @@ const CustomerDependentFields = React.forwardRef(
       queryFn: () => fetchAllCustomerAccountsForSelect(CustomerID),
       initialData: [],
     });
+
+    const { data } = useQuery({
+      queryKey: [
+        SELECT_QUERY_KEYS.CUSTOMER_BRANCHES_SELECT_QUERY_KEY,
+        AccountID,
+      ],
+      queryFn: () => fetchAllCustomerBranchesData(AccountID),
+      enabled: AccountID !== 0,
+      initialData: [],
+    });
+
+    React.useImperativeHandle(ref, () => ({
+      setCustomerID,
+      setAccountID,
+      getBranchesData() {
+        return data;
+      },
+    }));
 
     const method = useFormContext();
 
@@ -1511,8 +1562,15 @@ function CustomerInvoiceDetailTableRow({
             optionValue="ProductInfoID"
             placeholder="Select a service"
             options={ServicesInfoSelectData}
-            required={InvoiceType === "Product"}
-            disabled={disable || InvoiceType === "Product"}
+            required={
+              method.watch(`CustomerInvoiceDetail.${index}.InvoiceType`) ===
+              "Service"
+            }
+            disabled={
+              disable ||
+              method.watch(`CustomerInvoiceDetail.${index}.InvoiceType`) ===
+                "Product"
+            }
             filter={true}
             focusOptions={() =>
               method.setFocus(`CustomerInvoiceDetail.${index}.Qty`)
@@ -1567,7 +1625,9 @@ function CustomerInvoiceDetailTableRow({
               );
               method.setValue(`CustomerInvoiceDetail.${index}.Rate`, e.value);
             }}
-            disabled={disable || IsFree}
+            disabled={
+              disable || method.watch(`CustomerInvoiceDetail.${index}.IsFree`)
+            }
             mode="decimal"
             maxFractionDigits={2}
             inputClassName="form-control"
@@ -1613,7 +1673,9 @@ function CustomerInvoiceDetailTableRow({
                 amount - e.value
               );
             }}
-            disabled={disable || IsFree}
+            disabled={
+              disable || method.watch(`CustomerInvoiceDetail.${index}.IsFree`)
+            }
             mode="decimal"
             maxFractionDigits={2}
             inputClassName="form-control"
@@ -1702,7 +1764,7 @@ function CustomerInvoiceDetailTotal() {
 }
 
 const BranchSelectField = React.forwardRef((props, ref) => {
-  const [AccountID, setAccountID] = useState();
+  const [AccountID, setAccountID] = useState(0);
   const { data } = useQuery({
     queryKey: [SELECT_QUERY_KEYS.CUSTOMER_BRANCHES_SELECT_QUERY_KEY, AccountID],
     queryFn: () => fetchAllCustomerBranchesData(AccountID),

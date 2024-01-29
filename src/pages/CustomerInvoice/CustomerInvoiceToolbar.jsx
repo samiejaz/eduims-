@@ -26,6 +26,7 @@ export default function ButtonToolBar({
   cancelLabel = "Cancel",
   deleteLabel = "Delete",
   GoBackLabel = "",
+  showDelete = true,
 }) {
   const startContent = (
     <Button
@@ -68,16 +69,20 @@ export default function ButtonToolBar({
         onClick={() => handleEdit()}
         style={{ marginRight: "2px" }}
       />
-      <Button
-        label={deleteLabel}
-        icon="pi pi-trash"
-        type="button"
-        severity="danger"
-        disabled={deleteDisable}
-        onClick={() => handleDelete()}
-        style={{ marginRight: "2px" }}
-        className="p-button-success rounded"
-      />
+      {showDelete && (
+        <>
+          <Button
+            label={deleteLabel}
+            icon="pi pi-trash"
+            type="button"
+            severity="danger"
+            disabled={deleteDisable}
+            onClick={() => handleDelete()}
+            style={{ marginRight: "2px" }}
+            className="p-button-success rounded"
+          />
+        </>
+      )}
       <Button
         label={saveLabel}
         icon="pi pi-check"

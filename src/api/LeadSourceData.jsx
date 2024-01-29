@@ -37,7 +37,9 @@ export async function deleteLeadSourceByID({ LeadSourceID, LoginUserID }) {
     toast.success("LeadSource sucessfully deleted!");
     return true;
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return false;
   }
 }
@@ -68,7 +70,9 @@ export async function addNewLeadSource({ formData, userID, LeadSourceID = 0 }) {
     }
     return { success: true, RecordID: data?.LeadSourceID };
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return { success: false, RecordID: LeadSourceID };
   }
 }

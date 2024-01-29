@@ -169,6 +169,12 @@ const CSidebar = ({ sideBarRef }) => {
                 </a>
               </li>
               <li>
+                <Link to={ROUTE_URLS.ACCOUNTS.BANK_ACCOUNT_OPENING}>
+                  Bank Account Opening
+                </Link>
+              </li>
+              <hr style={{ color: "white", padding: "0", margin: "0" }} />
+              <li>
                 <Link to={ROUTE_URLS.ACCOUNTS.CUSTOMER_INVOICE}>
                   Customer Invoice
                 </Link>
@@ -178,6 +184,7 @@ const CSidebar = ({ sideBarRef }) => {
                   Receipt Voucher
                 </Link>
               </li>
+              <hr style={{ color: "white", padding: "0", margin: "0" }} />
               <li>
                 <Link to={ROUTE_URLS.ACCOUNTS.DEBIT_NODE_ROUTE}>
                   Debit Note
@@ -220,12 +227,12 @@ const CSidebar = ({ sideBarRef }) => {
                 </Link>
               </li>
               <li>
-                <Link to={ROUTE_URLS.GENERAL.PRODUCT_CATEGORY_ROUTE}>
+                <Link to={ROUTE_URLS.UTILITIES.PRODUCT_CATEGORY_ROUTE}>
                   Product Category
                 </Link>
               </li>
               <li>
-                <Link to={ROUTE_URLS.GENERAL.PRODUCT_INFO_ROUTE}>
+                <Link to={ROUTE_URLS.UTILITIES.PRODUCT_INFO_ROUTE}>
                   Product Info
                 </Link>
               </li>

@@ -36,7 +36,9 @@ export async function deleteCountryByID(serviceInfo) {
     toast.success("Country sucessfully deleted!");
     return true;
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return false;
   }
 }
@@ -67,7 +69,9 @@ export async function addNewCountry({ formData, userID, CountryID = 0 }) {
     }
     return true;
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return false;
   }
 }

@@ -14,9 +14,11 @@ import { toast } from "react-toastify";
 import { BreadCrumb } from "primereact/breadcrumb";
 import Select from "react-select";
 import { fetchAllOldCustomersForSelect } from "../../api/SelectData";
+import { ROUTE_URLS } from "../../utils/enums";
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 const items = [{ label: "Customer Detail" }];
+
 export default function GenNewCustomerView() {
   const [CustomerID, setCustomerID] = useState(0);
   const [isGloballyEnable, setIsGloballyEnable] = useState();
@@ -37,7 +39,7 @@ export default function GenNewCustomerView() {
 
   const home = {
     label: "Customers",
-    command: () => navigate("/customers/customerEntry"),
+    command: () => navigate(ROUTE_URLS.CUSTOMERS.CUSTOMER_ENTRY),
   };
 
   let customerMutation = useMutation({
@@ -89,101 +91,97 @@ export default function GenNewCustomerView() {
 
   return (
     <>
-      <div className="bg__image mt-5">
-        <div className=" px-md-5 bg__image">
-          <div className=" px-md-4">
-            <div className="d-flex justify-content-between ">
-              <div>
-                <BreadCrumb
-                  model={items}
-                  home={home}
-                  style={{ border: "none" }}
-                />
-              </div>
-              {isGloballyEnable === false && (
-                <>
-                  <div>
-                    <Button
-                      style={{ marginRight: "40px" }}
-                      onClick={() => setIsGloballyEnable(true)}
-                      severity="warning"
-                      label="Edit"
-                      icon="pi pi-pencil"
-                      className="rounded"
-                    ></Button>
-                  </div>
-                </>
-              )}
-            </div>
-            <div className="d-flex text-dark p-3 mb-4 ">
-              <Row className="w-100">
-                <Form.Group as={Col}>
-                  <h2 className="text-start my-auto">Customer Detail</h2>
-                </Form.Group>
-                <Form.Group as={Col} controlId="Customers">
-                  <Controller
-                    control={control}
-                    name="Customers"
-                    render={({ field: { onChange, value } }) => (
-                      <Select
-                        options={data}
-                        getOptionValue={(option) => option.CustomerID}
-                        getOptionLabel={(option) => option.CustomerName}
-                        value={value}
-                        onChange={(selectedOption) => {
-                          onChange(selectedOption);
-                          setCustomerID(
-                            selectedOption?.CustomerID ?? params?.CustomerID
-                          );
-                        }}
-                        placeholder="Select a customer"
-                        noOptionsMessage={() => "No customers found!"}
-                        isClearable
-                      />
-                    )}
-                  />
-                </Form.Group>
-              </Row>
-            </div>
-            <div className="card">
-              <TabView>
-                <TabPanel header="Customer">
-                  <FormProvider {...customerEntryForm}>
-                    <CustomerEntry
-                      CustomerID={CustomerID}
-                      isEnable={isGloballyEnable}
-                    />
-                    <ButtonGroup className="mt-3 w-100">
-                      <Button
-                        type="button"
-                        severity="success"
-                        label="Save"
-                        className="rounded w-100"
-                        onClick={() => {
-                          customerEntryForm.handleSubmit(onSubmit)();
-                        }}
-                        disabled={!isGloballyEnable}
-                      ></Button>
-                    </ButtonGroup>
-                  </FormProvider>
-                </TabPanel>
-                <TabPanel header="Customer Branches">
-                  <FormProvider {...customerBranchFrom}>
-                    <CustomerBranchEntry
-                      CustomerID={CustomerID}
-                      isEnable={isGloballyEnable}
-                    />
-                  </FormProvider>
-                </TabPanel>
-                <TabPanel header="Customer Ledgers ">
-                  <CustomerAccountEntry
-                    CustomerID={CustomerID}
-                    isEnable={isGloballyEnable}
-                  />
-                </TabPanel>
-              </TabView>
-            </div>
+      <div className="bg__image mt-4">
+        <div className="d-flex justify-content-between ">
+          <div>
+            <BreadCrumb
+              model={items}
+              home={home}
+              style={{ border: "none", background: "inherit" }}
+            />
           </div>
+          {isGloballyEnable === false && (
+            <>
+              <div>
+                <Button
+                  style={{ marginRight: "40px" }}
+                  onClick={() => setIsGloballyEnable(true)}
+                  severity="warning"
+                  label="Edit"
+                  icon="pi pi-pencil"
+                  className="rounded"
+                ></Button>
+              </div>
+            </>
+          )}
+        </div>
+        <div className="d-flex text-dark p-3 mb-4 ">
+          <Row className="w-100">
+            <Form.Group as={Col}>
+              <h2 className="text-start my-auto">Customer Detail</h2>
+            </Form.Group>
+            <Form.Group as={Col} controlId="Customers">
+              <Controller
+                control={control}
+                name="Customers"
+                render={({ field: { onChange, value } }) => (
+                  <Select
+                    options={data}
+                    getOptionValue={(option) => option.CustomerID}
+                    getOptionLabel={(option) => option.CustomerName}
+                    value={value}
+                    onChange={(selectedOption) => {
+                      onChange(selectedOption);
+                      setCustomerID(
+                        selectedOption?.CustomerID ?? params?.CustomerID
+                      );
+                    }}
+                    placeholder="Select a customer"
+                    noOptionsMessage={() => "No customers found!"}
+                    isClearable
+                  />
+                )}
+              />
+            </Form.Group>
+          </Row>
+        </div>
+        <div className="card">
+          <TabView>
+            <TabPanel header="Customer">
+              <FormProvider {...customerEntryForm}>
+                <CustomerEntry
+                  CustomerID={CustomerID}
+                  isEnable={isGloballyEnable}
+                />
+                <ButtonGroup className="mt-3 w-100">
+                  <Button
+                    type="button"
+                    severity="success"
+                    label="Save"
+                    className="rounded w-100"
+                    onClick={() => {
+                      customerEntryForm.handleSubmit(onSubmit)();
+                    }}
+                    disabled={!isGloballyEnable}
+                  ></Button>
+                </ButtonGroup>
+              </FormProvider>
+            </TabPanel>
+            <TabPanel header="Customer Branches">
+              <FormProvider {...customerBranchFrom}>
+                <CustomerBranchEntry
+                  CustomerID={CustomerID}
+                  isEnable={isGloballyEnable}
+                />
+              </FormProvider>
+            </TabPanel>
+            <TabPanel header="Customer Ledgers ">
+              <CustomerAccountEntry
+                CustomerID={CustomerID}
+                isEnable={isGloballyEnable}
+              />
+            </TabPanel>
+          </TabView>
         </div>
       </div>
     </>

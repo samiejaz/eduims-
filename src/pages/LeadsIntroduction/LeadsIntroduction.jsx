@@ -36,6 +36,7 @@ import { Calendar } from "primereact/calendar";
 import { classNames } from "primereact/utils";
 import { Tag } from "primereact/tag";
 import { toast } from "react-toastify";
+import { CIconButton } from "../../components/Buttons/CButtons";
 
 let parentRoute = ROUTE_URLS.LEAD_INTRODUCTION_ROUTE;
 let editRoute = `${parentRoute}/edit/`;
@@ -159,6 +160,18 @@ export function LeadIntroductionDetail({ ShowMetaDeta = true, Rows = 10 }) {
                 height: "2rem",
                 border: "none",
               }}
+            />
+            <CIconButton
+              icon="pi pi-comments"
+              severity="info"
+              onClick={() =>
+                navigate(
+                  ROUTE_URLS.GENERAL.LEADS_INTROUDCTION_COMMENT_ROUTE +
+                    "/" +
+                    rowData.LeadIntroductionID
+                )
+              }
+              tooltip="Comments"
             />
           </div>
         </div>

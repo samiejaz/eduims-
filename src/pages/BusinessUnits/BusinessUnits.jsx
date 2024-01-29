@@ -25,6 +25,7 @@ import { ROUTE_URLS, QUERY_KEYS } from "../../utils/enums";
 import ImageContainer from "../../components/ImageContainer";
 import { ColorPicker } from "primereact/colorpicker";
 import { classNames } from "primereact/utils";
+import { Tooltip } from "primereact/tooltip";
 
 let parentRoute = ROUTE_URLS.GENERAL.BUSINESS_UNITS;
 let editRoute = `${parentRoute}/edit/`;
@@ -509,7 +510,7 @@ export function BusinessUnitForm({ pagesTitle, mode }) {
             </Row>
             <Row>
               <Form.Group as={Col}>
-                <div className="mt-1">
+                <div className="mt-2">
                   <CheckBox
                     control={control}
                     ID={"InActive"}
@@ -522,7 +523,23 @@ export function BusinessUnitForm({ pagesTitle, mode }) {
 
             <Row>
               <Form.Group as={Col} style={{ width: "100%" }}>
-                <Form.Label>Logo</Form.Label>
+                <Tooltip target=".custom-target-icon" />
+                <Form.Label style={{ position: "relative" }}>
+                  Logo
+                  <i
+                    className="custom-target-icon pi pi-exclamation-circle p-text-secondary"
+                    data-pr-tooltip="Recommended Size (500x500px)"
+                    data-pr-position="right"
+                    data-pr-at="right+5 top"
+                    data-pr-my="left center-2"
+                    style={{
+                      cursor: "pointer",
+                      position: "absolute",
+                      right: "-20px",
+                      top: "1px",
+                    }}
+                  ></i>
+                </Form.Label>{" "}
                 <div>
                   <ImageContainer
                     imageRef={imageRef}

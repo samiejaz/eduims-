@@ -38,7 +38,9 @@ export async function deleteBusinessUnitByID(serviceInfo) {
     toast.success("Business Unit sucessfully deleted!");
     return true;
   } else {
-    toast.error(data.message);
+    toast.error(data.message, {
+      autoClose: false,
+    });
     return false;
   }
 }
@@ -105,7 +107,9 @@ export async function addNewBusinessUnit({
       }
       return { success: true, RecordID: data?.BusinessUnitID };
     } else {
-      toast.error(data.message);
+      toast.error(data.message, {
+        autoClose: false,
+      });
       return { success: false, RecordID: BusinessUnitID };
     }
   } catch (err) {}
