@@ -109,6 +109,15 @@ export async function addNewCustomerInvoice({
     });
 
     let InstallmentDetail = [];
+    if (formData?.installments.length > 0) {
+      InstallmentDetail = formData?.installments?.map((item, index) => {
+        return {
+          InstallmentRowID: index + 1,
+          InstallmentDueDate: item.IDate ?? new Date(),
+          InstallmentAmount: item.Amount,
+        };
+      });
+    }
 
     let DataToSend = {
       SessionID: formData?.SessionID,

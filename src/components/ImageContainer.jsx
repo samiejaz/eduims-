@@ -1,5 +1,4 @@
 import { Button } from "primereact/button";
-import { Image } from "primereact/image";
 import React, { useRef } from "react";
 
 const ImageContainer = ({ imageRef, hideButtons = false }) => {

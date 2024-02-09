@@ -60,6 +60,7 @@ export default function GenCustomerEntry() {
     queryKey: ["Customers"],
     queryFn: () => fetchAllNewCustomers(user.userID),
     initialData: [],
+    refetchOnWindowFocus: false,
   });
 
   // Mutations

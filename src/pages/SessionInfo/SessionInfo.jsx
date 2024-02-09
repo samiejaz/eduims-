@@ -21,7 +21,7 @@ import {
   fetchAllSessions,
   fetchSessionById,
 } from "../../api/SessionData";
-import { ROUTE_URLS, QUERY_KEYS } from "../../utils/enums";
+import { ROUTE_URLS, QUERY_KEYS, SELECT_QUERY_KEYS } from "../../utils/enums";
 import CDatePicker from "../../components/Forms/CDatePicker";
 import { parseISO } from "date-fns";
 
@@ -201,6 +201,9 @@ export function SessionForm({ pagesTitle, user, mode }) {
     onSuccess: ({ success, RecordID }) => {
       if (success) {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
+        queryClient.invalidateQueries({
+          queryKey: [SELECT_QUERY_KEYS.SESSION_SELECT_QUERY_KEY],
+        });
         navigate(`${parentRoute}/${RecordID}`);
       }
     },
@@ -210,6 +213,9 @@ export function SessionForm({ pagesTitle, user, mode }) {
     mutationFn: deleteSessionByID,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKey] });
+      queryClient.invalidateQueries({
+        queryKey: [SELECT_QUERY_KEYS.SESSION_SELECT_QUERY_KEY],
+      });
       navigate(parentRoute);
     },
   });

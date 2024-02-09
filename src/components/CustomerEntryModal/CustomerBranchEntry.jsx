@@ -22,6 +22,7 @@ import { AppConfigurationContext } from "../../context/AppConfigurationContext";
 import { deleteCustomerBranchByID } from "../../api/CustomerBranchData";
 import useDeleteModal from "../../hooks/useDeleteModalHook";
 import { CustomSpinner } from "../CustomSpinner";
+import { CDropDownField, CMultiSelectField } from "../Forms/form";
 import { AllCustomersBranchEntryModal } from "../Modals/AllCustomersBranchEntryModal";
 
 const BranchEntryContext = createContext();
@@ -184,27 +185,13 @@ function CustomerBranchEntryHeader(props) {
               CustomerID={CustomerID}
               pageTitles={pageTitles}
             />
-            <Controller
+            <CDropDownField
               control={control}
               name="CustomerBranch"
-              render={({ field: { onChange, value } }) => (
-                <Select
-                  isDisabled={!isEnable}
-                  options={CustomersBranch}
-                  getOptionValue={(option) => option.BranchID}
-                  getOptionLabel={(option) => option.BranchTitle}
-                  value={value}
-                  onChange={(selectedOption) => onChange(selectedOption)}
-                  placeholder={`Select a ${
-                    pageTitles?.branch || "Customer Branch"
-                  }`}
-                  noOptionsMessage={() =>
-                    `No ${
-                      pageTitles?.branch?.toLowerCase() || "customer branch"
-                    } found!`
-                  }
-                />
-              )}
+              disabled={!isEnable}
+              options={CustomersBranch}
+              optionLabel="BranchTitle"
+              optionValue="BranchID"
             />
             <p className="text-danger">
               {errors?.CustomerBusinessName?.message}
@@ -214,23 +201,13 @@ function CustomerBranchEntryHeader(props) {
             <Form.Label>Customer Ledgers</Form.Label>
             <span className="text-danger fw-bold ">*</span>
             <CustomerAccountEntryModal CustomerID={CustomerID} />
-            <Controller
+            <CMultiSelectField
               control={control}
               name="CustomerAccounts"
-              render={({ field: { onChange, value } }) => (
-                <Select
-                  isDisabled={watch("CreateNewAccount") || !isEnable}
-                  options={CustomerAccounts}
-                  getOptionValue={(option) => option.AccountID}
-                  getOptionLabel={(option) => option.AccountTitle}
-                  value={value}
-                  onChange={(selectedOption) => onChange(selectedOption)}
-                  placeholder="Select a ledger"
-                  noOptionsMessage={() => "No ledgers found!"}
-                  isClearable
-                  isMulti
-                />
-              )}
+              disabled={!isEnable}
+              options={CustomerAccounts}
+              optionLabel="AccountTitle"
+              optionValue="AccountID"
             />
           </Form.Group>
           <Form.Group as={Col} controlId="CreateNewAccount">
@@ -865,128 +842,3 @@ function CustomerBranchesDataTable(props) {
     </>
   );
 }
-
-// function CustomerBranchDetailTable() {
-//
-//   const { createdBranchID, setCreatedBranchID } =
-//     useContext(BranchEntryContext);
-//
-
-//   const methods = useForm();
-//   const { fields, append, remove } = useFieldArray({
-//     name: "branchDetail",
-//   });
-
-//   useEffect(() => {
-//     if (createdBranchID !== 0) {
-//       append({
-//         RowID: 1,
-//         CustomerBranchTitle: "Title",
-//       });
-//     }
-
-//     return () => {
-//       setCreatedBranchID(0);
-//     };
-//   }, [createdBranchID]);
-//   // const { data } = useQuery({
-//   //   queryKey: "branchDetailEntry",
-//   //   queryFn: () => {
-//   //     let data = ["repoData"];
-//   //     return data;
-//   //   },
-//   //   enabled: createdBranchID !== 0,
-//   //   initialData: [],
-//   // });
-
-//   //
-
-//   return (
-//     <>
-//       <FormProvider {...methods}>
-//         <form>
-//           <Table>
-//             <thead>
-//               <tr>
-//                 <th>No.</th>
-//                 <th>Branch Title</th>
-//                 <th>Customer Accounts</th>
-//                 <th>Actions</th>
-//               </tr>
-//             </thead>
-//             <tbody>
-//               {fields.map((field, index) => {
-//                 return (
-//                   <tr key={field.id}>
-//                     <CustomerBranchDetailTableRow
-//                       field={field}
-//                       remove={remove}
-//                       index={index}
-//                     />
-//                   </tr>
-//                 );
-//               })}
-//             </tbody>
-//           </Table>
-//         </form>
-//       </FormProvider>
-//     </>
-//   );
-// }
-// function CustomerBranchDetailTableRow(props) {
-//   const { register } = useFormContext();
-//   const { remove, index } = props;
-
-//   return (
-//     <>
-//       <td>
-//         <input
-//           type="text"
-//           disabled
-//           {...register(`branchDetail.${index}.RowID`)}
-//         />
-//       </td>
-//       <td>
-//         <Form.Control {...register(`branchDetail.${index}.BranchTitle`)} />
-//       </td>
-//       <td>
-//         {/* <Controller
-//           control={control}
-//           name={`branchDetail.${index}.CustomerAccounts`}
-//           render={({ field: { onChange, value } }) => (
-//             <Select
-//               required
-//               isDisabled={watch("CreateNewAccount")}
-//               options={CustomerAccounts}
-//               getOptionValue={(option) => option.AccountID}
-//               getOptionLabel={(option) => option.AccountTitle}
-//               value={value}
-//               onChange={(selectedOption) => onChange(selectedOption)}
-//               placeholder="Select an account"
-//               noOptionsMessage={() => "No accounts found!"}
-//               isClearable
-//               isMulti
-//             />
-//           )}
-//         /> */}
-//       </td>
-//       <td>
-//         <ButtonGroup>
-//           <Button
-//             icon="pi pi-plus"
-//             className="rounded-2 py-2"
-//             severity="success"
-//             aria-label="Cancel"
-//           />
-//           <Button
-//             icon="pi pi-times"
-//             className="rounded-2 py-2"
-//             severity="danger"
-//             aria-label="Cancel"
-//             onClick={() => remove(index)}
-//           />
-//         </ButtonGroup>
-//       </td>
-//     </>
-//   );
-// }

@@ -1,15 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
-import { QUERY_KEYS, ROUTE_URLS } from "../../utils/enums";
+import { ROUTE_URLS } from "../../utils/enums";
 import { Timeline } from "primereact/timeline";
 import { Card } from "primereact/card";
 import { Button } from "primereact/button";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Col, Form, Row } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
 import NumberInput from "../../components/Forms/NumberInput";
-import { FileViewer } from "../FileViewer";
 import CDropdown from "../../components/Forms/CDropdown";
 import {
   useAllDepartmentsSelectData,
@@ -21,9 +20,7 @@ import { classNames } from "primereact/utils";
 import { parseISO } from "date-fns";
 import { addLeadIntroductionOnAction } from "../../api/LeadIntroductionData";
 import { toast } from "react-toastify";
-import MeetingDoneModal, {
-  MeetingDoneFields,
-} from "../../components/Modals/MeetingDoneModal";
+import { MeetingDoneFields } from "../../components/Modals/MeetingDoneModal";
 import { RevertBackFields } from "../../components/Modals/RevertBackModal";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
@@ -507,9 +504,9 @@ function ForwardedFieldsContainer({
       {filePath !== null && fileType !== "" ? (
         <>
           <Form.Label>File</Form.Label>
-          <div className="mt-5">
+          {/* <div className="mt-5">
             <FileViewer fileType={fileType} filePath={filePath} />
-          </div>
+          </div> */}
         </>
       ) : (
         <></>
@@ -658,11 +655,11 @@ function QuotedFieldsContainer({
             </>
           )}
           <div className="mt-5">
-            <FileViewer
+            {/* <FileViewer
               fileType={getFileType(fileType)}
               filePath={filePath}
               ref={fileInputRef}
-            />
+            /> */}
           </div>
         </>
       ) : (

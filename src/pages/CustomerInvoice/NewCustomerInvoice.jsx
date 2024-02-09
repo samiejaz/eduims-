@@ -14,7 +14,13 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import ActionButtons from "../../components/ActionButtons";
 import { FilterMatchMode } from "primereact/api";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import useEditModal from "../../hooks/useEditModalHook";
 import useDeleteModal from "../../hooks/useDeleteModalHook";
 import { AuthContext } from "../../context/AuthContext";
@@ -267,6 +273,7 @@ const defaultValues = {
   VoucherDate: new Date(),
   Description: "",
   CustomerInvoiceDetail: [],
+  installments: [],
 };
 let renderCount = 0;
 export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
@@ -304,16 +311,6 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
     queryFn: fetchAllBusinessUnitsForSelect,
     initialData: [],
     enabled: mode !== "",
-  });
-
-  const { data: BranchSelectData } = useQuery({
-    queryKey: [
-      SELECT_QUERY_KEYS.CUSTOMER_BRANCHES_SELECT_QUERY_KEY,
-      customerBranchRef.current?.getAccountID(),
-    ],
-    queryFn: () => fetchAllCustomerBranchesData(AccountID),
-    enabled: customerBranchRef.current?.getAccountID() !== 0,
-    initialData: [],
   });
 
   const CustomerInvoiceMutation = useMutation({
@@ -365,14 +362,14 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
       customerCompRef.current?.setCustomerID(
         CustomerInvoiceData?.Master[0]?.CustomerID
       );
-      customerCompRef.current?.setAccountID(
-        CustomerInvoiceData?.Master[0]?.AccountID
-      );
 
       method.setValue(
         "CustomerLedgers",
         CustomerInvoiceData?.Master[0]?.AccountID
       );
+      document
+        .getElementById("CustomerLedgers")
+        .dispatchEvent(new Event("change", { bubbles: true }));
       method.setValue("DocumentNo", CustomerInvoiceData?.Master[0]?.DocumentNo);
 
       method.setValue(
@@ -395,6 +392,16 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
             BusinessUnitID: invoice.BusinessUnitID,
             Qty: invoice.Quantity,
             ...invoice,
+          };
+        })
+      );
+      console.log(CustomerInvoiceData);
+      method.setValue(
+        "installments",
+        CustomerInvoiceData?.InstallmentDetail.map((item, index) => {
+          return {
+            IDate: new Date(item.DueDate),
+            Amount: item.Amount,
           };
         })
       );
@@ -440,21 +447,16 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
   }
 
   function onSubmit(data) {
-    console.log(data);
     if (data?.CustomerInvoiceDetail.length > 0) {
-      console.log(data);
       CustomerInvoiceMutation.mutate({
         formData: data,
         userID: user.userID,
         CustomerInvoiceID: CustomerInvoiceID,
       });
     } else {
-      console.log("entered");
       toast.error("Please add atleast 1 row!");
     }
   }
-
-  console.log(invoiceInstallmentRef);
 
   return (
     <>
@@ -555,11 +557,13 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
                     />
                   </div>
                 </Form.Group>
-                <CustomerDependentFields
-                  mode={mode}
-                  removeAllRows={detailTableRef.current?.removeAllRows}
-                  ref={customerCompRef}
-                />
+                <CustomerBranchDataProvider>
+                  <CustomerDependentFields
+                    mode={mode}
+                    removeAllRows={detailTableRef.current?.removeAllRows}
+                    ref={customerCompRef}
+                  />
+                </CustomerBranchDataProvider>
               </Row>
               <Row>
                 <Form.Group as={Col} controlId="Description" className="col-9">
@@ -601,7 +605,7 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
             <CustomerInvoiceDetailTable
               mode={mode}
               BusinessUnitSelectData={BusinessUnitSelectData}
-              CustomerBranchSelectData={customerCompRef.current?.getBranchesData()}
+              CustomerBranchSelectData={[]}
               ref={detailTableRef}
             />
           </FormProvider>
@@ -649,7 +653,7 @@ export function NewCustomerInvoiceEntryForm({ pagesTitle, mode }) {
           </Row>
           <FormProvider {...method}>
             <NewCustomerInvoiceIntallmentsModal
-              isEnable={mode !== "view"}
+              mode={mode}
               ref={invoiceInstallmentRef}
             />
           </FormProvider>
@@ -703,8 +707,8 @@ function SessionSelect({ mode }) {
 
 const CustomerDependentFields = React.forwardRef(
   ({ mode, removeAllRows }, ref) => {
+    const { setAccountID } = useContext(CustomerBranchDataContext);
     const [CustomerID, setCustomerID] = useState(0);
-    const [AccountID, setAccountID] = useState(0);
 
     const { data: customerSelectData } = useQuery({
       queryKey: [QUERY_KEYS.ALL_CUSTOMER_QUERY_KEY],
@@ -718,22 +722,8 @@ const CustomerDependentFields = React.forwardRef(
       initialData: [],
     });
 
-    const { data } = useQuery({
-      queryKey: [
-        SELECT_QUERY_KEYS.CUSTOMER_BRANCHES_SELECT_QUERY_KEY,
-        AccountID,
-      ],
-      queryFn: () => fetchAllCustomerBranchesData(AccountID),
-      enabled: AccountID !== 0,
-      initialData: [],
-    });
-
     React.useImperativeHandle(ref, () => ({
       setCustomerID,
-      setAccountID,
-      getBranchesData() {
-        return data;
-      },
     }));
 
     const method = useFormContext();
@@ -896,66 +886,6 @@ function BusinessUnitDependantFields({ mode }) {
   );
 }
 
-const MasterBankFields = ({
-  mode,
-  FromBankTitle = "From Bank",
-  ReceivedInBankTitle = "Receieved In Bank",
-  TranstactionIDTitle = "TransactionID",
-}) => {
-  const { data } = useQuery({
-    queryKey: [SELECT_QUERY_KEYS.BANKS_SELECT_QUERY_KEY],
-    queryFn: fetchAllBankAccountsForSelect,
-    initialData: [],
-  });
-
-  const method = useFormContext();
-
-  return (
-    <>
-      <Form.Group as={Col}>
-        <Form.Label>{FromBankTitle}</Form.Label>
-        <div>
-          <TextInput
-            ID={"FromBank"}
-            control={method.control}
-            required={true}
-            focusOptions={() => method.setFocus("ReceivedInBankID")}
-            isEnable={mode !== "view"}
-          />
-        </div>
-      </Form.Group>
-      <Form.Group as={Col}>
-        <Form.Label>{ReceivedInBankTitle}</Form.Label>
-        <div>
-          <CDropdown
-            control={method.control}
-            options={data}
-            optionValue="BankAccountID"
-            optionLabel="BankAccountTitle"
-            name="ReceivedInBankID"
-            placeholder="Select a bank"
-            required={true}
-            disabled={mode === "view"}
-            focusOptions={() => method.setFocus("TransactionID")}
-          />
-        </div>
-      </Form.Group>
-      <Form.Group as={Col}>
-        <Form.Label>{TranstactionIDTitle}</Form.Label>
-        <div>
-          <TextInput
-            control={method.control}
-            ID={"TransactionID"}
-            required={true}
-            isEnable={mode !== "view"}
-            focusOptions={() => method.setFocus("IntrumentDate")}
-          />
-        </div>
-      </Form.Group>
-    </>
-  );
-};
-
 // New Detail Header Form
 function CustomerInvoiceDetailHeaderForm({
   appendSingleRow,
@@ -1004,7 +934,9 @@ function CustomerInvoiceDetailHeaderForm({
         </Row>
         <Row>
           <FormProvider {...method}>
-            <BranchSelectField ref={customerBranchRef} />
+            <CustomerBranchDataProvider>
+              <BranchSelectField ref={customerBranchRef} />
+            </CustomerBranchDataProvider>
           </FormProvider>
           <Form.Group as={Col} className="col-1">
             <Form.Label>Qty</Form.Label>
@@ -1355,19 +1287,21 @@ const CustomerInvoiceDetailTable = React.forwardRef(
           </thead>
           <tbody>
             <FormProvider {...method}>
-              {fields.map((item, index) => {
-                return (
-                  <CustomerInvoiceDetailTableRow
-                    key={item.id}
-                    item={item}
-                    index={index}
-                    disable={mode === "view"}
-                    BusinessUnitSelectData={BusinessUnitSelectData}
-                    CustomerBranchSelectData={CustomerBranchSelectData}
-                    remove={remove}
-                  />
-                );
-              })}
+              <CustomerBranchDataProvider>
+                {fields.map((item, index) => {
+                  return (
+                    <CustomerInvoiceDetailTableRow
+                      key={item.id}
+                      item={item}
+                      index={index}
+                      disable={mode === "view"}
+                      BusinessUnitSelectData={BusinessUnitSelectData}
+                      CustomerBranchSelectData={CustomerBranchSelectData}
+                      remove={remove}
+                    />
+                  );
+                })}
+              </CustomerBranchDataProvider>
             </FormProvider>
           </tbody>
         </Table>
@@ -1408,21 +1342,22 @@ function CustomerInvoiceDetailTableRow({
     initialData: [],
   });
 
+  const { data } = useContext(CustomerBranchDataContext);
+
   return (
-    <>
-      <tr key={item.id}>
-        <td>
-          <input
-            id="RowID"
-            readOnly
-            className="form-control"
-            style={{ padding: "0.25rem 0.4rem", fontSize: "0.9em" }}
-            value={index + 1}
-            disabled={disable}
-          />
-        </td>
-        <td>
-          {/* <CSwitchInput
+    <tr key={item.id}>
+      <td>
+        <input
+          id="RowID"
+          readOnly
+          className="form-control"
+          style={{ padding: "0.25rem 0.4rem", fontSize: "0.9em" }}
+          value={index + 1}
+          disabled={disable}
+        />
+      </td>
+      <td>
+        {/* <CSwitchInput
             control={method.control}
             name={`CustomerInvoiceDetail.${index}.IsFree`}
             disabled={disable}
@@ -1438,288 +1373,280 @@ function CustomerInvoiceDetailTableRow({
               }
             }}
           /> */}
-          <Controller
-            control={method.control}
-            name={`CustomerInvoiceDetail.${index}.IsFree`}
-            render={({ field, fieldState }) => (
-              <>
-                <InputSwitch
-                  inputId={field.name}
-                  checked={field.value}
-                  inputRef={field.ref}
-                  disabled={disable}
-                  className={classNames({ "p-invalid": fieldState.error })}
-                  onChange={(e) => {
-                    field.onChange(e.value);
+        <Controller
+          control={method.control}
+          name={`CustomerInvoiceDetail.${index}.IsFree`}
+          render={({ field, fieldState }) => (
+            <>
+              <InputSwitch
+                inputId={field.name}
+                checked={field.value}
+                inputRef={field.ref}
+                disabled={disable}
+                className={classNames({ "p-invalid": fieldState.error })}
+                onChange={(e) => {
+                  field.onChange(e.value);
 
-                    if (e.value) {
-                      method.setValue(`CustomerInvoiceDetail.${index}.Rate`, 0);
-                      method.setValue(
-                        `CustomerInvoiceDetail.${index}.Amount`,
-                        0
-                      );
-                      method.setValue(
-                        `CustomerInvoiceDetail.${index}.Discount`,
-                        0
-                      );
-                      method.setValue(
-                        `CustomerInvoiceDetail.${index}.NetAmount`,
-                        0
-                      );
-                      setIsFree(true);
-                    } else {
-                      setIsFree(false);
-                    }
-                  }}
-                />
-              </>
-            )}
-          />
-        </td>
-        <td>
-          <CDropdown
-            control={method.control}
-            options={typesOptions}
-            name={`CustomerInvoiceDetail.${index}.InvoiceType`}
-            placeholder="Select an invoice type"
-            required={true}
-            showOnFocus={true}
-            disabled={disable}
-            focusOptions={() => method.setFocus(`detail.${index}.BusinessUnit`)}
-            onChange={(e) => {
-              setInvoiceType(e.value);
-              if (e.value === "Product") {
-                method.setValue(
-                  `CustomerInvoiceDetail.${index}.ServiceInfoID`,
-                  null
-                );
-              }
-            }}
-          />
-        </td>
+                  if (e.value) {
+                    method.setValue(`CustomerInvoiceDetail.${index}.Rate`, 0);
+                    method.setValue(`CustomerInvoiceDetail.${index}.Amount`, 0);
+                    method.setValue(
+                      `CustomerInvoiceDetail.${index}.Discount`,
+                      0
+                    );
+                    method.setValue(
+                      `CustomerInvoiceDetail.${index}.NetAmount`,
+                      0
+                    );
+                    setIsFree(true);
+                  } else {
+                    setIsFree(false);
+                  }
+                }}
+              />
+            </>
+          )}
+        />
+      </td>
+      <td>
+        <CDropdown
+          control={method.control}
+          options={typesOptions}
+          name={`CustomerInvoiceDetail.${index}.InvoiceType`}
+          placeholder="Select an invoice type"
+          required={true}
+          showOnFocus={true}
+          disabled={disable}
+          focusOptions={() => method.setFocus(`detail.${index}.BusinessUnit`)}
+          onChange={(e) => {
+            setInvoiceType(e.value);
+            if (e.value === "Product") {
+              method.setValue(
+                `CustomerInvoiceDetail.${index}.ServiceInfoID`,
+                null
+              );
+            }
+          }}
+        />
+      </td>
 
-        <td>
-          <CDropdown
-            control={method.control}
-            name={`CustomerInvoiceDetail.${index}.BusinessUnitID`}
-            optionLabel="BusinessUnitName"
-            optionValue="BusinessUnitID"
-            placeholder="Select a business unit"
-            options={BusinessUnitSelectData}
-            required={true}
-            disabled={disable}
-            onChange={(e) => {
-              setBusinessUnitID(e.value);
-              method.setValue(
-                `CustomerInvoiceDetail.${index}.ProductInfoID`,
-                []
-              );
-            }}
-            filter={true}
-            focusOptions={() => method.setFocus(`detail.${index}.BranchID`)}
-          />
-        </td>
-        {/* Customer Branch */}
-        <td>
-          <CDropdown
-            control={method.control}
-            name={`CustomerInvoiceDetail.${index}.CustomerBranch`}
-            optionLabel="BranchTitle"
-            optionValue="BranchID"
-            placeholder="Select a branch"
-            options={CustomerBranchSelectData}
-            required={true}
-            disabled={disable}
-            filter={true}
-            focusOptions={() =>
-              method.setFocus(`CustomerInvoiceDetail.${index}.ProductInfo`)
-            }
-          />
-        </td>
-        {/* Product Info */}
-        <td>
-          <CDropdown
-            control={method.control}
-            name={`CustomerInvoiceDetail.${index}.ProductInfoID`}
-            optionLabel="ProductInfoTitle"
-            optionValue="ProductInfoID"
-            placeholder="Select a product"
-            options={ProductsInfoSelectData}
-            required={true}
-            disabled={disable}
-            filter={true}
-            focusOptions={() =>
-              method.setFocus(`CustomerInvoiceDetail.${index}.Rate`)
-            }
-          />
-        </td>
-        {/* Service */}
-        <td>
-          <CDropdown
-            control={method.control}
-            name={`CustomerInvoiceDetail.${index}.ServiceInfoID`}
-            optionLabel="ProductInfoTitle"
-            optionValue="ProductInfoID"
-            placeholder="Select a service"
-            options={ServicesInfoSelectData}
-            required={
-              method.watch(`CustomerInvoiceDetail.${index}.InvoiceType`) ===
-              "Service"
-            }
-            disabled={
-              disable ||
-              method.watch(`CustomerInvoiceDetail.${index}.InvoiceType`) ===
-                "Product"
-            }
-            filter={true}
-            focusOptions={() =>
-              method.setFocus(`CustomerInvoiceDetail.${index}.Qty`)
-            }
-          />
-        </td>
-        <td>
-          <NumberInput
-            id={`CustomerInvoiceDetail.${index}.Qty`}
-            control={method.control}
-            onChange={(e) => {
-              const rate = parseFloat(
-                0 + method.getValues([`CustomerInvoiceDetail.${index}.Rate`])
-              );
-              const disc = parseFloat(
-                0 +
-                  method.getValues([`CustomerInvoiceDetail.${index}.Discount`])
-              );
-              method.setValue(
-                `CustomerInvoiceDetail.${index}.Amount`,
-                e.value * rate
-              );
-              method.setValue(
-                `CustomerInvoiceDetail.${index}.NetAmount`,
-                e.value * rate - disc
-              );
-            }}
-            disabled={disable}
-            inputClassName="form-control"
-            useGrouping={false}
-            enterKeyOptions={() => method.setFocus("Rate")}
-          />
-        </td>
-        <td>
-          <NumberInput
-            id={`CustomerInvoiceDetail.${index}.Rate`}
-            control={method.control}
-            onChange={(e) => {
-              const qty = parseFloat(
-                0 + method.getValues([`CustomerInvoiceDetail.${index}.Qty`])
-              );
-              const disc = parseFloat(
-                0 + method.getValues([`detail.${index}.Discount`])
-              );
-              method.setValue(
-                `CustomerInvoiceDetail.${index}.Amount`,
-                e.value * qty
-              );
-              method.setValue(
-                `CustomerInvoiceDetail.${index}.NetAmount`,
-                e.value * qty - disc
-              );
-              method.setValue(`CustomerInvoiceDetail.${index}.Rate`, e.value);
-            }}
-            disabled={
-              disable || method.watch(`CustomerInvoiceDetail.${index}.IsFree`)
-            }
-            mode="decimal"
-            maxFractionDigits={2}
-            inputClassName="form-control"
-            useGrouping={false}
-          />
-        </td>
-        <td>
-          <NumberInput
-            id={`CustomerInvoiceDetail.${index}.CGS`}
-            control={method.control}
-            onChange={(e) => {
-              method.setValue(`CustomerInvoiceDetail.${index}.CGS`, e.value);
-            }}
-            disabled={disable}
-            mode="decimal"
-            maxFractionDigits={2}
-            inputClassName="form-control"
-            useGrouping={false}
-          />
-        </td>
-        <td>
-          <NumberInput
-            id={`CustomerInvoiceDetail.${index}.Amount`}
-            control={method.control}
-            disabled={true}
-            mode="decimal"
-            maxFractionDigits={2}
-            inputClassName="form-control"
-            useGrouping={false}
-          />
-        </td>
-        <td>
-          <NumberInput
-            id={`CustomerInvoiceDetail.${index}.Discount`}
-            control={method.control}
-            onChange={(e) => {
-              const amount = parseFloat(
-                0 + method.getValues([`CustomerInvoiceDetail.${index}.Amount`])
-              );
+      <td>
+        <CDropdown
+          control={method.control}
+          name={`CustomerInvoiceDetail.${index}.BusinessUnitID`}
+          optionLabel="BusinessUnitName"
+          optionValue="BusinessUnitID"
+          placeholder="Select a business unit"
+          options={BusinessUnitSelectData}
+          required={true}
+          disabled={disable}
+          onChange={(e) => {
+            setBusinessUnitID(e.value);
+            method.setValue(`CustomerInvoiceDetail.${index}.ProductInfoID`, []);
+          }}
+          filter={true}
+          focusOptions={() => method.setFocus(`detail.${index}.BranchID`)}
+        />
+      </td>
+      {/* Customer Branch */}
+      <td>
+        <CDropdown
+          control={method.control}
+          name={`CustomerInvoiceDetail.${index}.CustomerBranch`}
+          optionLabel="BranchTitle"
+          optionValue="BranchID"
+          placeholder="Select a branch"
+          options={data}
+          required={true}
+          disabled={disable}
+          filter={true}
+          focusOptions={() =>
+            method.setFocus(`CustomerInvoiceDetail.${index}.ProductInfo`)
+          }
+        />
+      </td>
+      {/* Product Info */}
+      <td>
+        <CDropdown
+          control={method.control}
+          name={`CustomerInvoiceDetail.${index}.ProductInfoID`}
+          optionLabel="ProductInfoTitle"
+          optionValue="ProductInfoID"
+          placeholder="Select a product"
+          options={ProductsInfoSelectData}
+          required={true}
+          disabled={disable}
+          filter={true}
+          focusOptions={() =>
+            method.setFocus(`CustomerInvoiceDetail.${index}.Rate`)
+          }
+        />
+      </td>
+      {/* Service */}
+      <td>
+        <CDropdown
+          control={method.control}
+          name={`CustomerInvoiceDetail.${index}.ServiceInfoID`}
+          optionLabel="ProductInfoTitle"
+          optionValue="ProductInfoID"
+          placeholder="Select a service"
+          options={ServicesInfoSelectData}
+          required={
+            method.watch(`CustomerInvoiceDetail.${index}.InvoiceType`) ===
+            "Service"
+          }
+          disabled={
+            disable ||
+            method.watch(`CustomerInvoiceDetail.${index}.InvoiceType`) ===
+              "Product"
+          }
+          filter={true}
+          focusOptions={() =>
+            method.setFocus(`CustomerInvoiceDetail.${index}.Qty`)
+          }
+        />
+      </td>
+      <td>
+        <NumberInput
+          id={`CustomerInvoiceDetail.${index}.Qty`}
+          control={method.control}
+          onChange={(e) => {
+            const rate = parseFloat(
+              0 + method.getValues([`CustomerInvoiceDetail.${index}.Rate`])
+            );
+            const disc = parseFloat(
+              0 + method.getValues([`CustomerInvoiceDetail.${index}.Discount`])
+            );
+            method.setValue(
+              `CustomerInvoiceDetail.${index}.Amount`,
+              e.value * rate
+            );
+            method.setValue(
+              `CustomerInvoiceDetail.${index}.NetAmount`,
+              e.value * rate - disc
+            );
+          }}
+          disabled={disable}
+          inputClassName="form-control"
+          useGrouping={false}
+          enterKeyOptions={() => method.setFocus("Rate")}
+        />
+      </td>
+      <td>
+        <NumberInput
+          id={`CustomerInvoiceDetail.${index}.Rate`}
+          control={method.control}
+          onChange={(e) => {
+            const qty = parseFloat(
+              0 + method.getValues([`CustomerInvoiceDetail.${index}.Qty`])
+            );
+            const disc = parseFloat(
+              0 + method.getValues([`detail.${index}.Discount`])
+            );
+            method.setValue(
+              `CustomerInvoiceDetail.${index}.Amount`,
+              e.value * qty
+            );
+            method.setValue(
+              `CustomerInvoiceDetail.${index}.NetAmount`,
+              e.value * qty - disc
+            );
+            method.setValue(`CustomerInvoiceDetail.${index}.Rate`, e.value);
+          }}
+          disabled={
+            disable || method.watch(`CustomerInvoiceDetail.${index}.IsFree`)
+          }
+          mode="decimal"
+          maxFractionDigits={2}
+          inputClassName="form-control"
+          useGrouping={false}
+        />
+      </td>
+      <td>
+        <NumberInput
+          id={`CustomerInvoiceDetail.${index}.CGS`}
+          control={method.control}
+          onChange={(e) => {
+            method.setValue(`CustomerInvoiceDetail.${index}.CGS`, e.value);
+          }}
+          disabled={disable}
+          mode="decimal"
+          maxFractionDigits={2}
+          inputClassName="form-control"
+          useGrouping={false}
+        />
+      </td>
+      <td>
+        <NumberInput
+          id={`CustomerInvoiceDetail.${index}.Amount`}
+          control={method.control}
+          disabled={true}
+          mode="decimal"
+          maxFractionDigits={2}
+          inputClassName="form-control"
+          useGrouping={false}
+        />
+      </td>
+      <td>
+        <NumberInput
+          id={`CustomerInvoiceDetail.${index}.Discount`}
+          control={method.control}
+          onChange={(e) => {
+            const amount = parseFloat(
+              0 + method.getValues([`CustomerInvoiceDetail.${index}.Amount`])
+            );
 
-              method.setValue(
-                `CustomerInvoiceDetail.${index}.NetAmount`,
-                amount - e.value
-              );
-            }}
-            disabled={
-              disable || method.watch(`CustomerInvoiceDetail.${index}.IsFree`)
-            }
-            mode="decimal"
-            maxFractionDigits={2}
-            inputClassName="form-control"
-            useGrouping={false}
-          />
-        </td>
-        <td>
-          <NumberInput
-            id={`CustomerInvoiceDetail.${index}.NetAmount`}
-            control={method.control}
-            disabled={true}
-            mode="decimal"
-            maxFractionDigits={2}
-            inputClassName="form-control"
-            useGrouping={false}
-          />
-        </td>
-        <td>
-          <Form.Control
-            type="text"
-            as={"textarea"}
-            rows={1}
-            disabled={disable}
-            {...method.register(
-              `CustomerInvoiceDetail.${index}.DetailDescription`
-            )}
-          />
-        </td>
-        <td>
-          <Button
-            icon="pi pi-minus"
-            severity="danger"
-            size="sm"
-            type="button"
-            style={{
-              padding: "0.25rem .7rem",
-              borderRadius: "16px",
-              fontSize: "0.9em",
-            }}
-            onClick={() => remove(index)}
-          />
-        </td>
-      </tr>
-    </>
+            method.setValue(
+              `CustomerInvoiceDetail.${index}.NetAmount`,
+              amount - e.value
+            );
+          }}
+          disabled={
+            disable || method.watch(`CustomerInvoiceDetail.${index}.IsFree`)
+          }
+          mode="decimal"
+          maxFractionDigits={2}
+          inputClassName="form-control"
+          useGrouping={false}
+        />
+      </td>
+      <td>
+        <NumberInput
+          id={`CustomerInvoiceDetail.${index}.NetAmount`}
+          control={method.control}
+          disabled={true}
+          mode="decimal"
+          maxFractionDigits={2}
+          inputClassName="form-control"
+          useGrouping={false}
+        />
+      </td>
+      <td>
+        <Form.Control
+          type="text"
+          as={"textarea"}
+          rows={1}
+          disabled={disable}
+          {...method.register(
+            `CustomerInvoiceDetail.${index}.DetailDescription`
+          )}
+        />
+      </td>
+      <td>
+        <Button
+          icon="pi pi-minus"
+          severity="danger"
+          size="sm"
+          type="button"
+          style={{
+            padding: "0.25rem .7rem",
+            borderRadius: "16px",
+            fontSize: "0.9em",
+          }}
+          onClick={() => remove(index)}
+        />
+      </td>
+    </tr>
   );
 }
 
@@ -1764,21 +1691,12 @@ function CustomerInvoiceDetailTotal() {
 }
 
 const BranchSelectField = React.forwardRef((props, ref) => {
-  const [AccountID, setAccountID] = useState(0);
-  const { data } = useQuery({
-    queryKey: [SELECT_QUERY_KEYS.CUSTOMER_BRANCHES_SELECT_QUERY_KEY, AccountID],
-    queryFn: () => fetchAllCustomerBranchesData(AccountID),
-    enabled: AccountID !== 0,
-    initialData: [],
-  });
+  const { data, setAccountID } = useContext(CustomerBranchDataContext);
 
   const method = useFormContext();
 
   React.useImperativeHandle(ref, () => ({
     setAccountID,
-    getAccountID() {
-      return AccountID;
-    },
   }));
 
   return (
@@ -1818,3 +1736,22 @@ function DispatchDetailEvents(details) {
       ?.dispatchEvent(new Event("change"));
   }
 }
+
+const CustomerBranchDataContext = createContext();
+
+const CustomerBranchDataProvider = ({ children }) => {
+  const [AccountID, setAccountID] = useState(0);
+
+  const { data } = useQuery({
+    queryKey: [SELECT_QUERY_KEYS.CUSTOMER_BRANCHES_SELECT_QUERY_KEY, AccountID],
+    queryFn: () => fetchAllCustomerBranchesData(AccountID),
+    enabled: AccountID !== 0,
+    initialData: [],
+  });
+
+  return (
+    <CustomerBranchDataContext.Provider value={{ setAccountID, data }}>
+      {children}
+    </CustomerBranchDataContext.Provider>
+  );
+};
