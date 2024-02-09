@@ -22,7 +22,6 @@ import {
   fetchTehsilById,
 } from "../../api/TehsilData";
 import CDropdown from "../../components/Forms/CDropdown";
-import { LinkActionButtons } from "../../components/LinkActionButtons";
 import { useAllCountiesSelectData } from "../../hooks/SelectData/useSelectData";
 import { QUERY_KEYS, ROUTE_URLS } from "../../utils/enums";
 

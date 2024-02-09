@@ -44,6 +44,7 @@ import {
 } from "../../api/SelectData";
 import CDatePicker from "../../components/Forms/CDatePicker";
 import CNumberInput from "../../components/Forms/CNumberInput";
+import { useSessionSelectData } from "../../hooks/SelectData/useSelectData";
 
 const CreditNoteModeOptions = [
   { value: "Cash", label: "Cash" },
@@ -492,11 +493,12 @@ export function CreditNoteEntryForm({ pagesTitle, mode }) {
 
 // New Master Fields
 function SessionSelect({ mode }) {
-  const { data } = useQuery({
-    queryKey: [SELECT_QUERY_KEYS.SESSION_SELECT_QUERY_KEY],
-    queryFn: fetchAllSessionsForSelect,
-    initialData: [],
-  });
+  // const { data } = useQuery({
+  //   queryKey: [SELECT_QUERY_KEYS.SESSION_SELECT_QUERY_KEY],
+  //   queryFn: fetchAllSessionsForSelect,
+  //   initialData: [],
+  // });
+  const data = useSessionSelectData();
 
   const method = useFormContext();
 
@@ -521,7 +523,7 @@ function SessionSelect({ mode }) {
             optionLabel="SessionTitle"
             optionValue="SessionID"
             placeholder="Select a session"
-            options={data}
+            options={data.data}
             required={true}
             disabled={mode === "view"}
             focusOptions={() => method.setFocus("BusinessUnitID")}

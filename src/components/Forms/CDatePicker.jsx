@@ -30,6 +30,7 @@ const CDatePicker = ({
             showIcon={showIcon}
             hourFormat="12"
             disabled={disabled}
+            placeholder="Select a date"
           />
         </>
       )}

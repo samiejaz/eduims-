@@ -11,8 +11,7 @@ import "react-datepicker/dist/react-datepicker.css";
 
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { AuthProvier } from "./context/AuthContext";
-import { ActiveKeyProivder } from "./context/ActiveKeyContext";
-import { DataProivder } from "./context/DataContext";
+
 import { BrowserRouter } from "react-router-dom";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { AppConfigurationProivder } from "./context/AppConfigurationContext.jsx";
@@ -24,13 +23,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvier>
-          <ActiveKeyProivder>
-            <AppConfigurationProivder>
-              <DataProivder>
-                <App />
-              </DataProivder>
-            </AppConfigurationProivder>
-          </ActiveKeyProivder>
+          <AppConfigurationProivder>
+            <App />
+          </AppConfigurationProivder>
         </AuthProvier>
       </BrowserRouter>
       <ReactQueryDevtools initialIsOpen={false} />

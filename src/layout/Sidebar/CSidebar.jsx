@@ -348,27 +348,28 @@ const NotificationHandler = ({ toast }) => {
 
   useEffect(() => {
     connection.on("ReceiveNotification", (message) => {
-      toast.current.show({
-        severity: "success",
-        summary: message,
-        sticky: true,
-        content: (props) => (
-          <div
-            className="flex flex-column"
-            style={{ flex: "1", justifyContent: "start" }}
-          >
-            <Link
-              to={"/"}
-              style={{ alignSelf: "start", color: "#1ea97c" }}
-              onClick={() => toast.current.clear()}
-            >
-              <div className="font-medium text-lg my-3 text-900" style={{}}>
-                {props.message.summary}
-              </div>
-            </Link>
-          </div>
-        ),
-      });
+      console.log(message);
+      // toast.current.show({
+      //   severity: "success",
+      //   summary: message,
+      //   sticky: true,
+      //   content: (props) => (
+      //     <div
+      //       className="flex flex-column"
+      //       style={{ flex: "1", justifyContent: "start" }}
+      //     >
+      //       <Link
+      //         to={"/"}
+      //         style={{ alignSelf: "start", color: "#1ea97c" }}
+      //         onClick={() => toast.current.clear()}
+      //       >
+      //         <div className="font-medium text-lg my-3 text-900" style={{}}>
+      //           {props.message.summary}
+      //         </div>
+      //       </Link>
+      //     </div>
+      //   ),
+      // });
     });
     connection.on("ReceiveAllNotification", (message) => {
       toast.current.show(message);

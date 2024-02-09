@@ -21,7 +21,7 @@ import {
   fetchAllTehsilsForSelect,
   fetchAllUsersForSelect,
 } from "../../api/SelectData";
-import { SELECT_QUERY_KEYS } from "../../utils/enums";
+import { QUERY_KEYS, SELECT_QUERY_KEYS } from "../../utils/enums";
 
 // Activation Customers
 export function useActivationClientsSelectData(OldCustomerID = 0) {
@@ -75,9 +75,9 @@ export function useCustomerLedgersSelectData(CustomerID = 0) {
 // All Sessions
 export function useSessionSelectData() {
   const sessionSelectData = useQuery({
-    queryKey: ["sessionsData"],
-    queryFn: () => fetchAllSessionsForSelect(),
-    initialData: [],
+    queryKey: [SELECT_QUERY_KEYS.SESSION_SELECT_QUERY_KEY],
+    queryFn: fetchAllSessionsForSelect,
+    staleTime: 24 * 1000 * 60 * 60,
   });
 
   return sessionSelectData;
